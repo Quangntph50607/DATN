@@ -1,0 +1,55 @@
+// app/auth/login/page.tsx
+"use client";
+import { motion } from "framer-motion";
+import LoginForm from "./LoginForm";
+import ParticleBackground from "@/shared/ParticleBackground";
+
+export default function LoginPage() {
+  return (
+    <div className="min-h-screen relative overflow-hidden flex items-center justify-center bg-gradient-to-br from-primary/20 via-accent/20 to-destructive/20 animate-gradient-shift">
+      {/* Particle Background */}
+      <ParticleBackground />
+
+      {/* Animated Blobs */}
+      <div className="absolute inset-0 overflow-hidden">
+        <motion.div
+          animate={{
+            x: [0, 50, 0],
+            y: [0, -30, 0],
+            rotate: [0, 10, 0],
+          }}
+          transition={{
+            duration: 15,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+          className="absolute top-1/4 left-1/4 w-64 h-64 rounded-full bg-primary/10 blur-3xl"
+        />
+        <motion.div
+          animate={{
+            x: [0, -50, 0],
+            y: [0, 40, 0],
+            rotate: [0, -15, 0],
+          }}
+          transition={{
+            duration: 20,
+            repeat: Infinity,
+            delay: 2,
+            ease: "easeInOut",
+          }}
+          className="absolute bottom-1/4 right-1/4 w-72 h-72 rounded-full bg-accent/10 blur-3xl"
+        />
+      </div>
+
+      {/* Form Container */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: "backOut" }}
+        className="relative z-10 backdrop-blur-lg bg-card/80 p-8 rounded-3xl shadow-2xl border border-border w-full max-w-md mx-4"
+      >
+        <LoginForm />
+      </motion.div>
+    </div>
+  );
+}
