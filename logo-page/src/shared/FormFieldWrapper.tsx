@@ -20,7 +20,7 @@ export function FormFieldWrapper({
 }: FormFieldWrapperProps) {
   return (
     <FormItem className={className}>
-      <FormLabel className="text-gray-800 font-bold text-xl">{label}</FormLabel>
+      <FormLabel className="text-gray-400 font-bold text-xl">{label}</FormLabel>
       <FormControl>{children}</FormControl>
       <FormMessage />
     </FormItem>

@@ -1,7 +1,9 @@
 "use client";
+
 import { Button } from "@/components/ui/button";
 import { Loader } from "lucide-react";
 import { motion } from "framer-motion";
+import React from "react";
 
 type LoadingButtonProps = {
   isLoading: boolean;
@@ -15,32 +17,38 @@ export function LoadingButton({
   isLoading,
   disabled,
   children,
-  className,
+  className = "",
   variant = "default",
 }: LoadingButtonProps) {
   return (
     <motion.div
-      whileHover={!isLoading ? { scale: 1.02 } : {}}
-      whileTap={!isLoading ? { scale: 0.98 } : {}}
+      whileHover={!isLoading ? { scale: 1.03 } : {}}
+      whileTap={!isLoading ? { scale: 0.97 } : {}}
+      className="relative w-full"
     >
       <Button
-        className={`relative overflow-hidden ${className}`}
         disabled={isLoading || disabled}
         type="submit"
         variant={variant}
+        className={`relative overflow-hidden transition-opacity ${
+          isLoading ? "opacity-80 cursor-wait" : ""
+        } ${className}`}
       >
+        {/* Dải ánh sáng chạy ngang */}
         {isLoading && (
           <motion.div
-            className="absolute inset-0 bg-primary/20"
-            initial={{ width: 0 }}
-            animate={{ width: "100%" }}
-            transition={{ duration: 2, repeat: Infinity }}
+            className="absolute inset-0 bg-white/10 pointer-events-none"
+            initial={{ x: "-100%" }}
+            animate={{ x: "100%" }}
+            transition={{ duration: 1.2, repeat: Infinity }}
           />
         )}
-        <div className="flex items-center gap-2 z-10">
+
+        {/* Nội dung nút */}
+        <span className="flex items-center gap-2 z-10">
           {isLoading && <Loader className="h-4 w-4 animate-spin" />}
           {children}
-        </div>
+        </span>
       </Button>
     </motion.div>
   );

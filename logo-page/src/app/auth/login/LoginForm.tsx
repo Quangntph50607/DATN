@@ -13,6 +13,7 @@ import { FcGoogle } from "react-icons/fc";
 import { FaFacebookSquare } from "react-icons/fa";
 import Link from "next/link";
 import { useState } from "react";
+import { motion } from "framer-motion";
 
 const logInSchema = z.object({
   email: z
@@ -26,18 +27,29 @@ type LogInFormType = z.infer<typeof logInSchema>;
 
 export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
   const form = useForm<LogInFormType>({
     resolver: zodResolver(logInSchema),
     defaultValues: { email: "", password: "" },
   });
 
   const onSubmit = async (data: LogInFormType) => {
-    // Xử lý submit
-    console.log("Đăng nhập với:", data);
+    setIsLoading(true);
+    try {
+      console.log("Đăng kí với:" + data);
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+    } catch (error) {
+      console.error("Đăng kí thất bại", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <div className="space-y-4">
+      <h1 className="text-2xl font-bold text-center">Đăng nhập</h1>
+
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           {/* Email Field */}
@@ -46,13 +58,18 @@ export default function LoginForm() {
             name="email"
             render={({ field }) => (
               <FormFieldWrapper label="Email">
-                <InputWithIcon
-                  id="email"
-                  icon={Mail}
-                  type="email"
-                  placeholder="Nhập email..."
-                  {...field}
-                />
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  transition={{ type: "spring", stiffness: 200 }}
+                >
+                  <InputWithIcon
+                    id="email"
+                    icon={Mail}
+                    type="email"
+                    placeholder="Nhập email..."
+                    {...field}
+                  />
+                </motion.div>
               </FormFieldWrapper>
             )}
           />
@@ -64,13 +81,18 @@ export default function LoginForm() {
             render={({ field }) => (
               <FormFieldWrapper label="Mật khẩu">
                 <div className="relative">
-                  <InputWithIcon
-                    id="password"
-                    icon={LockKeyhole}
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Nhập mật khẩu..."
-                    {...field}
-                  />
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    transition={{ type: "spring", stiffness: 200 }}
+                  >
+                    <InputWithIcon
+                      id="password"
+                      icon={LockKeyhole}
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Nhập mật khẩu..."
+                      {...field}
+                    />
+                  </motion.div>
                   <PasswordToggle
                     showPassword={showPassword}
                     toggleShowPassword={() => setShowPassword((prev) => !prev)}
@@ -92,46 +114,41 @@ export default function LoginForm() {
 
           {/* Submit Button */}
           <LoadingButton
-            isLoading={form.formState.isSubmitting}
+            isLoading={isLoading}
             disabled={!form.formState.isValid}
-            className="w-full"
+            className="mt-4 w-full"
           >
-            Đăng nhập
+            Đăng ký
           </LoadingButton>
-
-          {/* Social Login Divider */}
-          <div className="flex items-center my-4">
-            <div className="flex-1 border-t border-border" />
-            <span className="px-3 text-sm text-muted-foreground">
-              Hoặc tiếp tục với
-            </span>
-            <div className="flex-1 border-t border-border" />
-          </div>
-
-          {/* Social Buttons */}
-          <div className="flex flex-col gap-3">
-            <SocialButton icon={FcGoogle} label="Google" variant="google" />
-            <SocialButton
-              icon={FaFacebookSquare}
-              label="Facebook"
-              variant="facebook"
-            />
-          </div>
-
-          {/* Sign Up Link */}
-          <div className="text-center text-sm mt-4">
-            <span className="text-muted-foreground">
-              Bạn chưa có tài khoản?{" "}
-            </span>
-            <Link
-              href="/auth/register"
-              className="text-primary hover:underline"
-            >
-              Đăng ký ngay
-            </Link>
-          </div>
         </form>
       </Form>
+
+      {/* Social Login Divider */}
+      <div className="flex items-center my-4">
+        <div className="flex-1 border-t border-border" />
+        <span className="px-3 text-sm text-muted-foreground">
+          Hoặc tiếp tục với
+        </span>
+        <div className="flex-1 border-t border-border" />
+      </div>
+
+      {/* Social Buttons */}
+      <div className="flex flex-col gap-3">
+        <SocialButton icon={FcGoogle} label="Google" variant="google" />
+        <SocialButton
+          icon={FaFacebookSquare}
+          label="Facebook"
+          variant="facebook"
+        />
+      </div>
+
+      {/* Sign Up Link */}
+      <div className="text-center text-sm mt-4">
+        <span className="text-muted-foreground">Bạn chưa có tài khoản? </span>
+        <Link href="/auth/register" className="text-primary hover:underline">
+          Đăng ký ngay
+        </Link>
+      </div>
     </div>
   );
 }

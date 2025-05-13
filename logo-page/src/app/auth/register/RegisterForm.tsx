@@ -1,16 +1,17 @@
 "use client";
-import { Button } from "@/components/ui/button";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Form, FormField } from "@/components/ui/form";
-import { Loader, LockKeyhole, Mail, User } from "lucide-react";
+import { LockKeyhole, Mail, User } from "lucide-react";
 import { InputWithIcon } from "@/shared/InputWithIcon";
 import { FormFieldWrapper } from "@/shared/FormFieldWrapper";
 import { PasswordToggle } from "@/shared/PasswordToggle";
 import Link from "next/link";
+import { LoadingButton } from "@/shared/LoadingButton";
+import { motion } from "framer-motion";
 
 const registerSchema = z
   .object({
@@ -65,14 +66,19 @@ export default function RegisterForm() {
             name="user_name"
             render={({ field }) => (
               <FormFieldWrapper label="Tên người dùng">
-                <InputWithIcon
-                  icon={User}
-                  id="user_name"
-                  type="text"
-                  placeholder="User name..."
-                  className=" text-gray-500 italic pl-10"
-                  {...field}
-                />
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  transition={{ type: "spring", stiffness: 200 }}
+                >
+                  <InputWithIcon
+                    icon={User}
+                    id="user_name"
+                    type="text"
+                    placeholder="User name..."
+                    className=" text-white italic pl-10"
+                    {...field}
+                  />
+                </motion.div>
               </FormFieldWrapper>
             )}
           />
@@ -81,13 +87,18 @@ export default function RegisterForm() {
             name="email"
             render={({ field }) => (
               <FormFieldWrapper label="Email">
-                <InputWithIcon
-                  id="email"
-                  icon={Mail}
-                  type="email"
-                  placeholder="Nhập email..."
-                  {...field}
-                />
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  transition={{ type: "spring", stiffness: 200 }}
+                >
+                  <InputWithIcon
+                    id="email"
+                    icon={Mail}
+                    type="email"
+                    placeholder="Nhập email..."
+                    {...field}
+                  />
+                </motion.div>
               </FormFieldWrapper>
             )}
           />
@@ -98,13 +109,19 @@ export default function RegisterForm() {
             render={({ field }) => (
               <FormFieldWrapper label="Mật khẩu">
                 <div className="relative">
-                  <InputWithIcon
-                    id="password"
-                    icon={LockKeyhole}
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Nhập mật khẩu..."
-                    {...field}
-                  />
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    transition={{ type: "spring", stiffness: 200 }}
+                  >
+                    <InputWithIcon
+                      id="password"
+                      icon={LockKeyhole}
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Nhập mật khẩu..."
+                      {...field}
+                    />
+                  </motion.div>
+
                   <PasswordToggle
                     showPassword={showPassword}
                     toggleShowPassword={() => setShowPassword((prev) => !prev)}
@@ -120,13 +137,19 @@ export default function RegisterForm() {
             render={({ field }) => (
               <FormFieldWrapper label="Mật khẩu xác nhận">
                 <div className="relative">
-                  <InputWithIcon
-                    id="confirmPassword"
-                    icon={LockKeyhole}
-                    type={showPasswordConfirm ? "text" : "password"}
-                    placeholder="..."
-                    {...field}
-                  />
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    transition={{ type: "spring", stiffness: 200 }}
+                  >
+                    <InputWithIcon
+                      id="confirmPassword"
+                      icon={LockKeyhole}
+                      type={showPasswordConfirm ? "text" : "password"}
+                      placeholder="..."
+                      {...field}
+                    />
+                  </motion.div>
+
                   <PasswordToggle
                     showPassword={showPasswordConfirm}
                     toggleShowPassword={() =>
@@ -138,25 +161,13 @@ export default function RegisterForm() {
             )}
           />
 
-          <Button
-            className={`w-full  mt-5 transition-opacity ${
-              form.formState.isValid
-                ? //nút sáng
-                  "opacity-100"
-                : // nút mờ và bị cấm trỏ chuột
-                  "opacity-50 cursor-not-allowed"
-            }`}
+          <LoadingButton
+            isLoading={isLoading}
             disabled={!form.formState.isValid}
+            className="mt-4 w-full"
           >
-            {isLoading ? (
-              <div className="flex justify-center gap-2  items-center">
-                <Loader />
-                Đang đăng ký
-              </div>
-            ) : (
-              "Đăng ký"
-            )}
-          </Button>
+            Đăng ký
+          </LoadingButton>
 
           {/* Sign In Link */}
           <div className="text-center text-sm mt-4">

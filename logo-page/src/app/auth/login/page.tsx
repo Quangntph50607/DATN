@@ -3,12 +3,25 @@
 import { motion } from "framer-motion";
 import LoginForm from "./LoginForm";
 import ParticleBackground from "@/shared/ParticleBackground";
+import Image from "next/image";
+import LegoBricks from "@/shared/LegoBricks";
 
 export default function LoginPage() {
   return (
     <div className="min-h-screen relative overflow-hidden flex items-center justify-center bg-gradient-to-br from-primary/20 via-accent/20 to-destructive/20 animate-gradient-shift">
       {/* Particle Background */}
       <ParticleBackground />
+      <LegoBricks />
+
+      {/*  LEGO background layer */}
+      <div className="absolute inset-0 z-0 opacity-10">
+        <Image
+          src="/images/bg_lego.jpg"
+          alt="lego background"
+          fill
+          className="object-cover"
+        />
+      </div>
 
       {/* Animated Blobs */}
       <div className="absolute inset-0 overflow-hidden">

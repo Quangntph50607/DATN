@@ -16,14 +16,14 @@ export const InputWithIcon = forwardRef<HTMLInputElement, InputWithIconProps>(
   ({ icon: Icon, id, placeholder, type, className, ...field }, ref) => {
     return (
       <div className="relative">
-        <span className="absolute inset-y-0 left-0 pl-3 items-center flex">
+        <span className="absolute inset-y-0 left-0 pl-3 items-center flex ">
           <Icon />
         </span>
         <Input
           id={id}
           type={type}
           placeholder={placeholder}
-          className={`h-12 text-gray-500 italic pl-10 ${className}`}
+          className={`h-12 text-white italic pl-10 ${className}`}
           {...field}
           ref={ref}
         />

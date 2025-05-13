@@ -76,9 +76,20 @@
   --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
   --sidebar-border: oklch(0.92 0.004 286.32);
   --sidebar-ring: oklch(0.705 0.015 286.067);
+  --primary: 210 100% 50%;
+    /* Màu xanh dương sáng Lego */
+    --accent: 40 100% 50%;
+    /* Màu cam Lego */
+    --destructive: 0 100% 50%;
+    --background: 0 0% 98%;
+    /* Nền trắng sáng */
+    --card: 0 0% 100%;
 }
 
 .dark {
+  --primary: 210 80% 60%;
+    --accent: 40 80% 60%;
+    --background: 0 0% 10%;
   --background: oklch(0.141 0.005 285.823);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.21 0.006 285.885);
@@ -110,6 +121,28 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.552 0.016 285.938);
+}
+
+
+
+/* globals.css */
+.lego-grid {
+  background-image: 
+    radial-gradient(circle at 1px 1px, 
+      rgba(0,0,0,0.1) 1px, 
+      transparent 0);
+  background-size: 40px 40px;
+}
+
+.lego-brick {
+  width: 40px;
+  height: 20px;
+  border-radius: 4px;
+  position: absolute;
+  box-shadow: 
+    0 4px 8px rgba(0,0,0,0.1),
+    inset 0 -2px 0 rgba(0,0,0,0.1),
+    inset 0 2px 0 rgba(255,255,255,0.2);
 }
 
 @layer base {
