@@ -14,38 +14,56 @@ import { FaFacebookSquare } from "react-icons/fa";
 import Link from "next/link";
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 
 const logInSchema = z.object({
   email: z
     .string()
     .nonempty("Email không được trống")
     .email("Email không hợp lệ"),
-  password: z.string().min(6, "Mật khẩu tối thiểu 6 kí tự"),
+  matKhau: z.string().min(6, "Mật khẩu tối thiểu 6 kí tự"),
 });
 
 type LogInFormType = z.infer<typeof logInSchema>;
 
+//mockLogin
+const mockUser = [
+  { email: "abc123@gmail.com", matKhau: "123456" },
+  { email: "admin@gmail.com", matKhau: "123456" },
+];
 export default function LoginForm() {
-  const [showPassword, setShowPassword] = useState(false);
+  const [showmatKhau, setShowmatKhau] = useState(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const router = useRouter();
 
   const form = useForm<LogInFormType>({
     resolver: zodResolver(logInSchema),
-    defaultValues: { email: "", password: "" },
+    defaultValues: { email: "", matKhau: "" },
   });
 
   const onSubmit = async (data: LogInFormType) => {
     setIsLoading(true);
     try {
-      console.log("Đăng kí với:" + data);
+      const user = mockUser.find(
+        (u) => u.email === data.email && u.matKhau === data.matKhau
+      );
+      if (!user) {
+        throw new Error("Email hoặc mật khẩu không đúng");
+      }
+      console.log("Đăng nhập thành công:", data);
       await new Promise((resolve) => setTimeout(resolve, 2000));
+      router.push("/dashboard");
+
+      console.log(router);
     } catch (error) {
-      console.error("Đăng kí thất bại", error);
+      console.error("Đăng nhập thất bại:", error);
+      // Hiển thị thông báo lỗi cho người dùng
+      form.setError("email", { message: "Email hoặc mật khẩu không đúng" });
+      form.setError("matKhau", { message: "Email hoặc mật khẩu không đúng" });
     } finally {
       setIsLoading(false);
     }
   };
-
   return (
     <div className="space-y-4">
       <h1 className="text-2xl font-bold text-center">Đăng nhập</h1>
@@ -74,10 +92,10 @@ export default function LoginForm() {
             )}
           />
 
-          {/* Password Field */}
+          {/* matKhau Field */}
           <FormField
             control={form.control}
-            name="password"
+            name="matKhau"
             render={({ field }) => (
               <FormFieldWrapper label="Mật khẩu">
                 <div className="relative">
@@ -86,23 +104,24 @@ export default function LoginForm() {
                     transition={{ type: "spring", stiffness: 200 }}
                   >
                     <InputWithIcon
-                      id="password"
+                      id="matKhau"
                       icon={LockKeyhole}
-                      type={showPassword ? "text" : "password"}
+                      type={showmatKhau ? "text" : "password"}
                       placeholder="Nhập mật khẩu..."
+                      autoComplete="off"
                       {...field}
                     />
                   </motion.div>
                   <PasswordToggle
-                    showPassword={showPassword}
-                    toggleShowPassword={() => setShowPassword((prev) => !prev)}
+                    showPassword={showmatKhau}
+                    toggleShowPassword={() => setShowmatKhau((prev) => !prev)}
                   />
                 </div>
               </FormFieldWrapper>
             )}
           />
 
-          {/* Forgot Password */}
+          {/* Forgot matKhau */}
           <div className="text-right">
             <Link
               href="/forgot-password"
@@ -118,7 +137,7 @@ export default function LoginForm() {
             disabled={!form.formState.isValid}
             className="mt-4 w-full"
           >
-            Đăng ký
+            Đăng nhập
           </LoadingButton>
         </form>
       </Form>

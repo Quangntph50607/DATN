@@ -1,19 +1,18 @@
-// app/auth/login/page.tsx
 "use client";
 import { motion } from "framer-motion";
-import LoginForm from "./LoginForm";
 import ParticleBackground from "@/shared/ParticleBackground";
 import Image from "next/image";
 import LegoBricks from "@/shared/LegoBricks";
-
+import LoginForm from "./LoginForm";
 export default function LoginPage() {
   return (
     <div className="min-h-screen relative overflow-hidden flex items-center justify-center bg-gradient-to-br from-primary/20 via-accent/20 to-destructive/20 animate-gradient-shift">
       {/* Particle Background */}
       <ParticleBackground />
+
       <LegoBricks />
 
-      {/*  LEGO background layer */}
+      {/* LEGO background layer */}
       <div className="absolute inset-0 z-0 opacity-10">
         <Image
           src="/images/bg_lego.jpg"
@@ -36,7 +35,7 @@ export default function LoginPage() {
             repeat: Infinity,
             ease: "easeInOut",
           }}
-          className="absolute top-1/4 left-1/4 w-64 h-64 rounded-full bg-primary/10 blur-3xl"
+          className="backdrop-blur-lg bg-card/80 p-8 rounded-3xl"
         />
         <motion.div
           animate={{

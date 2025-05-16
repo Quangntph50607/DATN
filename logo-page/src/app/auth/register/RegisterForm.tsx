@@ -12,6 +12,7 @@ import { PasswordToggle } from "@/shared/PasswordToggle";
 import Link from "next/link";
 import { LoadingButton } from "@/shared/LoadingButton";
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 
 const registerSchema = z
   .object({
@@ -19,11 +20,11 @@ const registerSchema = z
       .string()
       .nonempty("Không để trống")
       .min(3, "Tên tối thiểu 3 ký tự"),
-    email: z.string().email("Email không hợp lệ"),
-    password: z.string().min(6, "Mật khảu phải tối thiểu 6 ký tự"),
+    email: z.string().nonempty("Email không trống").email("Email không hợp lệ"),
+    matKhau: z.string().min(6, "Mật khảu phải tối thiểu 6 ký tự"),
     confirmPassword: z.string(),
   })
-  .refine((data) => data.password === data.confirmPassword, {
+  .refine((data) => data.matKhau === data.confirmPassword, {
     message: "Mật khẩu không khớp",
     path: ["confirmPassword"],
   });
@@ -33,12 +34,13 @@ export default function RegisterForm() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [showPasswordConfirm, setShowPasswordCofirm] = useState<boolean>(false);
+  const router = useRouter();
   const form = useForm<RegisterForm>({
     mode: "onTouched",
     defaultValues: {
       user_name: "",
       email: "",
-      password: "",
+      matKhau: "",
       confirmPassword: "",
     },
     resolver: zodResolver(registerSchema),
@@ -46,10 +48,21 @@ export default function RegisterForm() {
   const onSubmit = async (data: RegisterForm) => {
     setIsLoading(true);
     try {
-      console.log("Đăng kí với:" + data);
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      // Mock API call - Thay bằng API thật sau này
+      console.log("Mock đăng ký thành công:", data);
+      await new Promise((resolve) => setTimeout(resolve, 1500)); // Giả lập delay
+
+      // Kiểm tra dữ liệu mock trước khi chuyển hướng
+      if (data.email && data.matKhau) {
+        router.push("/dashboard");
+      } else {
+        throw new Error("Dữ liệu không hợp lệ");
+      }
     } catch (error) {
-      console.error("Đăng kí thất bại", error);
+      console.error("Lỗi mock:", error);
+      form.setError("root", {
+        message: "Đã có lỗi xảy ra (đang dùng mock data)",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -105,7 +118,7 @@ export default function RegisterForm() {
           {/* Password Field */}
           <FormField
             control={form.control}
-            name="password"
+            name="matKhau"
             render={({ field }) => (
               <FormFieldWrapper label="Mật khẩu">
                 <div className="relative">
@@ -114,10 +127,11 @@ export default function RegisterForm() {
                     transition={{ type: "spring", stiffness: 200 }}
                   >
                     <InputWithIcon
-                      id="password"
+                      id="matKhau"
                       icon={LockKeyhole}
                       type={showPassword ? "text" : "password"}
                       placeholder="Nhập mật khẩu..."
+                      autoComplete="off"
                       {...field}
                     />
                   </motion.div>
@@ -146,6 +160,7 @@ export default function RegisterForm() {
                       icon={LockKeyhole}
                       type={showPasswordConfirm ? "text" : "password"}
                       placeholder="..."
+                      autoComplete="off"
                       {...field}
                     />
                   </motion.div>

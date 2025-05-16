@@ -1,9 +1,9 @@
 import React from "react";
-import LoginForm from "./auth/login/LoginForm";
+import LoginPage from "./auth/login/page";
 export default function page() {
   return (
-    <main className="flex min-h-screen items-center justify-center">
-      <LoginForm />
+    <main className="">
+      <LoginPage />
     </main>
   );
 }

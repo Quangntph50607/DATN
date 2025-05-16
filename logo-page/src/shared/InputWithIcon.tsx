@@ -10,10 +10,14 @@ type InputWithIconProps = {
   type: string;
   className?: string;
   field?: Partial<React.InputHTMLAttributes<HTMLInputElement>>;
+  autoComplete?: string;
 };
 
 export const InputWithIcon = forwardRef<HTMLInputElement, InputWithIconProps>(
-  ({ icon: Icon, id, placeholder, type, className, ...field }, ref) => {
+  (
+    { icon: Icon, id, placeholder, type, className, autoComplete, ...field },
+    ref
+  ) => {
     return (
       <div className="relative">
         <span className="absolute inset-y-0 left-0 pl-3 items-center flex ">
@@ -23,7 +27,8 @@ export const InputWithIcon = forwardRef<HTMLInputElement, InputWithIconProps>(
           id={id}
           type={type}
           placeholder={placeholder}
-          className={`h-12 text-white italic pl-10 ${className}`}
+          className={`h-12 text-white  gap-3 italic pl-10 ${className}`}
+          autoComplete={autoComplete}
           {...field}
           ref={ref}
         />
