@@ -20,9 +20,9 @@ export function PasswordToggle({
       aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
     >
       {showPassword ? (
-        <EyeOff className="h-5 w-5 text-gray-500" />
+        <EyeOff className="h-5 w-5 text-gray-700" />
       ) : (
-        <Eye className="h-5 w-5 text-gray-500" />
+        <Eye className="h-5 w-5 text-gray-700" />
       )}
     </span>
   );

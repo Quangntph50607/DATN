@@ -127,18 +127,15 @@ input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
 input:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0 1000px var(--card) inset !important;
-  -webkit-text-fill-color: var(--foreground) !important;
-  caret-color: var(--foreground) !important; /* Giữ màu con trỏ */
-  border-color: var(--border) !important;
+  -webkit-box-shadow: 0 0 0 1000px var(--card, #ffffff) inset !important;
+  -webkit-text-fill-color: var(--foreground, #7f1717) !important;
+  caret-color: var(--foreground, #b47f7f) !important;
+  border-color: var(--border, #e5e7eb) !important;
 }
-
 /* Đảm bảo transition mượt */
 input {
-  transition: background-color 5000s ease-in-out 0s, color 5000s ease-in-out 0s;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
-
-
 
 /* globals.css */
 .lego-grid {
@@ -167,6 +164,98 @@ input {
 
 .input-custom:focus {
   @apply bg-card/80 outline-none ring-2 ring-ring/50;
+}
+
+/* Hiệu ứng LEGO cho Header */
+.lego-header-shadow {
+  box-shadow:
+    0 4px 0 rgba(0, 0, 0, 0.2),
+    inset 0 -4px 0 rgba(0, 0, 0, 0.1),
+    inset 0 4px 0 rgba(255, 255, 255, 0.1);
+  border-bottom: 4px solid #000;
+}
+
+.lego-nav-link:hover {
+  @apply text-yellow-300;
+  transform: translateY(-2px);
+}
+
+.lego-nav-link::before {
+  content: "";
+  @apply absolute top-1 left-1 right-1 h-1 rounded-full;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.lego-search-container {
+  @apply relative flex items-center;
+  min-width: 250px;
+}
+
+.lego-search-input {
+  @apply pr-10 rounded-lg border-2 border-black;
+  height: 40px;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.2);
+}
+
+.lego-search-button {
+  @apply absolute right-1 top-1/2 -translate-y-1/2;
+  background-color: #FFD700;
+  border: 2px solid #000;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.2);
+  width: 32px;
+  height: 32px;
+}
+
+.lego-search-button:hover {
+  background-color: #FFC000;
+}
+
+.lego-login-button {
+  @apply relative overflow-hidden font-bold;
+  background-color: #FFD700;
+  color: #000;
+  border: 2px solid #000;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.2);
+  padding: 0.5rem 1.5rem;
+}
+
+.lego-login-button:hover {
+  background-color: #FFC000;
+  transform: translateY(-1px);
+}
+
+/* Hiệu ứng "nút" LEGO */
+.lego-button-text {
+  position: relative;
+  z-index: 1;
+}
+
+.lego-login-button::before,
+.lego-login-button::after {
+  content: "";
+  @apply absolute top-1 w-2 h-2 rounded-full;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.lego-login-button::before {
+  left: 8px;
+}
+
+.lego-login-button::after {
+  right: 8px;
+}
+
+.lego-brick-text {
+  position: relative;
+  display: inline-block;
+  padding-bottom: 2px;
+}
+
+.lego-brick-text::after {
+  content: "";
+  @apply absolute bottom-0 left-0 w-full h-1;
+  background: rgba(255, 215, 0, 0.5);
+  border-radius: 2px;
 }
 
 @layer base {

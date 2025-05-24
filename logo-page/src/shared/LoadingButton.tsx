@@ -37,7 +37,7 @@ export function LoadingButton({
         {/* Dải ánh sáng chạy ngang */}
         {isLoading && (
           <motion.div
-            className="absolute inset-0 bg-white/10 pointer-events-none"
+            className="absolute inset-0 bg-white/20 pointer-events-none"
             initial={{ x: "-100%" }}
             animate={{ x: "100%" }}
             transition={{ duration: 1.2, repeat: Infinity }}

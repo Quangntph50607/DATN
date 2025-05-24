@@ -15,58 +15,67 @@ import Link from "next/link";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
+import { authenService } from "@/service/authService";
 
 const logInSchema = z.object({
   email: z
     .string()
     .nonempty("Email không được trống")
     .email("Email không hợp lệ"),
-  matKhau: z.string().min(6, "Mật khẩu tối thiểu 6 kí tự"),
+  matKhau: z
+    .string()
+    .min(6, "Mật khẩu tối thiểu 6 kí tự")
+    .max(15, "Mật khẩu không vượt quá 15 ký tự"),
 });
 
 type LogInFormType = z.infer<typeof logInSchema>;
 
-//mockLogin
-const mockUser = [
-  { email: "abc123@gmail.com", matKhau: "123456" },
-  { email: "admin@gmail.com", matKhau: "123456" },
-];
 export default function LoginForm() {
   const [showmatKhau, setShowmatKhau] = useState(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+
   const router = useRouter();
 
   const form = useForm<LogInFormType>({
     resolver: zodResolver(logInSchema),
+    mode: "onTouched",
     defaultValues: { email: "", matKhau: "" },
   });
-
   const onSubmit = async (data: LogInFormType) => {
     setIsLoading(true);
     try {
-      const user = mockUser.find(
-        (u) => u.email === data.email && u.matKhau === data.matKhau
-      );
-      if (!user) {
-        throw new Error("Email hoặc mật khẩu không đúng");
-      }
-      console.log("Đăng nhập thành công:", data);
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      router.push("/dashboard");
+      await authenService.login(data.email, data.matKhau);
 
-      console.log(router);
-    } catch (error) {
-      console.error("Đăng nhập thất bại:", error);
-      // Hiển thị thông báo lỗi cho người dùng
-      form.setError("email", { message: "Email hoặc mật khẩu không đúng" });
-      form.setError("matKhau", { message: "Email hoặc mật khẩu không đúng" });
+      router.push("/");
+    } catch (error: unknown) {
+      console.error("Lỗi:", error);
+      if (error instanceof Error) {
+        form.setError("email", { message: error.message });
+        form.setError("matKhau", { message: error.message });
+      } else if (
+        typeof error === "object" &&
+        error !== null &&
+        "message" in error
+      ) {
+        // Nếu error là một đối tượng có thuộc tính 'message' (ví dụ: từ API)
+        form.setError("email", {
+          message: (error as { message: string }).message,
+        });
+        form.setError("matKhau", {
+          message: (error as { message: string }).message,
+        });
+      } else {
+        form.setError("email", { message: "Đã xảy ra lỗi không xác định" });
+        form.setError("matKhau", { message: "Đã xảy ra lỗi không xác định" });
+      }
     } finally {
       setIsLoading(false);
     }
   };
+
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold text-center">Đăng nhập</h1>
+      <h1 className="text-2xl font-bold text-center text-black">Đăng nhập</h1>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -124,8 +133,8 @@ export default function LoginForm() {
           {/* Forgot matKhau */}
           <div className="text-right">
             <Link
-              href="/forgot-password"
-              className="text-sm text-primary hover:underline"
+              href="/auth/forgot-password"
+              className="text-sm text-gray-800 hover:underline"
             >
               Quên mật khẩu?
             </Link>
@@ -135,7 +144,7 @@ export default function LoginForm() {
           <LoadingButton
             isLoading={isLoading}
             disabled={!form.formState.isValid}
-            className="mt-4 w-full"
+            className="w-full bg-black  text-white font-semibol shadow-md  hover:bg-black/80"
           >
             Đăng nhập
           </LoadingButton>
@@ -145,15 +154,13 @@ export default function LoginForm() {
       {/* Social Login Divider */}
       <div className="flex items-center my-4">
         <div className="flex-1 border-t border-border" />
-        <span className="px-3 text-sm text-muted-foreground">
-          Hoặc tiếp tục với
-        </span>
+        <span className="px-3 text-sm text-gray-600">Hoặc tiếp tục với</span>
         <div className="flex-1 border-t border-border" />
       </div>
 
       {/* Social Buttons */}
       <div className="flex flex-col gap-3">
-        <SocialButton icon={FcGoogle} label="Google" variant="google" />
+        <SocialButton icon={FcGoogle} label="Google" variant="default" />
         <SocialButton
           icon={FaFacebookSquare}
           label="Facebook"
@@ -163,8 +170,8 @@ export default function LoginForm() {
 
       {/* Sign Up Link */}
       <div className="text-center text-sm mt-4">
-        <span className="text-muted-foreground">Bạn chưa có tài khoản? </span>
-        <Link href="/auth/register" className="text-primary hover:underline">
+        <span className="text-gray-700">Bạn chưa có tài khoản? </span>
+        <Link href="/auth/register" className="text-black hover:underline">
           Đăng ký ngay
         </Link>
       </div>

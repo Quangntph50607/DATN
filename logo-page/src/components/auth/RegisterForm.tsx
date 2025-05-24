@@ -13,15 +13,21 @@ import Link from "next/link";
 import { LoadingButton } from "@/shared/LoadingButton";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
+import { authenService } from "@/service/authService";
 
 const registerSchema = z
   .object({
     user_name: z
       .string()
       .nonempty("Không để trống")
-      .min(3, "Tên tối thiểu 3 ký tự"),
+      .min(3, "Tên tối thiểu 3 ký tự")
+      .regex(/^[a-zA-Z_-]+$/, "Tên không được có số hoặc ký tự đặc biệt"),
     email: z.string().nonempty("Email không trống").email("Email không hợp lệ"),
-    matKhau: z.string().min(6, "Mật khảu phải tối thiểu 6 ký tự"),
+    matKhau: z
+      .string()
+      .min(6, "Mật khảu phải tối thiểu 6 ký tự")
+      .max(15, "Mật khẩu không vượt quá 15 ký tự"),
+
     confirmPassword: z.string(),
   })
   .refine((data) => data.matKhau === data.confirmPassword, {
@@ -48,21 +54,36 @@ export default function RegisterForm() {
   const onSubmit = async (data: RegisterForm) => {
     setIsLoading(true);
     try {
-      // Mock API call - Thay bằng API thật sau này
-      console.log("Mock đăng ký thành công:", data);
-      await new Promise((resolve) => setTimeout(resolve, 1500)); // Giả lập delay
-
-      // Kiểm tra dữ liệu mock trước khi chuyển hướng
-      if (data.email && data.matKhau) {
-        router.push("/dashboard");
+      const reponse = await authenService.register(
+        data.user_name,
+        data.email,
+        data.matKhau
+      );
+      console.log("Đăng ký thành công:", reponse.message);
+      setTimeout(() => {
+        router.push("/");
+      }, 2000);
+    } catch (error: unknown) {
+      console.error("Lỗi:", error);
+      if (error instanceof Error) {
+        form.setError("email", { message: error.message });
+        form.setError("matKhau", { message: error.message });
+      } else if (
+        typeof error === "object" &&
+        error !== null &&
+        "message" in error
+      ) {
+        // Nếu error là một đối tượng có thuộc tính 'message' (ví dụ: từ API)
+        form.setError("email", {
+          message: (error as { message: string }).message,
+        });
+        form.setError("matKhau", {
+          message: (error as { message: string }).message,
+        });
       } else {
-        throw new Error("Dữ liệu không hợp lệ");
+        form.setError("email", { message: "Đã xảy ra lỗi không xác định" });
+        form.setError("matKhau", { message: "Đã xảy ra lỗi không xác định" });
       }
-    } catch (error) {
-      console.error("Lỗi mock:", error);
-      form.setError("root", {
-        message: "Đã có lỗi xảy ra (đang dùng mock data)",
-      });
     } finally {
       setIsLoading(false);
     }
@@ -70,7 +91,7 @@ export default function RegisterForm() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold text-center">Đăng ký</h1>
+      <h1 className="text-2xl font-bold text-center text-black">Đăng ký</h1>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -88,7 +109,6 @@ export default function RegisterForm() {
                     id="user_name"
                     type="text"
                     placeholder="User name..."
-                    className=" text-white italic pl-10"
                     {...field}
                   />
                 </motion.div>
@@ -179,15 +199,14 @@ export default function RegisterForm() {
           <LoadingButton
             isLoading={isLoading}
             disabled={!form.formState.isValid}
-            className="mt-4 w-full"
+            className="w-full bg-black  text-white  font-semibol shadow-md  hover:bg-black/80"
           >
             Đăng ký
           </LoadingButton>
-
           {/* Sign In Link */}
           <div className="text-center text-sm mt-4">
-            <span className="text-muted-foreground">Bạn đã có tài khoản? </span>
-            <Link href="/auth/login" className="text-primary hover:underline">
+            <span className="text-gray-700">Bạn đã có tài khoản? </span>
+            <Link href="/auth/login" className="text-black hover:underline">
               Đăng nhập
             </Link>
           </div>

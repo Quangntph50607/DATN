@@ -47,7 +47,9 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="max-w-md mx-auto py-10">
-      <h1 className="text-2xl font-bold mb-6 text-center">Quên mật khẩu</h1>
+      <h1 className="text-2xl font-bold mb-6 text-center text-black">
+        Quên mật khẩu
+      </h1>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -77,7 +79,7 @@ export default function ForgotPasswordPage() {
           <LoadingButton
             isLoading={isLoading}
             disabled={!form.formState.isValid}
-            className="w-full"
+            className="w-full bg-black  text-white font-semibol shadow-md  hover:bg-black/80"
           >
             Gửi email khôi phục
           </LoadingButton>

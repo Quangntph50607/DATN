@@ -3,17 +3,17 @@ import { motion } from "framer-motion";
 import ParticleBackground from "@/shared/ParticleBackground";
 import Image from "next/image";
 import LegoBricks from "@/shared/LegoBricks";
-import LoginForm from "@/components/auth/LoginForm";
+import ForgotPasswordPage from "@/components/auth/FortgotPasswork";
 export default function LoginPage() {
   return (
-    <div className="min-h-screen relative overflow-hidden flex items-center justify-center bg-gradient-to-br from-primary/20 via-accent/20 to-destructive/30 animate-gradient-shift">
+    <div className="min-h-screen relative overflow-hidden flex items-center justify-center bg-gradient-to-br from-primary/20 via-accent/60 to-destructive/30 animate-gradient-shift">
       {/* Particle Background */}
       <ParticleBackground />
 
       <LegoBricks />
 
       {/* LEGO background layer */}
-      <div className="absolute inset-0 z-0 opacity-25">
+      <div className="absolute inset-0 z-0 opacity-10">
         <Image
           src="/images/3-1.png"
           alt="lego background"
@@ -60,7 +60,7 @@ export default function LoginPage() {
         transition={{ duration: 0.5, ease: "backOut" }}
         className="relative z-10 backdrop-blur-lg bg-yellow-200 p-8 rounded-3xl shadow-2xl border border-border w-full max-w-md mx-4"
       >
-        <LoginForm />
+        <ForgotPasswordPage />
       </motion.div>
     </div>
   );

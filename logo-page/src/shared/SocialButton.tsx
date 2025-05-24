@@ -19,8 +19,9 @@ export default function SocialButton({
   variant = "default",
 }: SocialButtonProps) {
   const variantClasses = {
-    google: "bg-white text-gray-300 hover:bg-gray-100 border border-gray-300",
-    facebook: "bg-[#1877F2] text-white hover:bg-[#166FE5]",
+    google:
+      "bg-white text-gray-700 hover:bg-gray-100 border border-gray-700  rounded-md",
+    facebook: "bg-[#1877F2] text-white hover:bg-[#166FE5]  rounded-md",
     default: "",
   };
 
@@ -29,7 +30,7 @@ export default function SocialButton({
       <Button
         className={`w-full flex items-center gap-3 justify-center transition-all ${variantClasses[variant]} ${className}`}
         onClick={onClick}
-        variant={variant === "default" ? "default" : "outline"}
+        variant={variant === "google" ? "outline" : "default"}
         type="button"
       >
         <Icon

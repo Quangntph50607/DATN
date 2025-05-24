@@ -21,15 +21,19 @@ export const InputWithIcon = forwardRef<HTMLInputElement, InputWithIconProps>(
     return (
       <div className="relative">
         <span className="absolute inset-y-0 left-0 pl-3 items-center flex ">
-          <Icon />
+          <Icon className="text-black" />
         </span>
         <Input
           id={id}
           type={type}
           placeholder={placeholder}
-          className={`h-12 text-white  gap-3 italic pl-10 ${className}`}
+          className={`h-12 text-black shadow-sm focus:ring-2 focus:ring-yellow-600 border-gray-800 gap-3 italic pl-10 ${className}`}
           autoComplete={autoComplete}
           {...field}
+          // style={{
+          //   WebkitBoxShadow: "0 0 0 1000px white inset",
+          //   WebkitTextFillColor: "black",
+          // }}
           ref={ref}
         />
       </div>

@@ -1,23 +1,21 @@
-// app/auth/register/page.tsx
 "use client";
 import { motion } from "framer-motion";
-import RegisterForm from "./RegisterForm";
 import ParticleBackground from "@/shared/ParticleBackground";
 import Image from "next/image";
 import LegoBricks from "@/shared/LegoBricks";
-
-export default function RegisterPage() {
+import RegisterForm from "@/components/auth/RegisterForm";
+export default function LoginPage() {
   return (
-    <div className="min-h-screen relative overflow-hidden flex items-center justify-center bg-gradient-to-br from-primary/20 via-accent/20 to-destructive/20 animate-gradient-shift">
+    <div className="min-h-screen relative overflow-hidden flex items-center justify-center bg-gradient-to-br from-primary/20 via-accent/20 to-destructive/30 animate-gradient-shift">
       {/* Particle Background */}
       <ParticleBackground />
 
       <LegoBricks />
 
-      {/*  LEGO background layer */}
-      <div className="absolute inset-0 z-0 opacity-10">
+      {/* LEGO background layer */}
+      <div className="absolute inset-0 z-0 opacity-25">
         <Image
-          src="/images/bg_lego.jpg"
+          src="/images/3-1.png"
           alt="lego background"
           fill
           className="object-cover"
@@ -55,12 +53,12 @@ export default function RegisterPage() {
         />
       </div>
 
-      {/* Form Container - Không dùng AuthCard */}
+      {/* Form Container */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: "backOut" }}
-        className="relative z-10 backdrop-blur-lg bg-card/80 p-8 rounded-3xl shadow-2xl border border-border w-full max-w-md mx-4"
+        className="relative z-10 backdrop-blur-lg bg-yellow-200 p-8 rounded-3xl shadow-2xl border border-border w-full max-w-md mx-4"
       >
         <RegisterForm />
       </motion.div>
