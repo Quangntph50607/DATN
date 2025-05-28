@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
-import { Home, SearchIcon, ShoppingCart } from "lucide-react";
+import { SearchIcon, ShoppingCart } from "lucide-react";
 import Image from "next/image";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 export default function Header() {
   return (
@@ -20,11 +20,11 @@ export default function Header() {
 
         {/* Navigation */}
         <nav className="flex items-center gap-6">
-          <Link href="/" className="lego-nav-link">
+          {/* <Link href="/" className="lego-nav-link">
             <Button className="font-bold flex gap-1 lego-login-button">
               <Home /> Home
             </Button>
-          </Link>
+          </Link> */}
 
           {/* Search Bar với hiệu ứng LEGO */}
           <div className="relative flex gap-2 lego-search-container">
