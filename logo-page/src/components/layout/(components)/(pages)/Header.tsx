@@ -9,13 +9,15 @@ export default function Header() {
     <header className="bg-orange-300 ">
       <div className="container mx-auto flex h-24 items-center justify-between px-4">
         <div className="relative h-12 w-32 ">
-          <Image
-            src="/images/logoM.jpg"
-            alt="MyKingDom Logo"
-            fill
-            className="object-contain"
-            priority
-          />
+          <Link href="/">
+            <Image
+              src="/images/logoM.jpg"
+              alt="MyKingDom Logo"
+              fill
+              className="object-contain"
+              priority
+            />
+          </Link>
         </div>
 
         {/* Navigation */}
