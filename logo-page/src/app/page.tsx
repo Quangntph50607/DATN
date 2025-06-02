@@ -1,4 +1,4 @@
-import MainHome from "@/components/layout/(components)/MainHome";
+import MainHome from "@/components/layout/(components)/(main)/MainHome";
 import MainLayout from "@/components/layout/layout";
 import React from "react";
 

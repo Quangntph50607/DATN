@@ -13,7 +13,7 @@ import Link from "next/link";
 import { LoadingButton } from "@/shared/LoadingButton";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { authenService } from "@/service/authService";
+import { authenService } from "@/services/authService";
 
 const registerSchema = z
   .object({

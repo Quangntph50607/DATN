@@ -15,7 +15,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { authenService } from "@/service/authService";
+import { authenService } from "@/services/authService";
 
 const logInSchema = z.object({
   email: z
