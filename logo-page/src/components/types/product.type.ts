@@ -39,4 +39,5 @@ export interface AnhSanPham {
     boSuuTapId: number;
     khuyenMaiId: number | null;
     trangThai: string;
+    anhSanPhams?: AnhSanPham[];
   }

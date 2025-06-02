@@ -39,7 +39,7 @@ export default function SanPhaChitiet() {
   };
 
   return (
-    <div className="p-6 max-w-6xl mx-auto text-black ">
+    <div className="p-6 max-w-6xl mx-auto text-black  ">
       <div className="flex flex-col md:flex-row gap-8">
         {/* Ảnh sản phẩm */}
         <div className="w-full md:w-1/2 relative">
@@ -81,9 +81,7 @@ export default function SanPhaChitiet() {
                 </span>
               )}
             </div>
-            <p className="text-sm text-green-600">
-              {sanPhamChiTiet.trangThai ? "Còn hàng" : "Hết hàng"}
-            </p>
+            <p className="text-sm text-green-600">{sanPhamChiTiet.trangThai}</p>
           </div>
           <div className="flex gap-2">
             <span className="text-yellow-500">

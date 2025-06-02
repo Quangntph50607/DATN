@@ -32,10 +32,8 @@ export default function MainHome() {
   return (
     <div className="text-black ">
       <Navbar />
-      <div className="text-center mt-2">
-        <h1 className="text-3xl font-bold text-red-500 bg-amber-200">
-          Chào mừng đến với MyKingDom
-        </h1>
+      <div className="items-center font-bold text-center text-3xl mt-2">
+        Những sản phẩm nổi bật
       </div>
       {isLoadingCategories || isLoadingProduct ? (
         <div>Loading...</div>
