@@ -20,6 +20,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@radix-ui/react-tooltip";
+// Thêm HoverCardContent
+import { AlertCircle } from "lucide-react";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import {
   HoverCard,
   HoverCardContent,
