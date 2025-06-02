@@ -23,6 +23,12 @@ import {
 // Thêm HoverCardContent
 import { AlertCircle } from "lucide-react";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@radix-ui/react-hover-card"; // Thêm HoverCardContent
+import { AlertCircle } from "lucide-react";
 
 interface SanPhamListProps {
   products: SanPham[];
