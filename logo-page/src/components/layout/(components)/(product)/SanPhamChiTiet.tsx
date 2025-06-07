@@ -1,10 +1,12 @@
 "use client";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useSanPhamID } from "@/hooks/useSanPham";
 import { Star } from "lucide-react";
 import Image from "next/image";
 import { useParams } from "next/navigation";
 import React, { useState } from "react";
+import { toast } from "sonner";
 
 export default function SanPhaChitiet() {
   const [soLuong, setSoLuong] = useState(1);
@@ -33,8 +35,24 @@ export default function SanPhaChitiet() {
   };
   //   giảm
   const giamSoLuong = () => {
-    if (soLuong < sanPhamChiTiet.soLuongTon) {
+    if (soLuong > 1) {
       setSoLuong(soLuong - 1);
+    }
+  };
+  const handleSoLuongChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseInt(e.target.value) || 0;
+    if (value === 0) {
+      setSoLuong(0);
+    } else if (value > 50) {
+      toast.message("Cảnh báo!", {
+        description: "Số lượng không vượt quá 50!",
+        duration: 2000,
+      });
+      setSoLuong(Math.min(50, sanPhamChiTiet.soLuongTon));
+    } else if (value >= 1 && value <= sanPhamChiTiet.soLuongTon) {
+      setSoLuong(value);
+    } else {
+      setSoLuong(sanPhamChiTiet.soLuongTon);
     }
   };
 
@@ -96,12 +114,18 @@ export default function SanPhaChitiet() {
             <div className="flex items-center border border-gray-300 rounded-lg">
               <button
                 onClick={giamSoLuong}
-                className="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded-l-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                className="px-4 py-2 transition-colors disabled:opacity-50  disabled:cursor-not-allowed bg-gray-100 hover:bg-gray-200 rounded-r-lg"
                 disabled={soLuong <= 1}
               >
                 -
               </button>
-              <span className="px-4 py-2">{soLuong}</span>
+              <Input
+                value={soLuong}
+                onChange={handleSoLuongChange}
+                min={1}
+                max={sanPhamChiTiet.soLuongTon}
+                className="w-16 text-center border-none focus-visible:ring-0"
+              />
               <button
                 onClick={tangSoLuong}
                 className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-r-lg"

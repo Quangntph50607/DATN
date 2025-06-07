@@ -1,8 +1,9 @@
 import {  SanPham } from '@/components/types/product.type'
 
 import { sanPhamService } from '@/services/sanPhamService'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
+// All
 export  function useSanPham() {
 return useQuery<SanPham[] , Error>({
 queryKey:['sanPhams'],
@@ -10,6 +11,7 @@ queryFn: sanPhamService.getSanPhams,
 }) 
 }
 
+//SPCT
  export function useSanPhamID(id:number){
     return useQuery<SanPham>({
         queryKey:['sanPhams', id],
@@ -17,3 +19,36 @@ queryFn: sanPhamService.getSanPhams,
         enabled: !!id
     })
  }
+
+ //Add 
+ export function useAddSanPham(){
+    const queryClient= useQueryClient();
+    return useMutation({
+        mutationFn: sanPhamService.addSanPham,
+        onSuccess() {
+            queryClient.invalidateQueries({queryKey:['sanPhams']})
+        },
+    })
+ }
+ // Sửa
+ export function useEditSanPham(){
+    const queryClient= useQueryClient();
+    return useMutation({
+        mutationFn:({id, data}: {id:number; data:SanPham}) =>
+             sanPhamService.editSanPham(id, data),
+        onSuccess:() =>{
+            queryClient.invalidateQueries({queryKey:['sanPhams']})
+        }
+    })
+ }
+
+//  Xóa
+export function useXoaSanPham(){
+    const queryClient=useQueryClient();
+    return useMutation({
+        mutationFn:(id:number) => sanPhamService.xoaSanPham(id),
+        onSuccess:()=>{
+            queryClient.invalidateQueries({queryKey:['sanPhams']})
+        }
+    })
+}
