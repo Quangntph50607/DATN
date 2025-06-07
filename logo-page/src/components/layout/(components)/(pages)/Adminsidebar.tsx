@@ -51,7 +51,7 @@ export default function AdminSidebar() {
 
       <aside
         className={cn(
-          "fixed md:static top-0 left-0 z-40 h-screen w-64",
+          "fixed md:static top-0 left-0 z-40 min-h-screen w-64",
           "border-r bg-white dark:bg-gray-900 transition-all duration-300",
           collapsed ? "w-30" : "w-64",
           mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
