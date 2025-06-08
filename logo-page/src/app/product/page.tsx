@@ -7,9 +7,9 @@ import Header from "@/components/layout/(components)/(pages)/Header";
 import Footer from "@/components/layout/(components)/(pages)/Footer";
 import { ChevronDown, Filter } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { useBoSutap } from "@/hooks/boSutap";
 import { useSearchStore } from "@/context/useSearch.store";
 import { Button } from "@/components/ui/button";
+import { useBoSuutap } from "@/hooks/useBoSutap";
 
 // Định nghĩa khoảng độ tuổi
 const ageRanges = [
@@ -29,7 +29,7 @@ const priceRanges = [
 export default function AllProductsPage() {
   const { data: products = [] } = useSanPham();
   const { data: categories = [] } = useDanhMuc();
-  const { data: bosuutaps = [] } = useBoSutap();
+  const { data: bosuutaps = [] } = useBoSuutap();
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [selectedAgeRange, setSelectedAgeRange] = useState<string | null>(null);
   const [selectedGia, setSelectedGia] = useState<string | null>(null);
