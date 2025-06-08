@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import React from "react";
 import { motion } from "framer-motion";
@@ -11,11 +11,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Edit, Trash2 } from "lucide-react";
-import { SanPham } from "@/components/types/product.type";
+import { SanPhamFormData } from "./LegoProductForm";
 
 interface LegoProductTableProps {
-  products: SanPham[];
-  onEdit: (product: SanPham) => void;
+  products: SanPhamFormData[];
+  onEdit: (product: SanPhamFormData) => void;
   onDelete: (id: number) => void;
 }
 
@@ -31,52 +31,64 @@ const LegoProductTable: React.FC<LegoProductTableProps> = ({
       className="glass-card p-6 mb-8 rounded-md border border-white/20 bg-[#10123c]"
     >
       <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead className="font-bold">Ảnh đại diện</TableHead>
-          <TableHead className="font-bold">Mã sản phẩm</TableHead>
-          <TableHead className="font-bold">Tên sản phẩm</TableHead>
-          <TableHead className="font-bold">Danh mục</TableHead>
-          <TableHead className="font-bold">Độ tuổi</TableHead>
-          <TableHead className="font-bold">Giá (VND)</TableHead>
-          <TableHead className="font-bold">Tồn kho</TableHead>
-          <TableHead className="font-bold">Số mảnh ghép</TableHead>
-          <TableHead className="font-bold">Trạng thái</TableHead>
-          <TableHead className="font-bold">Thao tác</TableHead>
-        </TableRow>
-      </TableHeader>
-
-      <TableBody>
-        {products.map((p) => (
-          <TableRow key={p.id}>
-            <TableCell>
-              <img
-                src={p.anhDaiDien || "https://via.placeholder.com/64"}
-                alt={p.tenSanPham}
-                className="w-12 h-12 object-cover rounded"
-              />
-            </TableCell><TableCell>{p.maSanPham}</TableCell><TableCell>{p.tenSanPham}</TableCell><TableCell>{p.danhMucId}</TableCell><TableCell>{p.doTuoi}+</TableCell><TableCell>{p.gia.toLocaleString('vi-VN')}₫</TableCell><TableCell>{p.soLuongTon}</TableCell><TableCell>{p.soLuongManhGhep}</TableCell><TableCell>{p.trangThai}</TableCell><TableCell>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => onEdit(p)}
-                  className="hover:opacity-80 transition"
-                  title="Chỉnh sửa"
-                >
-                  <Edit className="w-4 h-4 text-yellow-500" />
-                </button>
-                <button
-                  onClick={() => onDelete(p.id)}
-                  className="hover:opacity-80 transition"
-                  title="Xóa"
-                >
-                  <Trash2 className="w-4 h-4 text-red-500" />
-                </button>
-              </div>
-            </TableCell>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="font-bold">Ảnh đại diện</TableHead>
+            <TableHead className="font-bold">Mã sản phẩm</TableHead>
+            <TableHead className="font-bold">Tên sản phẩm</TableHead>
+            <TableHead className="font-bold">Danh mục</TableHead>
+            <TableHead className="font-bold">Bộ Sưu Tập</TableHead>
+            <TableHead className="font-bold">Độ tuổi</TableHead>
+            <TableHead className="font-bold">Giá (VND)</TableHead>
+            <TableHead className="font-bold">Tồn kho</TableHead>
+            <TableHead className="font-bold">Số mảnh ghép</TableHead>
+            <TableHead className="font-bold">Trạng thái</TableHead>
+            <TableHead className="font-bold">Thao tác</TableHead>
           </TableRow>
-        ))}
-      </TableBody>
+        </TableHeader>
 
+        <TableBody>
+          {products.map((p) => (
+            <TableRow key={p.id}>
+              <TableCell>
+                <img
+                  src={p.anhDaiDien ?? "/default.jpg"}
+                  alt={p.tenSanPham}
+                  width={48}
+                  height={48}
+                  className="w-12 h-12 object-cover rounded"
+                />
+              </TableCell>
+              <TableCell>{p.maSanPham}</TableCell>
+              <TableCell>{p.tenSanPham}</TableCell>
+              <TableCell>{p.danhMucId}</TableCell>
+              <TableCell>{p.boSuuTapId}</TableCell>
+              <TableCell>{p.doTuoi}+</TableCell>
+              <TableCell>{p.gia.toLocaleString("vi-VN")}₫</TableCell>
+              <TableCell>{p.soLuongTon}</TableCell>
+              <TableCell>{p.soLuongManhGhep}</TableCell>
+              <TableCell>{p.trangThai}</TableCell>
+              <TableCell>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => onEdit(p)}
+                    className="hover:opacity-80 transition"
+                    title="Chỉnh sửa"
+                  >
+                    <Edit className="w-4 h-4 text-yellow-500" />
+                  </button>
+                  <button
+                    onClick={() => onDelete(p.id)}
+                    className="hover:opacity-80 transition"
+                    title="Xóa"
+                  >
+                    <Trash2 className="w-4 h-4 text-red-500" />
+                  </button>
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
       </Table>
     </motion.div>
   );
