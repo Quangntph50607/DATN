@@ -1,4 +1,3 @@
-// src/types/product.type.ts
 export interface AnhSanPham {
     id: number;
     url: string;
@@ -35,9 +34,12 @@ export interface AnhSanPham {
     anhDaiDien: string | null;
     soLuongVote: number;
     danhGiaTrungBinh: number;
+    ngayTao:string;
+    ngaySua:string;
     danhMucId: number;
     boSuuTapId: number;
     khuyenMaiId: number | null;
     trangThai: string;
     anhSanPhams?: AnhSanPham[];
   }
+  

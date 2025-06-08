@@ -4,8 +4,8 @@ import { ToastProvider } from "@/components/ui/toast-provider";
 import LegoProductForm from "./LegoProductForm";
 import LegoProductTable from "./LegoProductTable";
 import { useState } from "react";
-import { SanPham } from "@/components/types/product.type";
 import SearchInput from "./LegoProductSearch";
+import { SanPham } from "@/components/types/product.type";
 
 // Định nghĩa interface SanPhamFormData để đồng bộ với LegoProductForm
 interface SanPhamFormData {
@@ -38,6 +38,8 @@ export default function Page() {
       anhDaiDien: "https://via.placeholder.com/64",
       soLuongVote: 100,
       danhGiaTrungBinh: 4,
+      ngayTao:"",
+      ngaySua: "",
       danhMucId: 1,
       boSuuTapId: 1,
       khuyenMaiId: null,
@@ -58,6 +60,8 @@ export default function Page() {
       anhDaiDien: "https://via.placeholder.com/64",
       soLuongVote: 200,
       danhGiaTrungBinh: 5,
+      ngayTao:"",
+      ngaySua: "",
       danhMucId: 2,
       boSuuTapId: 2,
       khuyenMaiId: null,
@@ -84,6 +88,8 @@ export default function Page() {
       anhDaiDien: data.anhDaiDien,
       soLuongVote: 0,
       danhGiaTrungBinh: Number(data.danhGiaTrungBinh) || 0,
+      ngayTao:"",
+      ngaySua: "",
       danhMucId: Number(data.danhMucId),
       boSuuTapId: 0,
       khuyenMaiId: null,
