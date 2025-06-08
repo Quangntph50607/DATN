@@ -35,7 +35,7 @@ export interface AnhSanPham {
     soLuongVote: number;
     danhGiaTrungBinh: number;
     ngayTao:string;
-    ngaySua:string
+    ngaySua:string;
     danhMucId: number;
     boSuuTapId: number;
     khuyenMaiId: number | null;
