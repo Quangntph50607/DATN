@@ -11,11 +11,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Edit, Trash2 } from "lucide-react";
-import { SanPhamFormData } from "./LegoProductForm";
+import { SanPham } from "@/components/types/product.type";
 
 interface LegoProductTableProps {
-  products: SanPhamFormData[];
-  onEdit: (product: SanPhamFormData) => void;
+  products: SanPham[];
+  onEdit: (product: SanPham) => void;
   onDelete: (id: number) => void;
 }
 
@@ -40,7 +40,7 @@ const LegoProductTable: React.FC<LegoProductTableProps> = ({
             <TableHead className="font-bold">Bộ Sưu Tập</TableHead>
             <TableHead className="font-bold">Độ tuổi</TableHead>
             <TableHead className="font-bold">Giá (VND)</TableHead>
-            <TableHead className="font-bold">Tồn kho</TableHead>
+            <TableHead className="font-bold">Số lượng</TableHead>
             <TableHead className="font-bold">Số mảnh ghép</TableHead>
             <TableHead className="font-bold">Trạng thái</TableHead>
             <TableHead className="font-bold">Thao tác</TableHead>
@@ -61,11 +61,11 @@ const LegoProductTable: React.FC<LegoProductTableProps> = ({
               </TableCell>
               <TableCell>{p.maSanPham}</TableCell>
               <TableCell>{p.tenSanPham}</TableCell>
-              <TableCell>{p.danhMucId}</TableCell>
-              <TableCell>{p.boSuuTapId}</TableCell>
+              <TableCell>{p.tenDanhMuc ?? "Không rõ"}</TableCell>
+              <TableCell>{p.tenBoSuuTap ?? "Không rõ"}</TableCell>
               <TableCell>{p.doTuoi}+</TableCell>
               <TableCell>{p.gia.toLocaleString("vi-VN")}₫</TableCell>
-              <TableCell>{p.soLuongTon}</TableCell>
+              <TableCell>{p.soLuong}</TableCell>
               <TableCell>{p.soLuongManhGhep}</TableCell>
               <TableCell>{p.trangThai}</TableCell>
               <TableCell>

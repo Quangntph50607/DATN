@@ -1,63 +1,39 @@
 "use client";
 
 import { ToastProvider } from "@/components/ui/toast-provider";
-import LegoProductForm, { SanPhamFormData } from "./LegoProductForm";
 import LegoProductTable from "./LegoProductTable";
 import { useState } from "react";
 import SearchInput from "./LegoProductSearch";
+import { SanPham } from "@/components/types/product.type";
+import LegoProductForm from "./LegoProductForm";
+import {
+  useSanPham,
+  useAddSanPham,
+  useEditSanPham,
+  useXoaSanPham,
+} from "@/hooks/useSanPham";
+import { useDanhMuc } from "@/hooks/useDanhMuc";
+import { useBoSuutap } from "@/hooks/useBoSutap";
 
 export default function Page() {
-  const [products, setProducts] = useState<SanPhamFormData[]>([
-    {
-      id: 1,
-      tenSanPham: "LEGO City Police Station",
-      maSanPham: "LEGO-001",
-      doTuoi: 8,
-      moTa: "Bộ LEGO Trạm cảnh sát thành phố",
-      gia: 1499000,
-      giaKhuyenMai: null,
-      soLuong: 12,
-      soLuongManhGhep: 743,
-      soLuongTon: 12,
-      anhDaiDien: "https://via.placeholder.com/64",
-      danhMucId: 1,
-      boSuuTapId: 1,
-      khuyenMaiId: null,
-      trangThai: "Còn hàng",
-    },
-    {
-      id: 2,
-      tenSanPham: "LEGO Star Wars X-Wing",
-      maSanPham: "LEGO-002",
-      doTuoi: 12,
-      moTa: "Bộ LEGO Phi thuyền X-Wing",
-      gia: 2299000,
-      giaKhuyenMai: 1999000,
-      soLuong: 5,
-      soLuongManhGhep: 937,
-      soLuongTon: 5,
-      anhDaiDien: "https://via.placeholder.com/64",
-      danhMucId: 2,
-      boSuuTapId: 2,
-      khuyenMaiId: null,
-      trangThai: "Hết hàng",
-    },
-  ]);
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [productToEdit, setProductToEdit] = useState<SanPham | null>(null);
 
-  const [productToEdit, setProductToEdit] = useState<SanPhamFormData | null>(
-    null
-  );
+  const { data: products = [], isLoading, isError } = useSanPham();
+  const { data: danhMucs = [] } = useDanhMuc();
+  const { data: boSuuTaps = [] } = useBoSuutap();
 
-  const convertFormDataToSanPhamFormData = (
-    data: SanPhamFormData
-  ): SanPhamFormData => {
+  const { mutate: addSanPham } = useAddSanPham();
+  const { mutate: editSanPham } = useEditSanPham();
+  const { mutate: deleteSanPham } = useXoaSanPham();
+
+  const convertFormDataToSanPham = (data: SanPham): SanPham => {
     return {
       ...data,
       id: Number(data.id),
       doTuoi: Number(data.doTuoi),
       gia: Number(data.gia),
-      giaKhuyenMai:
-        data.giaKhuyenMai !== null ? Number(data.giaKhuyenMai) : null,
+      giaKhuyenMai: data.giaKhuyenMai !== null ? Number(data.giaKhuyenMai) : null,
       soLuong: Number(data.soLuong),
       soLuongManhGhep: Number(data.soLuongManhGhep),
       soLuongTon: Number(data.soLuongTon),
@@ -68,29 +44,13 @@ export default function Page() {
     };
   };
 
-  const handleSubmit = (data: SanPhamFormData) => {
-    const preparedData = convertFormDataToSanPhamFormData(data);
-
+  const handleSubmit = (data: SanPham) => {
+    const preparedData = convertFormDataToSanPham(data);
     if (productToEdit) {
-      // Cập nhật sản phẩm
-      setProducts((prev) =>
-        prev.map((p) =>
-          Number(p.id) === Number(preparedData.id) ? preparedData : p
-        )
-      );
+      editSanPham({ id: preparedData.id, data: preparedData });
       setProductToEdit(null);
     } else {
-      // Thêm mới sản phẩm
-      const newId =
-        products.length > 0
-          ? Math.max(...products.map((p) => Number(p.id))) + 1
-          : 1;
-      const newProduct = {
-        ...preparedData,
-        id: newId,
-        maSanPham: `LEGO-${String(newId).padStart(3, "0")}`,
-      };
-      setProducts((prev) => [...prev, newProduct]);
+      addSanPham(preparedData);
     }
   };
 
@@ -98,21 +58,29 @@ export default function Page() {
     setProductToEdit(null);
   };
 
-  const handleEdit = (product: SanPhamFormData) => {
+  const handleEdit = (product: SanPham) => {
     setProductToEdit(product);
   };
 
   const handleDelete = (id: number) => {
-    setProducts((prev) => prev.filter((p) => p.id !== id));
+    deleteSanPham(id);
     if (productToEdit?.id === id) setProductToEdit(null);
   };
 
-  const [searchTerm, setSearchTerm] = useState<string>("");
-
-  // Lọc sản phẩm theo searchTerm
   const filteredProducts = products.filter((p) =>
-    p.tenSanPham.toLowerCase().includes(searchTerm.toLowerCase())
+    (p.tenSanPham || "").toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // 🔹 Thêm hàm lấy tên danh mục và bộ sưu tập
+  const getTenDanhMuc = (id: number) => {
+    const found = danhMucs.find((d) => d.id === id);
+    return found ? found.tenDanhMuc : "Không rõ";
+  };
+
+  const getTenBoSuuTap = (id: number) => {
+    const found = boSuuTaps.find((b) => b.id === id);
+    return found ? found.tenBoSuuTap : "Không rõ";
+  };
 
   return (
     <ToastProvider>
@@ -128,11 +96,19 @@ export default function Page() {
 
         <SearchInput searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
 
-        <LegoProductTable
-          products={filteredProducts}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-        />
+        {isLoading ? (
+          <p className="text-white text-center">Đang tải dữ liệu...</p>
+        ) : isError ? (
+          <p className="text-red-500 text-center">Lỗi khi tải danh sách sản phẩm</p>
+        ) : (
+          <LegoProductTable
+            products={filteredProducts}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            getTenDanhMuc={getTenDanhMuc}
+            getTenBoSuuTap={getTenBoSuuTap}
+          />
+        )}
       </div>
     </ToastProvider>
   );

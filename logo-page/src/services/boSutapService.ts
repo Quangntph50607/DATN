@@ -1,9 +1,9 @@
-import { BoSuTap } from "@/components/types/product.type";
+import { BoSuuTap } from "@/components/types/product.type";
 
 const API_URL ='http://localhost:8080/api/bosuutap';
 //All
 export const boSuuTapService ={
-    async getBoSutap():Promise<BoSuTap [] >{
+    async getBoSutap():Promise<BoSuuTap [] >{
         try{
             const res=await fetch(`${API_URL}/ReadAll` ,{cache: 'no-store'});
             if(!res.ok){
@@ -17,7 +17,7 @@ export const boSuuTapService ={
     },
 
     //Ct
-    async getBoSuuTapID(id:number): Promise<BoSuTap>{
+    async getBoSuuTapID(id:number): Promise<BoSuuTap>{
         try {
             const res = await fetch(`${API_URL}/ReadOne/${id}`, { cache: "no-store" });
             if (!res.ok) {
@@ -31,7 +31,7 @@ export const boSuuTapService ={
         },
 
     //Add 
-     async addBoSuuTap(data:BoSuTap): Promise<BoSuTap> {
+     async addBoSuuTap(data:BoSuuTap): Promise<BoSuuTap> {
         try {
           const res=await fetch (`${API_URL}/Create` ,{
             method: "POST",
@@ -51,7 +51,7 @@ export const boSuuTapService ={
       },
 
     //   Sửa
-       async editBoSuuTap(id:number,data:BoSuTap): Promise<BoSuTap> {
+       async editBoSuuTap(id:number,data:BoSuuTap): Promise<BoSuuTap> {
           try {
             const res=await fetch (`${API_URL}/Update/${id}` ,{
               method: "PUT",
