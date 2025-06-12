@@ -46,6 +46,7 @@ export interface SanPhamFormData {
   trangThai: string;
 }
 
+
 interface LegoProductFormProps {
   onSubmit: (data: SanPhamFormData) => void;
   productToEdit?: SanPhamFormData | null;
