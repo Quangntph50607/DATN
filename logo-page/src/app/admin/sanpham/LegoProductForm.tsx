@@ -136,7 +136,7 @@ const LegoProductForm: React.FC<LegoProductFormProps> = ({
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
+  
     const requiredFields: (keyof SanPham)[] = [
       "tenSanPham",
       "danhMucId",
@@ -147,10 +147,11 @@ const LegoProductForm: React.FC<LegoProductFormProps> = ({
       "moTa",
       "trangThai",
     ];
+  
     const hasEmptyRequired = requiredFields.some(
-      (field) => !formData[field] || formData[field].toString().trim() === ""
+      (field) => !formData[field] || formData[field]?.toString().trim() === ""
     );
-
+  
     if (hasEmptyRequired) {
       toast({
         message: "Vui lòng điền đầy đủ các trường bắt buộc (*).",
@@ -158,27 +159,43 @@ const LegoProductForm: React.FC<LegoProductFormProps> = ({
       });
       return;
     }
-
+  
     const processedData: SanPham = {
       ...formData,
-      id: typeof formData.id === "string" && formData.id === "" ? 0 : Number(formData.id),
-      gia: parseFloat(formData.gia.toString()),
-      soLuong: parseInt(formData.soLuong.toString()),
-      soLuongManhGhep: parseInt(formData.soLuongManhGhep.toString()),
-      doTuoi: parseInt(formData.doTuoi.toString()) || 0,
+      id: productToEdit ? Number(productToEdit.id) : 0,
+      tenSanPham: formData.tenSanPham.trim(),
+      maSanPham: formData.maSanPham?.trim() || "",
+      moTa: formData.moTa.trim(),
+      gia: Number(formData.gia),
+      giaKhuyenMai:
+        formData.giaKhuyenMai?.toString().trim() !== ""
+          ? Number(formData.giaKhuyenMai)
+          : null,
+      soLuong: Number(formData.soLuong),
+      soLuongManhGhep: Number(formData.soLuongManhGhep),
+      soLuongTon: productToEdit ? Number(formData.soLuongTon) : Number(formData.soLuong), // nếu sửa thì giữ nguyên, thêm mới thì = số lượng
+      doTuoi:
+        formData.doTuoi?.toString().trim() !== ""
+          ? Number(formData.doTuoi)
+          : 0,
       danhMucId: Number(formData.danhMucId),
       boSuuTapId: Number(formData.boSuuTapId),
+      khuyenMaiId:
+        formData.khuyenMaiId?.toString().trim() !== ""
+          ? Number(formData.khuyenMaiId)
+          : null,
       anhDaiDien: formData.anhDaiDien || null,
+      trangThai: formData.trangThai || "Còn hàng",
     };
-
+  
     onSubmit(processedData);
-
+  
     if (!productToEdit) {
       setFormData(defaultFormData);
     } else {
       onClearEdit();
     }
-  };
+  };  
 
   const fields = [
     { id: "tenSanPham", label: "Tên sản phẩm*", icon: Package },
