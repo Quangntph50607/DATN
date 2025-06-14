@@ -141,11 +141,9 @@ const LegoProductForm: React.FC<LegoProductFormProps> = ({
       "tenSanPham",
       "danhMucId",
       "boSuuTapId",
-      "gia",
-      "soLuong",
+      "soLuongTon",
       "soLuongManhGhep",
       "moTa",
-      "trangThai",
     ];
   
     const hasEmptyRequired = requiredFields.some(
@@ -216,7 +214,7 @@ const LegoProductForm: React.FC<LegoProductFormProps> = ({
       disabled: isBoSuuTapLoading,
     },
     { id: "gia", label: "Giá (VND)*", type: "number", icon: DollarSign },
-    { id: "soLuong", label: "Số lượng*", type: "number", icon: Package },
+    { id: "soLuongTon", label: "Số lượng*", type: "number", icon: Package },
     { id: "soLuongManhGhep", label: "Số mảnh*", type: "number", icon: Brick },
     { id: "doTuoi", label: "Độ tuổi", type: "number", icon: AgeIcon },
     {
@@ -322,7 +320,7 @@ const LegoProductForm: React.FC<LegoProductFormProps> = ({
             </Button>
           )}
           <Button type="submit" variant="default" className="shadow-lg">
-            <PlusCircle className="mr-2 h-5 w-5" />
+            <PlusCircle className="mr-2 h-5 w-5" /> 
             {productToEdit ? "Lưu thay đổi" : "Thêm sản phẩm"}
           </Button>
         </div>

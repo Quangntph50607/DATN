@@ -43,7 +43,7 @@ const LegoProductTable: React.FC<Props> = ({ products, onEdit, onDelete, getTenD
               <TableCell>{getTenBoSuuTap(Number(p.boSuuTapId))}</TableCell>
               <TableCell>{p.doTuoi}+</TableCell>
               <TableCell>{Number(p.gia).toLocaleString("vi-VN")}₫</TableCell>
-              <TableCell>{p.soLuong}</TableCell>
+              <TableCell>{p.soLuongTon}</TableCell>
               <TableCell>{p.soLuongManhGhep}</TableCell>
               <TableCell>{p.trangThai}</TableCell>
               <TableCell>
