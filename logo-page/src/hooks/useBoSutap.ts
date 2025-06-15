@@ -1,15 +1,16 @@
-import { BoSuTap } from "@/components/types/product.type";
+import { BoSuuTap } from "@/components/types/product.type";
 import { boSuuTapService } from "@/services/boSutapService";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export function useBoSuutap(){
-    return useQuery<BoSuTap[], Error>({
+    return useQuery<BoSuuTap[], Error>({
         queryKey:['boSuTaps'],
         queryFn: boSuuTapService.getBoSutap,
     })
 }
 
 export function useBoSuuTapID(id:number){
+
     return useQuery<BoSuTap>({
         queryKey:['boSuTaps',id],
         queryFn: () => boSuuTapService.getBoSuuTapID(id),
@@ -31,7 +32,7 @@ export function useBoSuuTapID(id:number){
  export function useEditBoSuuTap(){
     const queryClient= useQueryClient();
     return useMutation({
-        mutationFn:({id, data}: {id:number; data:BoSuTap}) =>
+        mutationFn:({id, data}: {id:number; data:BoSuuTap}) =>
              boSuuTapService.editBoSuuTap(id, data),
         onSuccess:() =>{
             queryClient.invalidateQueries({queryKey:['boSuTaps']})

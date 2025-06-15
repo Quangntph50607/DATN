@@ -12,7 +12,7 @@ export interface AnhSanPham {
     moTa: string;
   }
   
-  export interface BoSuTap {
+  export interface BoSuuTap {
     id: number;
     tenBoSuuTap: string;
     moTa: string;
@@ -41,5 +41,7 @@ export interface AnhSanPham {
     khuyenMaiId: number | null;
     trangThai: string;
     anhSanPhams?: AnhSanPham[];
+    tenDanhMuc: string;
+    tenBoSuuTap: string;
   }
   

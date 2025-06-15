@@ -14,6 +14,8 @@ import {
   BarChart3,
   Menu,
   X,
+  ChevronDown,
+  ChevronRight,
 } from "lucide-react";
 import { adminRoutes } from "@/lib/route";
 import { Button } from "@/components/ui/button";
@@ -31,10 +33,20 @@ const iconMap = {
 export default function AdminSidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [openMenus, setOpenMenus] = useState<string[]>([]); // trạng thái menu con
   const pathname = usePathname();
+
+  const toggleMenu = (label: string) => {
+    setOpenMenus((prev) =>
+      prev.includes(label)
+        ? prev.filter((l) => l !== label)
+        : [...prev, label]
+    );
+  };
 
   return (
     <>
+      {/* Nút mở sidebar trên mobile */}
       <button
         className="fixed z-50 top-4 left-4 md:hidden bg-white p-2 rounded-md shadow-md"
         onClick={() => setMobileOpen(!mobileOpen)}
@@ -42,6 +54,7 @@ export default function AdminSidebar() {
         {mobileOpen ? <X size={20} /> : <Menu size={20} />}
       </button>
 
+      {/* Overlay nền đen khi sidebar mở trên mobile */}
       {mobileOpen && (
         <div
           className="fixed inset-0 bg-black/40 z-40 md:hidden"
@@ -49,15 +62,17 @@ export default function AdminSidebar() {
         />
       )}
 
+      {/* Sidebar chính */}
       <aside
         className={cn(
           "fixed md:static top-0 left-0 z-40 min-h-screen w-64",
           "border-r bg-white dark:bg-gray-900 transition-all duration-300",
-          collapsed ? "w-30" : "w-64",
+          collapsed ? "w-20" : "w-64",
           mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         )}
       >
-        <div className="flex items-center justify-between  h-16 px-4 border-b dark:border-gray-700">
+        {/* Logo và tiêu đề */}
+        <div className="flex items-center justify-between h-16 px-4 border-b dark:border-gray-700">
           <Image
             src="/images/logoM.jpg"
             alt="Logo"
@@ -69,31 +84,72 @@ export default function AdminSidebar() {
           <Button
             onClick={() => setCollapsed(!collapsed)}
             className="hidden md:block"
+            variant="ghost"
           >
             <Menu size={20} />
           </Button>
         </div>
 
-        <nav className="p-2 space-y-1 ">
+        {/* Navigation */}
+        <nav className="p-2 space-y-1">
           {adminRoutes.map((item) => {
-            const isActive = pathname === item.href;
             const Icon = iconMap[item.icon as keyof typeof iconMap];
+            const hasChildren = !!item.children;
+            const isOpen = openMenus.includes(item.label);
 
             return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "flex items-center px-3 py-2.5 rounded-md  transition-colors",
-                  isActive
-                    ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-white"
-                    : "text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
+              <div key={item.label}>
+                {/* Mục chính */}
+                <button
+                  onClick={() => {
+                    if (hasChildren) toggleMenu(item.label);
+                    else setMobileOpen(false);
+                  }}
+                  className={cn(
+                    "w-full flex items-center px-3 py-2.5 rounded-md transition-colors",
+                    pathname === item.href
+                      ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-white"
+                      : "text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
+                  )}
+                >
+                  {Icon && <Icon size={20} />}
+                  {!collapsed && (
+                    <>
+                      <span className="ml-3 flex-1 text-left">{item.label}</span>
+                      {hasChildren &&
+                        (isOpen ? (
+                          <ChevronDown size={16} />
+                        ) : (
+                          <ChevronRight size={16} />
+                        ))}
+                    </>
+                  )}
+                </button>
+
+                {/* Menu con */}
+                {hasChildren && isOpen && !collapsed && (
+                  <div className="ml-8 mt-1 space-y-1">
+                    {item.children.map((child) => {
+                      const isChildActive = pathname === child.href;
+                      return (
+                        <Link
+                          key={child.href}
+                          href={child.href}
+                          className={cn(
+                            "block px-3 py-2 rounded-md text-sm",
+                            isChildActive
+                              ? "bg-blue-50 text-blue-700 dark:bg-blue-800 dark:text-white"
+                              : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                          )}
+                          onClick={() => setMobileOpen(false)}
+                        >
+                          {child.label}
+                        </Link>
+                      );
+                    })}
+                  </div>
                 )}
-                onClick={() => setMobileOpen(false)}
-              >
-                <Icon size={20} />
-                {!collapsed && <span className="ml-3">{item.label}</span>}
-              </Link>
+              </div>
             );
           })}
         </nav>
