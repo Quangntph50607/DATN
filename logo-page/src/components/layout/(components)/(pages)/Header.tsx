@@ -24,16 +24,21 @@ export default function Header() {
 
   return (
     <header className="bg-orange-300">
-      <div className="container mx-auto flex h-24 items-center justify-between px-4">
-        <div className="relative h-12 w-32">
-          <Link href="/">
-            <Image
-              src="/images/logoM.jpg"
-              alt="MyKingDom Logo"
-              fill
-              className="object-contain"
-              priority
-            />
+      <div className=" container mx-auto flex h-24 items-center justify-between px-4">
+        <div className="flex items-center gap-2 flex-wrap">
+          <Link href="/" className="flex items-center  gap-2">
+            <div className="relative h-12 w-12">
+              <Image
+                src="/images/logoM.jpg"
+                alt="MyKingDom Logo"
+                fill
+                className="object-contain"
+                priority
+              />
+            </div>
+            <span className="text-xl font-bold text-black max-w-[150px]">
+              LEGO MYKINGDOM
+            </span>
           </Link>
         </div>
 

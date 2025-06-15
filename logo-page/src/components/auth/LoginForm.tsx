@@ -47,7 +47,8 @@ export default function LoginForm() {
     try {
       const res = await authenService.login(data.email, data.matKhau);
       // lấy email người dùng
-      setUser({ email: res.email });
+      const { id, ten, email } = res;
+      setUser({ id, ten, email });
       router.push("/");
     } catch (error: unknown) {
       console.error("Lỗi:", error);
