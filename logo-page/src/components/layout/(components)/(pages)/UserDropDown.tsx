@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,13 +22,17 @@ export default function UserDropDown() {
   };
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger>
-        <User2 />
+      <DropdownMenuTrigger asChild>
+        <Button className="lego-login-button">
+          <DropdownMenuLabel>
+            <span className="font-semibold flex gap-2 items-center ">
+              <User2 />
+              {user?.ten}
+            </span>
+          </DropdownMenuLabel>
+        </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent>
-        <DropdownMenuLabel>
-          Xin chào , <span className="font-semibold">{user?.user_name}</span>
-        </DropdownMenuLabel>
+      <DropdownMenuContent sideOffset={8} align="end">
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => route.push("profile")}>
           Tài khoản
