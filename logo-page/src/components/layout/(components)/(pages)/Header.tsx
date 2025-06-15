@@ -6,17 +6,21 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useRouter, usePathname } from "next/navigation";
 import { useSearchStore } from "@/context/useSearch.store";
+import { useUserStore } from "@/context/authStore.store";
+import UserDropDown from "./UserDropDown";
 
 export default function Header() {
   const { keyword, setKeyword } = useSearchStore();
   const router = useRouter();
   const pathname = usePathname();
+  const user = useUserStore((state) => state.user);
 
   const handleSearch = () => {
     if (pathname !== "/product") {
       router.push("/product");
     }
   };
+  console.log(user);
 
   return (
     <header className="bg-orange-300">
@@ -58,11 +62,15 @@ export default function Header() {
           <Button className="lego-login-button">
             <ShoppingCart />
           </Button>
-          <Button className="lego-login-button">
-            <Link href="/auth/login" className="lego-button-text">
-              Đăng nhập
-            </Link>
-          </Button>
+          {user ? (
+            <UserDropDown />
+          ) : (
+            <Button className="lego-login-button">
+              <Link href="/auth/login" className="lego-button-text">
+                Đăng nhập
+              </Link>
+            </Button>
+          )}
         </nav>
       </div>
     </header>
