@@ -1,19 +1,19 @@
+// SanPhamPage.tsx
 "use client";
 
-import { ToastProvider } from "@/components/ui/toast-provider";
-import LegoProductTable from "./LegoProductTable";
-import LegoProductForm from "./LegoProductForm";
-import SearchInput from "./LegoProductSearch";
-import { useState } from "react";
+import { ProductData } from "@/lib/sanphamschema";
+import SanPhamForm from "./SanPhamForm";
+import SanPhamTable from "./SanPhamTable";
 import {
   useSanPham,
   useAddSanPham,
-  useEditSanPham,
   useXoaSanPham,
+  useEditSanPham,
 } from "@/hooks/useSanPham";
-import { useDanhMuc } from "@/hooks/useDanhMuc";
-import { useBoSuutap } from "@/hooks/useBoSutap";
+import { toast } from "sonner";
+import { useState } from "react";
 import { SanPham } from "@/components/types/product.type";
+
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 
@@ -25,32 +25,47 @@ export default function Page() {
   const [productToEdit, setProductToEdit] = useState<SanPham | null>(null);
   const [showForm, setShowForm] = useState(false);
 
-  const { data: products = [], isLoading, isError } = useSanPham();
-  const { data: danhMucs = [] } = useDanhMuc();
-  const { data: boSuuTaps = [] } = useBoSuutap();
+export default function SanPhamPage() {
+  const { data: sanPhams = [], isLoading, refetch } = useSanPham();
+  const [editSanPham, setEditSanPham] = useState<SanPham | null>(null);
+  const [formKey, setFormKey] = useState(0);
 
-  const { mutate: addSanPham } = useAddSanPham();
-  const { mutate: editSanPham } = useEditSanPham();
-  const { mutate: deleteSanPham } = useXoaSanPham();
+  const addSanPhamMutation = useAddSanPham();
+  const deleteSanPhamMutation = useXoaSanPham();
+  const editSanPhamMutation = useEditSanPham();
 
-  const handleSubmit = (data: SanPham) => {
-    if (productToEdit) {
-      editSanPham({ id: data.id, data });
-    } else {
-      addSanPham(data);
+  const handleSubmit = async (data: ProductData, id?: number) => {
+    try {
+      if (id) {
+        await editSanPhamMutation.mutateAsync({ id, data });
+        toast.success("Cập nhật thành công!");
+        setEditSanPham(null);
+      } else {
+        await addSanPhamMutation.mutateAsync(data);
+        toast.success("Thêm sản phẩm thành công!");
+      }
+      refetch();
+    } catch {
+      toast.error("Lỗi xử lý sản phẩm!");
     }
-    setProductToEdit(null);
-    setShowForm(false);
   };
 
-  const handleOpenForm = () => {
-    setProductToEdit(null);
-    setShowForm(true);
+  const handleDelete = async (id: number) => {
+    if (confirm("Bạn có chắc muốn xóa sản phẩm này?")) {
+      try {
+        await deleteSanPhamMutation.mutateAsync(id);
+        toast.success("Xóa thành công!");
+        refetch();
+      } catch {
+        toast.error("Lỗi khi xóa sản phẩm");
+      }
+    }
   };
 
-  const handleCloseForm = () => {
-    setProductToEdit(null);
-    setShowForm(false);
+  const handleSuccess = () => {
+    setEditSanPham(null);
+    setFormKey((prev) => prev + 1);
+    refetch();
   };
 
   // 👉 Lọc dữ liệu tại frontend
@@ -159,5 +174,23 @@ export default function Page() {
         </div>
       )}
     </ToastProvider>
+  return (
+    <div className="space-y-6">
+      <SanPhamForm
+        key={formKey}
+        onSubmit={handleSubmit}
+        edittingSanPham={editSanPham}
+        onSucces={handleSuccess}
+      />
+      {isLoading ? (
+        <p>Đang tải danh sách sản phẩm...</p>
+      ) : (
+        <SanPhamTable
+          sanPhams={sanPhams}
+          onDelete={handleDelete}
+          onEdit={(product) => setEditSanPham(product)}
+        />
+      )}
+    </div>
   );
 }

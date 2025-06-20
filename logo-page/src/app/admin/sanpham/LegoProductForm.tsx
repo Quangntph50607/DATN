@@ -134,17 +134,24 @@ const LegoProductForm: React.FC<LegoProductFormProps> = ({
     setFormData((prev) => ({ ...prev, [id]: value }));
   };
 
+
   const handleSelectChange = (
     field: keyof ProductFormData, // Sử dụng keyof ProductFormData
     value: string | number
   ) => {
+
+  const handleSelectChange = (field: keyof SanPham, value: string | number) => {
+
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
   
     const requiredFields: (keyof ProductFormData)[] = [ // Sử dụng keyof ProductFormData
+
+    const requiredFields: (keyof SanPham)[] = [
       "tenSanPham",
       "danhMucId",
       "boSuuTapId",
@@ -152,11 +159,11 @@ const LegoProductForm: React.FC<LegoProductFormProps> = ({
       "soLuongManhGhep",
       "moTa",
     ];
-  
+
     const hasEmptyRequired = requiredFields.some(
       (field) => !formData[field] || (formData[field] as string).trim() === ""
     );
-  
+
     if (hasEmptyRequired) {
       toast({
         message: "Vui lòng điền đầy đủ các trường bắt buộc (*).",
@@ -164,9 +171,14 @@ const LegoProductForm: React.FC<LegoProductFormProps> = ({
       });
       return;
     }
+
   
     const processedData: SanPham = { // Đây là SanPham từ product.type.ts
       id: productToEdit ? productToEdit.id : 0, // id đã là number từ productToEdit
+
+    const processedData: SanPham = {
+      ...formData,
+      id: productToEdit ? Number(productToEdit.id) : 0,
       tenSanPham: formData.tenSanPham.trim(),
       maSanPham: formData.maSanPham?.trim() || "",
       moTa: formData.moTa.trim(),
@@ -182,6 +194,11 @@ const LegoProductForm: React.FC<LegoProductFormProps> = ({
         formData.doTuoi.trim() !== ""
           ? Number(formData.doTuoi)
           : 0,
+      soLuongTon: productToEdit
+        ? Number(formData.soLuongTon)
+        : Number(formData.soLuong), // nếu sửa thì giữ nguyên, thêm mới thì = số lượng
+      doTuoi:
+        formData.doTuoi?.toString().trim() !== "" ? Number(formData.doTuoi) : 0,
       danhMucId: Number(formData.danhMucId),
       boSuuTapId: Number(formData.boSuuTapId),
       khuyenMaiId:
@@ -197,15 +214,15 @@ const LegoProductForm: React.FC<LegoProductFormProps> = ({
       tenDanhMuc: danhMucList?.find(dm => dm.id === Number(formData.danhMucId))?.tenDanhMuc || "", // Chỉ để hiển thị, không gửi lên API
       tenBoSuuTap: boSuuTapList?.find(bst => bst.id === Number(formData.boSuuTapId))?.tenBoSuuTap || "", // Chỉ để hiển thị, không gửi lên API
     };
-  
+
     onSubmit(processedData);
-  
+
     if (!productToEdit) {
       setFormData(defaultFormData);
     } else {
       onClearEdit();
     }
-  };  
+  };
 
   const fields = [
     { id: "tenSanPham", label: "Tên sản phẩm*", icon: Package },
@@ -213,7 +230,11 @@ const LegoProductForm: React.FC<LegoProductFormProps> = ({
       id: "danhMucId",
       label: "Danh mục*",
       type: "select",
-      options: danhMucList?.map((d) => ({ value: d.id.toString(), label: d.tenDanhMuc })) || [],
+      options:
+        danhMucList?.map((d) => ({
+          value: d.id.toString(),
+          label: d.tenDanhMuc,
+        })) || [],
       icon: Layers,
       disabled: isDanhMucLoading,
     },
@@ -221,7 +242,11 @@ const LegoProductForm: React.FC<LegoProductFormProps> = ({
       id: "boSuuTapId",
       label: "Bộ sưu tập*",
       type: "select",
-      options: boSuuTapList?.map((b) => ({ value: b.id.toString(), label: b.tenBoSuuTap })) || [],
+      options:
+        boSuuTapList?.map((b) => ({
+          value: b.id.toString(),
+          label: b.tenBoSuuTap,
+        })) || [],
       icon: Archive,
       disabled: isBoSuuTapLoading,
     },
@@ -253,8 +278,13 @@ const LegoProductForm: React.FC<LegoProductFormProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {fields.map((field) => (
             <div key={field.id} className="space-y-1">
-              <Label htmlFor={field.id} className="text-sm font-medium text-gray-300 flex items-center">
-                {field.icon && <field.icon className="w-4 h-4 mr-2 text-primary" />}
+              <Label
+                htmlFor={field.id}
+                className="text-sm font-medium text-gray-300 flex items-center"
+              >
+                {field.icon && (
+                  <field.icon className="w-4 h-4 mr-2 text-primary" />
+                )}
                 {field.label}
               </Label>
 
@@ -262,9 +292,17 @@ const LegoProductForm: React.FC<LegoProductFormProps> = ({
                 <Select
                 value={String(formData[field.id as keyof ProductFormData] ?? "")}
                 onValueChange={(value) => handleSelectChange(field.id as keyof ProductFormData, value)}
+                  value={String(formData[field.id as keyof SanPham] ?? "")}
+                  onValueChange={(value) =>
+                    handleSelectChange(field.id as keyof SanPham, value)
+                  }
                 >
                   <SelectTrigger className="w-full bg-background/70 border border-white/30 text-white rounded-md">
-                    <SelectValue placeholder={`Chọn ${field.label.toLowerCase().replace("*", "")}`} />
+                    <SelectValue
+                      placeholder={`Chọn ${field.label
+                        .toLowerCase()
+                        .replace("*", "")}`}
+                    />
                   </SelectTrigger>
                   <SelectContent className="bg-gray-800 border-white/20 text-white rounded-md">
                     {field.options?.map((opt) => (
@@ -294,7 +332,7 @@ const LegoProductForm: React.FC<LegoProductFormProps> = ({
                       src={formData.anhDaiDien}
                       alt="Ảnh đại diện"
                       className="mt-2 h-32 w-auto rounded border border-white/20 object-contain"
-                      onError={(e) => (e.currentTarget.style.display = 'none')}
+                      onError={(e) => (e.currentTarget.style.display = "none")}
                     />
                   )}
                 </>
@@ -311,7 +349,10 @@ const LegoProductForm: React.FC<LegoProductFormProps> = ({
           ))}
 
           <div className="space-y-1 md:col-span-2 lg:col-span-3">
-            <Label htmlFor="moTa" className="text-sm font-medium text-gray-300 flex items-center">
+            <Label
+              htmlFor="moTa"
+              className="text-sm font-medium text-gray-300 flex items-center"
+            >
               <Palette className="w-4 h-4 mr-2 text-primary" /> Mô tả sản phẩm*
             </Label>
             <textarea
@@ -327,12 +368,17 @@ const LegoProductForm: React.FC<LegoProductFormProps> = ({
 
         <div className="flex justify-end gap-3 pt-2">
           {productToEdit && (
-            <Button type="button" variant="outline" onClick={onClearEdit} className="border-white/30 text-white hover:bg-white/10">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClearEdit}
+              className="border-white/30 text-white hover:bg-white/10"
+            >
               Hủy sửa
             </Button>
           )}
           <Button type="submit" variant="default" className="shadow-lg">
-            <PlusCircle className="mr-2 h-5 w-5" /> 
+            <PlusCircle className="mr-2 h-5 w-5" />
             {productToEdit ? "Lưu thay đổi" : "Thêm sản phẩm"}
           </Button>
         </div>
