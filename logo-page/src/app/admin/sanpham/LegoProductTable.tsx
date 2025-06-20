@@ -62,6 +62,8 @@ const LegoProductTable: React.FC<Props> = ({
               </TableCell>
               <TableCell>{p.maSanPham}</TableCell>
               <TableCell>{p.tenSanPham}</TableCell>
+              <TableCell>{getTenDanhMuc(p.danhMucId)}</TableCell>
+              <TableCell>{getTenBoSuuTap(p.boSuuTapId)}</TableCell>
               <TableCell>{getTenDanhMuc(Number(p.danhMuc.id))}</TableCell>
               <TableCell>{getTenBoSuuTap(Number(p.boSuuTap.id))}</TableCell>
               <TableCell>{p.doTuoi}+</TableCell>

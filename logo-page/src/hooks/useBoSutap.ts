@@ -9,6 +9,13 @@ export function useBoSuutap() {
   });
 }
 
+export function useBoSuuTapID(id:number){
+    return useQuery<BoSuuTap>({
+        queryKey:['boSuTaps',id],
+        queryFn: () => boSuuTapService.getBoSuuTapID(id),
+        enabled: !!id
+    })
+ }
 export function useBoSuuTapID(id: number) {
   return useQuery<BoSuuTap>({
     queryKey: ["boSuTaps", id],
