@@ -19,6 +19,9 @@ import { PlusCircle } from "lucide-react";
 
 export default function Page() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedDanhMuc, setSelectedDanhMuc] = useState<number | "">("");
+  const [selectedBoSuuTap, setSelectedBoSuuTap] = useState<number | "">("");
+
   const [productToEdit, setProductToEdit] = useState<SanPham | null>(null);
   const [showForm, setShowForm] = useState(false);
 
@@ -50,9 +53,13 @@ export default function Page() {
     setShowForm(false);
   };
 
-  const filteredProducts = products.filter((p) =>
-    p.tenSanPham?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // 👉 Lọc dữ liệu tại frontend
+  const filteredProducts = products.filter((p) => {
+    const matchKeyword = p.tenSanPham?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchDanhMuc = selectedDanhMuc === "" || p.danhMucId === selectedDanhMuc;
+    const matchBoSuuTap = selectedBoSuuTap === "" || p.boSuuTapId === selectedBoSuuTap;
+    return matchKeyword && matchDanhMuc && matchBoSuuTap;
+  });
 
   return (
     <ToastProvider>
@@ -60,15 +67,51 @@ export default function Page() {
       <div className="min-h-screen py-10 space-y-10 px-6 bg-[#2b2c4f]">
         {/* Thanh tìm kiếm và nút Thêm */}
         <div className="flex justify-between items-center mb-4">
-        <Button className="ml-auto shadow-lg flex items-center" onClick={handleOpenForm}>
-            <PlusCircle className="mr-2 h-5 w-5" /> 
+          <Button className="ml-auto shadow-lg flex items-center" onClick={handleOpenForm}>
+            <PlusCircle className="mr-2 h-5 w-5" />
             Thêm sản phẩm
           </Button>
         </div>
-        
+
+        {/* Thanh tìm kiếm */}
         <SearchInput searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
 
-        {/* Bảng danh sách sản phẩm */}
+        {/* Bộ lọc */}
+        <div className="flex gap-4 mb-6">
+          <div className="flex flex-col flex-1">
+            <label className="text-white font-semibold mb-1">Danh mục</label>
+            <select
+              value={selectedDanhMuc}
+              onChange={(e) => setSelectedDanhMuc(e.target.value === "" ? "" : Number(e.target.value))}
+              className="bg-[#191a32] text-white p-2 rounded-lg border border-gray-600"
+            >
+              <option value="">Tất cả</option>
+              {danhMucs.map((dm) => (
+                <option key={dm.id} value={dm.id}>
+                  {dm.tenDanhMuc}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex flex-col flex-1">
+            <label className="text-white font-semibold mb-1">Bộ sưu tập</label>
+            <select
+              value={selectedBoSuuTap}
+              onChange={(e) => setSelectedBoSuuTap(e.target.value === "" ? "" : Number(e.target.value))}
+              className="bg-[#191a32] text-white p-2 rounded-lg border border-gray-600"
+            >
+              <option value="">Tất cả</option>
+              {boSuuTaps.map((bst) => (
+                <option key={bst.id} value={bst.id}>
+                  {bst.tenBoSuuTap}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* Bảng sản phẩm */}
         {isLoading ? (
           <p className="text-white text-center">Đang tải dữ liệu...</p>
         ) : isError ? (
@@ -90,14 +133,15 @@ export default function Page() {
         )}
       </div>
 
+      {/* Popup Form */}
       {showForm && (
         <div
           className="fixed inset-0 bg-opacity-60 backdrop-blur-sm flex justify-center items-center z-50"
-          onClick={handleCloseForm} // click ngoài popup đóng form
+          onClick={handleCloseForm}
         >
           <div
             className="bg-[#191a32] rounded-lg p-8 w-full max-w-4xl relative shadow-lg"
-            onClick={(e) => e.stopPropagation()} // ngăn chặn click trong popup đóng form
+            onClick={(e) => e.stopPropagation()}
           >
             <button
               onClick={handleCloseForm}
@@ -114,7 +158,6 @@ export default function Page() {
           </div>
         </div>
       )}
-
     </ToastProvider>
   );
 }

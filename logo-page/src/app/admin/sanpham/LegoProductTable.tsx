@@ -39,8 +39,8 @@ const LegoProductTable: React.FC<Props> = ({ products, onEdit, onDelete, getTenD
               <TableCell><img src={p.anhDaiDien ?? "/default.jpg"} alt={p.tenSanPham} className="w-12 h-12 object-cover rounded" /></TableCell>
               <TableCell>{p.maSanPham}</TableCell>
               <TableCell>{p.tenSanPham}</TableCell>
-              <TableCell>{getTenDanhMuc(Number(p.danhMucId))}</TableCell>
-              <TableCell>{getTenBoSuuTap(Number(p.boSuuTapId))}</TableCell>
+              <TableCell>{getTenDanhMuc(p.danhMucId)}</TableCell>
+              <TableCell>{getTenBoSuuTap(p.boSuuTapId)}</TableCell>
               <TableCell>{p.doTuoi}+</TableCell>
               <TableCell>{Number(p.gia).toLocaleString("vi-VN")}₫</TableCell>
               <TableCell>{p.soLuongTon}</TableCell>

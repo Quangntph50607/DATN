@@ -11,7 +11,7 @@ export function useBoSuutap(){
 
 export function useBoSuuTapID(id:number){
     return useQuery<BoSuuTap>({
-        queryKey:['danhMucs',id],
+        queryKey:['boSuTaps',id],
         queryFn: () => boSuuTapService.getBoSuuTapID(id),
         enabled: !!id
     })

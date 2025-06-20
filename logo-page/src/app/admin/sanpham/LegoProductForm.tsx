@@ -28,45 +28,47 @@ import {
 import { useToast } from "@/context/use-toast";
 import { useDanhMuc } from "@/hooks/useDanhMuc";
 import { useBoSuutap } from "@/hooks/useBoSutap";
-export interface SanPham {
+import { SanPham } from "@/components/types/product.type";
+
+export interface ProductFormData {
   id: number;
   tenSanPham: string;
   maSanPham: string;
-  doTuoi: number | string;
+  doTuoi: string;
   moTa: string;
-  gia: number | string;
-  giaKhuyenMai: number | string | null;
-  soLuong: number | string;
-  soLuongManhGhep: number | string;
-  soLuongTon: number | string;
+  gia: string;
+  giaKhuyenMai: string; // Lưu dưới dạng chuỗi, rỗng nghĩa là null
+  soLuong: string; // Số lượng ban đầu khi thêm mới
+  soLuongManhGhep: string;
+  soLuongTon: string;
   anhDaiDien: string | null;
-  danhMucId: number | string;
-  boSuuTapId: number | string;
-  khuyenMaiId: number | string | null;
+  danhMucId: string;
+  boSuuTapId: string;
+  khuyenMaiId: string;
   trangThai: string;
 }
 
 interface LegoProductFormProps {
-  onSubmit: (data: SanPham) => void;
+  onSubmit: (data: SanPham) => void; // onSubmit vẫn mong đợi SanPham từ product.type.ts
   productToEdit?: SanPham | null;
   onClearEdit: () => void;
 }
 
-const defaultFormData: SanPham = {
+const defaultFormData: ProductFormData = {
   id: 0,
   tenSanPham: "",
   maSanPham: "",
   doTuoi: "",
   moTa: "",
   gia: "",
-  giaKhuyenMai: null,
+  giaKhuyenMai: "",
   soLuong: "",
   soLuongManhGhep: "",
   soLuongTon: "",
   anhDaiDien: null,
   danhMucId: "",
   boSuuTapId: "",
-  khuyenMaiId: null,
+  khuyenMaiId: "",
   trangThai: "Còn hàng", // ✅ Thêm mặc định trạng thái
 };
 
@@ -79,7 +81,7 @@ const LegoProductForm: React.FC<LegoProductFormProps> = ({
   productToEdit,
   onClearEdit,
 }) => {
-  const [formData, setFormData] = useState<SanPham>(defaultFormData);
+  const [formData, setFormData] = useState<ProductFormData>(defaultFormData);
   const { toast } = useToast();
   const {
     data: danhMucList,
@@ -104,16 +106,21 @@ const LegoProductForm: React.FC<LegoProductFormProps> = ({
   useEffect(() => {
     if (productToEdit) {
       setFormData({
-        ...productToEdit,
+        id: productToEdit.id,
+        tenSanPham: productToEdit.tenSanPham,
+        maSanPham: productToEdit.maSanPham || "",
         doTuoi: productToEdit.doTuoi?.toString() || "",
+        moTa: productToEdit.moTa,
         gia: productToEdit.gia?.toString() || "",
-        giaKhuyenMai: productToEdit.giaKhuyenMai?.toString() || null,
+        giaKhuyenMai: productToEdit.giaKhuyenMai?.toString() || "",
         soLuong: productToEdit.soLuong?.toString() || "",
         soLuongManhGhep: productToEdit.soLuongManhGhep?.toString() || "",
         soLuongTon: productToEdit.soLuongTon?.toString() || "",
+        anhDaiDien: productToEdit.anhDaiDien,
         danhMucId: productToEdit.danhMucId?.toString() || "",
         boSuuTapId: productToEdit.boSuuTapId?.toString() || "",
-        khuyenMaiId: productToEdit.khuyenMaiId?.toString() || null,
+        khuyenMaiId: productToEdit.khuyenMaiId?.toString() || "",
+        trangThai: productToEdit.trangThai,
       });
     } else {
       setFormData(defaultFormData);
@@ -128,7 +135,7 @@ const LegoProductForm: React.FC<LegoProductFormProps> = ({
   };
 
   const handleSelectChange = (
-    field: keyof SanPham,
+    field: keyof ProductFormData, // Sử dụng keyof ProductFormData
     value: string | number
   ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -137,7 +144,7 @@ const LegoProductForm: React.FC<LegoProductFormProps> = ({
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
   
-    const requiredFields: (keyof SanPham)[] = [
+    const requiredFields: (keyof ProductFormData)[] = [ // Sử dụng keyof ProductFormData
       "tenSanPham",
       "danhMucId",
       "boSuuTapId",
@@ -147,7 +154,7 @@ const LegoProductForm: React.FC<LegoProductFormProps> = ({
     ];
   
     const hasEmptyRequired = requiredFields.some(
-      (field) => !formData[field] || formData[field]?.toString().trim() === ""
+      (field) => !formData[field] || (formData[field] as string).trim() === ""
     );
   
     if (hasEmptyRequired) {
@@ -158,32 +165,37 @@ const LegoProductForm: React.FC<LegoProductFormProps> = ({
       return;
     }
   
-    const processedData: SanPham = {
-      ...formData,
-      id: productToEdit ? Number(productToEdit.id) : 0,
+    const processedData: SanPham = { // Đây là SanPham từ product.type.ts
+      id: productToEdit ? productToEdit.id : 0, // id đã là number từ productToEdit
       tenSanPham: formData.tenSanPham.trim(),
       maSanPham: formData.maSanPham?.trim() || "",
       moTa: formData.moTa.trim(),
       gia: Number(formData.gia),
       giaKhuyenMai:
-        formData.giaKhuyenMai?.toString().trim() !== ""
+        formData.giaKhuyenMai.trim() !== ""
           ? Number(formData.giaKhuyenMai)
           : null,
-      soLuong: Number(formData.soLuong),
+      soLuong: Number(formData.soLuong), // Đây là số lượng ban đầu, API sẽ quyết định dùng nó hay không
       soLuongManhGhep: Number(formData.soLuongManhGhep),
-      soLuongTon: productToEdit ? Number(formData.soLuongTon) : Number(formData.soLuong), // nếu sửa thì giữ nguyên, thêm mới thì = số lượng
+      soLuongTon: Number(formData.soLuongTon),
       doTuoi:
-        formData.doTuoi?.toString().trim() !== ""
+        formData.doTuoi.trim() !== ""
           ? Number(formData.doTuoi)
           : 0,
       danhMucId: Number(formData.danhMucId),
       boSuuTapId: Number(formData.boSuuTapId),
       khuyenMaiId:
-        formData.khuyenMaiId?.toString().trim() !== ""
+          formData.khuyenMaiId.trim() !== ""
           ? Number(formData.khuyenMaiId)
           : null,
       anhDaiDien: formData.anhDaiDien || null,
       trangThai: formData.trangThai || "Còn hàng",
+      soLuongVote: productToEdit?.soLuongVote || 0,
+      danhGiaTrungBinh: productToEdit?.danhGiaTrungBinh || 0,
+      ngayTao: productToEdit?.ngayTao || new Date().toISOString(), // Hoặc để backend xử lý
+      ngaySua: new Date().toISOString(), // Hoặc để backend xử lý
+      tenDanhMuc: danhMucList?.find(dm => dm.id === Number(formData.danhMucId))?.tenDanhMuc || "", // Chỉ để hiển thị, không gửi lên API
+      tenBoSuuTap: boSuuTapList?.find(bst => bst.id === Number(formData.boSuuTapId))?.tenBoSuuTap || "", // Chỉ để hiển thị, không gửi lên API
     };
   
     onSubmit(processedData);
@@ -248,8 +260,8 @@ const LegoProductForm: React.FC<LegoProductFormProps> = ({
 
               {field.type === "select" ? (
                 <Select
-                  value={String(formData[field.id as keyof SanPham] ?? "")}
-                  onValueChange={(value) => handleSelectChange(field.id as keyof SanPham, value)}
+                value={String(formData[field.id as keyof ProductFormData] ?? "")}
+                onValueChange={(value) => handleSelectChange(field.id as keyof ProductFormData, value)}
                 >
                   <SelectTrigger className="w-full bg-background/70 border border-white/30 text-white rounded-md">
                     <SelectValue placeholder={`Chọn ${field.label.toLowerCase().replace("*", "")}`} />
@@ -289,7 +301,7 @@ const LegoProductForm: React.FC<LegoProductFormProps> = ({
               ) : (
                 <Input
                   id={field.id}
-                  value={String(formData[field.id as keyof SanPham] ?? "")}
+                  value={String(formData[field.id as keyof ProductFormData] ?? "")}
                   onChange={handleChange}
                   type={field.type || "text"}
                   className="bg-background/70 border border-white/30 placeholder:text-gray-500 rounded-md"
