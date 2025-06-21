@@ -7,9 +7,9 @@ export const adminRoutes = [
         { label: "Bộ sưu tập", href: "/admin/bosuutap" }
       ], 
     },
-    { label: "Hóa Đơn", href: "/admin/hoadon", icon: "shopping-cart" },
+    { label: "Quản lý hóa Đơn", href: "/admin/hoadon", icon: "shopping-cart" },
     { label: "Khuyến mãi", href: "/admin/khuyenmai", icon: "tag" },
-    { label: "Khách hàng", href: "/admin/khachhang", icon: "users" },
+    { label: "Quản lý người dùng", href: "/admin/nguoidung", icon: "users" },
     { label: "Bán Hàng", href: "/admin/banhang", icon: "bar-chart-3" },
   ];
   
