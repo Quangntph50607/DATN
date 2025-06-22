@@ -14,7 +14,7 @@ export default function AdminLayout({
         <HeaderAdmin />
         <main className="flex-1 p-6 bg-gray-50 dark:bg-gray-900">
           {children}
-          <Toaster />
+          <Toaster position="top-right" />
         </main>
       </div>
     </div>

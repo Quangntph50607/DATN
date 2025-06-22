@@ -1,4 +1,5 @@
 import { SanPham } from "@/components/types/product.type";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -39,7 +40,7 @@ export default function SanPhamTable({ sanPhams, onDelete, onEdit }: Props) {
     boSuuTaps.find((bst) => bst.id === id)?.tenBoSuuTap || "Không rõ";
 
   return (
-    <Table>
+    <Table className="border-3 border-blue-900 ">
       <TableHeader>
         <TableRow>
           <TableHead>STT</TableHead>
@@ -48,6 +49,7 @@ export default function SanPhamTable({ sanPhams, onDelete, onEdit }: Props) {
           <TableHead>Mô tả</TableHead>
           <TableHead>Danh mục</TableHead>
           <TableHead>Bộ sưu tập</TableHead>
+          <TableHead>Độ tuổi</TableHead>
           <TableHead>Giá</TableHead>
           <TableHead>Số lượng tồn</TableHead>
           <TableHead>Số lượng mảnh ghép</TableHead>
@@ -69,9 +71,16 @@ export default function SanPhamTable({ sanPhams, onDelete, onEdit }: Props) {
               <TableCell>{index + 1}</TableCell>
               <TableCell>{sanPham.maSanPham}</TableCell>
               <TableCell>{sanPham.tenSanPham}</TableCell>
-              <TableCell>{sanPham.moTa}</TableCell>
+              <TableCell className="max-w-[170px] truncate">
+                {sanPham.moTa
+                  ? sanPham.moTa.length > 100
+                    ? sanPham.moTa.slice(0, 100) + "..."
+                    : sanPham.moTa
+                  : ""}
+              </TableCell>
               <TableCell>{getTenDanhMuc(sanPham.idDanhMuc)}</TableCell>
               <TableCell>{getTenBST(sanPham.idBoSuuTap)}</TableCell>
+              <TableCell>{sanPham.doTuoi}</TableCell>
               <TableCell>{sanPham.gia}</TableCell>
               <TableCell>{sanPham.soLuongTon}</TableCell>
               <TableCell>{sanPham.soLuongManhGhep}</TableCell>
@@ -92,12 +101,12 @@ export default function SanPhamTable({ sanPhams, onDelete, onEdit }: Props) {
               </TableCell>
               <TableCell>
                 <div className="flex gap-2">
-                  <button onClick={() => onEdit(sanPham)} title="Chỉnh sửa">
-                    <Edit className="w-4 h-4 text-yellow-500" />
-                  </button>
-                  <button onClick={() => onDelete(sanPham.id)} title="Xóa">
+                  <Button onClick={() => onEdit(sanPham)} title="Chỉnh sửa">
+                    <Edit className="w-4 h-4 text-blue-500" />
+                  </Button>
+                  <Button onClick={() => onDelete(sanPham.id)} title="Xóa">
                     <Trash2 className="w-4 h-4 text-red-500" />
-                  </button>
+                  </Button>
                 </div>
               </TableCell>
             </TableRow>

@@ -27,6 +27,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { toast } from "sonner";
 
 interface Props {
   onSubmit: (data: ProductData, id?: number) => void;
@@ -47,9 +50,10 @@ export default function SanPhamForm({
       danhMucId: undefined,
       boSuuTapId: undefined,
       gia: 1000,
+      doTuoi: undefined,
       trangThai: "Còn hàng",
       anhDaiDien: "",
-      soLuongTon: 1,
+      soLuongTon: undefined,
       soLuongManhGhep: undefined,
     },
   });
@@ -69,6 +73,7 @@ export default function SanPhamForm({
         boSuuTapId: edittingSanPham.idBoSuuTap,
         soLuongTon: edittingSanPham.soLuongTon,
         gia: edittingSanPham.gia,
+        doTuoi: edittingSanPham.doTuoi,
         soLuongManhGhep: edittingSanPham.soLuongManhGhep,
         trangThai: edittingSanPham.trangThai,
         anhDaiDien: edittingSanPham.anhDaiDien ?? "",
@@ -92,6 +97,28 @@ export default function SanPhamForm({
 
     return () => subscription.unsubscribe();
   }, [form]);
+
+  const handleUploadImage = async (file: File, sanPhamId: number) => {
+    const formData = new FormData();
+    formData.append("files", file);
+    formData.append("anhChinh", "true");
+    formData.append("sanPhamId", sanPhamId.toString());
+
+    const res = await fetch("http://localhost:8080/api/anhsp/upload-images", {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      console.error("Upload failed:", text);
+      toast.error("Lỗi khi upload ảnh đại diện");
+      return null;
+    }
+
+    const data = await res.json();
+    return data[0]?.url;
+  };
 
   return (
     <Form {...form}>
@@ -124,142 +151,211 @@ export default function SanPhamForm({
             <FormItem>
               <FormLabel>Mô tả</FormLabel>
               <FormControl>
-                <Input placeholder="Nhập mô tả sản phẩm" {...field} />
+                <Textarea placeholder="Nhập mô tả sản phẩm" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
 
-        <div className="flex flex-wrap gap-4">
-          <FormField
-            control={form.control}
-            name="danhMucId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Danh mục</FormLabel>
-                <FormControl>
-                  <Select
-                    onValueChange={(value) => field.onChange(Number(value))}
-                    value={field.value?.toString()}
-                    disabled={isLoadingDanhMuc}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Chọn danh mục" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {danhMucList.map((dm) => (
-                        <SelectItem key={dm.id} value={dm.id.toString()}>
-                          {dm.tenDanhMuc}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+        <div className="flex flex-wrap  gap-4">
+          <div className="basis-full sm:basis-1/2 lg:basis-1/3">
+            <FormField
+              control={form.control}
+              name="danhMucId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Danh mục</FormLabel>
+                  <FormControl>
+                    <Select
+                      onValueChange={(value) => field.onChange(Number(value))}
+                      value={field.value?.toString()}
+                      disabled={isLoadingDanhMuc}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Chọn danh mục" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {danhMucList.map((dm) => (
+                          <SelectItem key={dm.id} value={dm.id.toString()}>
+                            {dm.tenDanhMuc}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+          <div className="basis-full sm:basis-1/2 lg:basis-1/3">
+            <FormField
+              control={form.control}
+              name="boSuuTapId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Bộ Sưu Tập</FormLabel>
+                  <FormControl>
+                    <Select
+                      onValueChange={(value) => field.onChange(Number(value))}
+                      value={field.value?.toString()}
+                      disabled={isLoadingBoSuuTap}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Chọn bộ sưu tập" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {BoSuuTapList.map((bst) => (
+                          <SelectItem key={bst.id} value={bst.id.toString()}>
+                            {bst.tenBoSuuTap}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+          <div className="basis-full sm:basis-1/2 lg:basis-1/3">
+            <FormField
+              control={form.control}
+              name="doTuoi"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Độ tuổi</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      value={field.value ?? ""}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        field.onChange(value === "" ? undefined : +value);
+                      }}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
 
-          <FormField
-            control={form.control}
-            name="boSuuTapId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Bộ Sưu Tập</FormLabel>
-                <FormControl>
-                  <Select
-                    onValueChange={(value) => field.onChange(Number(value))}
-                    value={field.value?.toString()}
-                    disabled={isLoadingBoSuuTap}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Chọn bộ sưu tập" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {BoSuuTapList.map((bst) => (
-                        <SelectItem key={bst.id} value={bst.id.toString()}>
-                          {bst.tenBoSuuTap}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <div className="basis-full sm:basis-1/2 lg:basis-1/3">
+            <FormField
+              control={form.control}
+              name="gia"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Giá</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      value={field.value ?? ""}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        field.onChange(value === "" ? undefined : +value);
+                      }}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+          <div className="basis-full sm:basis-1/2 lg:basis-1/3">
+            <FormField
+              control={form.control}
+              name="soLuongTon"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Số lượng tồn</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      value={field.value ?? ""}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        field.onChange(value === "" ? undefined : +value);
+                      }}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </div>
 
-          <FormField
-            control={form.control}
-            name="gia"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Giá</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    {...field}
-                    onChange={(e) => field.onChange(+e.target.value)}
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          />
+          <div className="basis-full sm:basis-1/2 lg:basis-1/3">
+            <FormField
+              control={form.control}
+              name="soLuongManhGhep"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Số lượng mảnh ghép</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      value={field.value ?? ""}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        field.onChange(value === "" ? undefined : +value);
+                      }}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
 
-          <FormField
-            control={form.control}
-            name="soLuongTon"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Số lượng tồn</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    {...field}
-                    onChange={(e) => field.onChange(+e.target.value)}
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="soLuongManhGhep"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Số lượng mảnh ghép</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    {...field}
-                    onChange={(e) => field.onChange(+e.target.value)}
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          />
+          <div className=" basis-full sm:basis-1/2 lg:basis-1/3">
+            <FormField
+              control={form.control}
+              name="trangThai"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Trạng thái</FormLabel>
+                  <FormControl>
+                    <Select
+                      value={field.value}
+                      onValueChange={(value) => {
+                        const currentSoLuongTon =
+                          form.getValues("soLuongTon") ?? 0;
+                        if (value === "Hết hàng" && currentSoLuongTon > 0) {
+                          toast.error(
+                            "Không thể đặt trạng thái 'Hết hàng' khi số lượng tồn lớn hơn 0"
+                          );
+                        } else if (
+                          value === "Còn hàng" &&
+                          currentSoLuongTon == 0
+                        ) {
+                          toast.error(
+                            "Không thể đặt trạng thái 'Còn hàng' khi số lượng tồn  bằng 0"
+                          );
+                          return;
+                        }
 
-          <FormField
-            control={form.control}
-            name="trangThai"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Trạng thái</FormLabel>
-                <FormControl>
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Chọn trạng thái" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Còn hàng">Còn hàng</SelectItem>
-                      <SelectItem value="Hết hàng">Hết hàng</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </FormControl>
-              </FormItem>
-            )}
-          />
+                        field.onChange(value);
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Chọn trạng thái" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Còn hàng">Còn hàng</SelectItem>
+                        <SelectItem value="Hết hàng">Hết hàng</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </div>
+        </div>
+        <div className="flex gap-3 items-center ">
+          <span> Nổi bật</span>
+          <Switch />
         </div>
 
         <FormField
@@ -272,16 +368,20 @@ export default function SanPhamForm({
                 <Input
                   type="file"
                   accept="image/*"
-                  onChange={(e) => {
+                  onChange={async (e) => {
                     const file = e.target.files?.[0];
                     if (file) {
-                      const url = URL.createObjectURL(file);
-                      setPreview(url);
-                      field.onChange(url);
+                      const uploadedUrl = await handleUploadImage(file);
+                      if (uploadedUrl) {
+                        const fullUrl = `/api/anhsp/images/${uploadedUrl}`;
+                        setPreview(fullUrl);
+                        field.onChange(fullUrl);
+                      }
                     }
                   }}
                 />
               </FormControl>
+
               {preview && (
                 <div className="mt-2 w-40 h-40 relative">
                   <Image
@@ -306,6 +406,7 @@ export default function SanPhamForm({
               type="button"
               variant="outline"
               onClick={() => {
+                onSucces?.();
                 form.reset();
                 setPreview(null);
               }}
