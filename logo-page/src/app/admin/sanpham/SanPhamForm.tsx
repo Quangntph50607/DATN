@@ -83,7 +83,7 @@ export default function SanPhamForm({
       const sl = values.soLuongTon ?? 0;
       const current = values.trangThai;
 
-      const expected = sl > 0 ? "Đang kinh doanh" : "Ngừng kinh doanh";
+      const expected = sl > 0 ? "Đang kinh doanh" : "Hết hàng";
 
       if (current !== expected) {
         form.setValue("trangThai", expected);
