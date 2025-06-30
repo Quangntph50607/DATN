@@ -47,7 +47,7 @@ export function DateTimePicker({
           onChange={(date) => onChange?.(date)}
           showTimeSelect
           timeFormat="HH:mm"
-          timeIntervals={15}
+          timeIntervals={1}
           dateFormat="dd/MM/yyyy HH:mm"
           inline
         />

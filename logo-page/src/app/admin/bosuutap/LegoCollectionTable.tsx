@@ -38,7 +38,6 @@ const LegoCollectionTable: React.FC<Props> = ({
             <TableHead className="font-bold">STT</TableHead>
             <TableHead className="font-bold">Tên bộ sưu tập</TableHead>
             <TableHead className="font-bold">Mô tả</TableHead>
-            <TableHead className="font-bold">Năm phát hành</TableHead>
             <TableHead className="font-bold">Ngày tạo</TableHead>
             <TableHead className="font-bold">Thao tác</TableHead>
           </TableRow>
@@ -50,7 +49,6 @@ const LegoCollectionTable: React.FC<Props> = ({
               <TableCell>{index + 1}</TableCell>
               <TableCell>{c.tenBoSuuTap}</TableCell>
               <TableCell>{c.moTa}</TableCell>
-              <TableCell>{c.namPhatHanh}</TableCell>
               <TableCell>{formatDateFlexible(c.ngayTao)}</TableCell>
               <TableCell>
                 <div className="flex gap-2">

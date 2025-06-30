@@ -80,9 +80,7 @@ export default function SanPhamTable({ sanPhams, onDelete, onEdit }: Props) {
                       Đang kinh doanh
                     </span>
                   ) : (
-                    <span className="text-red-300 font-semibold">
-                      Ngừng kinh doanh
-                    </span>
+                    <span className="text-red-300 font-semibold">Hết hàng</span>
                   )}
                 </TableCell>
                 <TableCell>
