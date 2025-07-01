@@ -18,12 +18,14 @@ interface DateTimePickerProps {
   value?: Date;
   onChange?: (date: Date | null) => void;
   placeholder?: string;
+  mode?: "datetime" | "date";
 }
 
 export function DateTimePicker({
   value,
   onChange,
   placeholder = "Chọn ngày & giờ",
+  mode = "datetime",
 }: DateTimePickerProps) {
   const [open, setOpen] = React.useState(false);
 
@@ -38,17 +40,22 @@ export function DateTimePicker({
           )}
         >
           <CalendarIcon className="mr-2 h-4 w-4" />
-          {value ? format(value, "dd/MM/yyyy HH:mm") : placeholder}
+          {value
+            ? format(
+                value,
+                mode === "datetime" ? "dd/MM/yyyy HH:mm" : "dd/MM/yyyy"
+              )
+            : placeholder}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0">
         <DatePickerLib
           selected={value}
           onChange={(date) => onChange?.(date)}
-          showTimeSelect
+          showTimeSelect={mode === "datetime"}
           timeFormat="HH:mm"
           timeIntervals={1}
-          dateFormat="dd/MM/yyyy HH:mm"
+          dateFormat={mode === "datetime" ? "dd/MM/yyyy HH:mm" : "dd/MM/yyyy"}
           inline
         />
       </PopoverContent>

@@ -1,5 +1,3 @@
-import { SanPham } from "./product.type";
-
 export interface HoaDonDTO {
   id: number;
   tamTinh: number;
