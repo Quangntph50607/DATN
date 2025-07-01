@@ -1,63 +1,205 @@
-// src/components/hoa-don/HoaDonList.tsx
-import React, { useState } from 'react';
+"use client";
 
-import {  HoaDonDTO } from '@/components/types/hoaDon-types';
-import { useHoaDonPaging } from '@/hooks/useHoaDon';
+import React, { useState, useMemo } from "react";
+import {
+    Table,
+    TableHeader,
+    TableBody,
+    TableRow,
+    TableHead,
+    TableCell,
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import {
+    Tabs,
+    TabsList,
+    TabsTrigger,
+} from "@/components/ui/tabs";
+import { Eye } from "lucide-react";
+import {
+    TrangThaiHoaDon,
+    PaymentMethods,
+    HoaDonDTO,
+} from "@/components/types/hoaDon-types";
 
-export default function HoaDonList() {
-    const [page, setPage] = useState(0);
-    const size = 10;
+const loaiHDOptions: { value: string; label: string }[] = [
+    { value: "all", label: "Tất cả" },
+    { value: "1", label: "Tại quầy" },
+    { value: "2", label: "Online" },
+];
 
-    const { data, isLoading, isError, error } = useHoaDonPaging(page, size);
+interface HoaDonListProps {
+    data: { content: HoaDonDTO[]; totalPages: number } | null;
+    page: number;
+    setPage: React.Dispatch<React.SetStateAction<number>>;
+    handleViewDetail: (id: number) => void;
+    handleStatusChange: (id: number, current: string, next: string) => void;
+    PAGE_SIZE: number;
+    isValidTrangThaiTransition: (current: string, next: string) => boolean;
+}
 
-    if (isLoading) return <p>Đang tải hóa đơn...</p>;
-    if (isError) return <p>Lỗi: {error.message}</p>;
+function HoaDonList({
+    data,
+    page,
+    setPage,
+    handleViewDetail,
+    handleStatusChange,
+    PAGE_SIZE,
+    isValidTrangThaiTransition,
+}: HoaDonListProps) {
+    const [filterLoaiHD, setFilterLoaiHD] = useState<string>("all");
+
+    const parseBackendDate = (date: any): Date | null => {
+        if (!date) return null;
+        if (Array.isArray(date) && date.length >= 3) {
+            const [year, month, day, hour = 0, minute = 0, second = 0, nano = 0] = date;
+            return new Date(year, month - 1, day, hour, minute, second, Math.floor(nano / 1e6));
+        }
+        const d = new Date(date);
+        return isNaN(d.getTime()) ? null : d;
+    };
+
+    const filteredData = useMemo(() => {
+        if (filterLoaiHD === "all") return data?.content || [];
+        return data?.content.filter((hd) => String(hd.loaiHD) === filterLoaiHD) || [];
+    }, [data, filterLoaiHD]);
+
+    const getLoaiHDLabel = (loaiHD: number | undefined) => {
+        if (loaiHD === 1) return "Tại quầy";
+        if (loaiHD === 2) return "Online";
+        return "Không rõ";
+    };
 
     return (
-        <div className="p-4">
-            <h2 className="text-xl font-bold mb-4">Danh sách hóa đơn</h2>
-            <table className="min-w-full border border-gray-200">
-                <thead className="bg-gray-100">
-                    <tr>
-                        <th className="p-2 border">Mã hóa đơn</th>
-                        <th className="p-2 border">Trạng thái</th>
-                        <th className="p-2 border">Tên người dùng</th>
-                        <th className="p-2 border">Tổng tiền</th>
-                        <th className="p-2 border">Ngày tạo</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {data?.content.map((hd: HoaDonDTO) => (
-                        <tr key={hd.idHoaDon} className="hover:bg-gray-50">
-                            <td className="p-2 border">{hd.idHoaDon}</td> {/* Sửa lại đúng mã hóa đơn */}
-                            <td className="p-2 border">{hd.trangThai}</td>
-                            <td className="p-2 border">{hd.tennd}</td>
-                            <td className="p-2 border">{hd.tongTien?.toLocaleString()} ₫</td>
-                            <td className="p-2 border">{new Date(hd.ngayTao).toLocaleString()}</td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+        <>
+            {/* Tabs lọc loại hóa đơn */}
+            <div className="flex justify-start mb-10 mr-100 animate-in fade-in slide-in-from-left-10 duration-500">
+                <Tabs value={filterLoaiHD} onValueChange={setFilterLoaiHD}>
+                    <TabsList className="bg-card border shadow-sm p-1 rounded-xl">
+                        {loaiHDOptions.map((opt) => (
+                            <TabsTrigger
+                                key={opt.value}
+                                value={opt.value}
+                                className="data-[state=active]:bg-primary data-[state=active]:text-white
+                                text-sm font-medium px-4 py-2 rounded-lg transition-all hover:bg-muted"
+                            >
+                                {opt.label}
+                            </TabsTrigger>
+                        ))}
+                    </TabsList>
+                </Tabs>
+            </div>
 
-            <div className="flex justify-between items-center mt-4">
-                <button
-                    onClick={() => setPage((p) => Math.max(p - 1, 0))}
+            {/* Bảng danh sách hóa đơn */}
+            <div className="rounded-2xl shadow-lg bg-background border border-muted overflow-auto">
+                <Table>
+                    <TableHeader>
+                        <TableRow className="bg-muted/40">
+                            {[
+                                "STT", "Mã HĐ", "Tên", "SĐT", "Tổng tiền", "Ngày tạo",
+                                "Loại HĐ", "Trạng thái", "Thanh toán", ""
+                            ].map((header, i) => (
+                                <TableHead
+                                    key={i}
+                                    className="whitespace-nowrap text-foreground font-semibold text-sm"
+                                >
+                                    {header}
+                                </TableHead>
+                            ))}
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {filteredData.map((hd: HoaDonDTO, index) => (
+                            <TableRow key={hd.id} className="hover:bg-muted/20 transition-colors">
+                                <TableCell>{page * PAGE_SIZE + index + 1}</TableCell>
+                                <TableCell className="text-blue-500 font-semibold">{hd.maHD || "N/A"}</TableCell>
+                                <TableCell>{hd.ten || "N/A"}</TableCell>
+                                <TableCell>{hd.sdt || "N/A"}</TableCell>
+                                <TableCell className="text-green-500 font-medium">
+                                    {hd.tongTien.toLocaleString("vi-VN")}₫
+                                </TableCell>
+                                <TableCell>{parseBackendDate(hd.ngayTao)?.toLocaleString("vi-VN") || "N/A"}</TableCell>
+                                <TableCell>{getLoaiHDLabel(hd.loaiHD)}</TableCell>
+                                <TableCell>
+                                    <Select
+                                        value={hd.trangThai || ""}
+                                        onValueChange={(value: string) =>
+                                            handleStatusChange(hd.id, hd.trangThai || "", value)
+                                        }
+                                    >
+                                        <SelectTrigger className="w-[130px] text-xs bg-muted/20 border border-border">
+                                            <SelectValue placeholder="Trạng thái" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {Object.values(TrangThaiHoaDon).map((status, idx) => (
+                                                <SelectItem
+                                                    key={idx}
+                                                    value={status}
+                                                    disabled={
+                                                        hd.trangThai
+                                                            ? !isValidTrangThaiTransition(hd.trangThai, status) ||
+                                                            hd.trangThai === status
+                                                            : false
+                                                    }
+                                                    className="text-xs"
+                                                >
+                                                    {status}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </TableCell>
+                                <TableCell>
+                                    {hd.phuongThucThanhToan
+                                        ? PaymentMethods[hd.phuongThucThanhToan]
+                                        : "N/A"}
+                                </TableCell>
+                                <TableCell>
+                                    <Button
+                                        size="icon"
+                                        variant="ghost"
+                                        onClick={() => handleViewDetail(hd.id)}
+                                    >
+                                        <Eye className="w-5 h-5 text-blue-500" />
+                                    </Button>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </div>
+
+            {/* Phân trang */}
+            <div className="flex justify-between items-center mt-6">
+                <Button
+                    variant="outline"
+                    onClick={() => setPage(Math.max(0, page - 1))}
                     disabled={page === 0}
-                    className="px-3 py-1 bg-blue-500 text-white rounded disabled:opacity-50"
                 >
                     Trang trước
-                </button>
-                <span>
-                    Trang {page + 1} / {data?.totalPages ?? 1}
+                </Button>
+                <span className="text-sm text-muted-foreground">
+                    Trang <strong>{page + 1}</strong> / {data?.totalPages || 1}
                 </span>
-                <button
-                    onClick={() => setPage((p) => p + 1)}
-                    disabled={page + 1 >= (data?.totalPages ?? 0)}
-                    className="px-3 py-1 bg-blue-500 text-white rounded disabled:opacity-50"
+                <Button
+                    variant="outline"
+                    onClick={() =>
+                        setPage((prev) => (data && prev < data.totalPages - 1 ? prev + 1 : prev))
+                    }
+                    disabled={!data || page >= data.totalPages - 1}
                 >
                     Trang sau
-                </button>
+                </Button>
             </div>
-        </div>
+        </>
     );
 }
+
+export default HoaDonList;
