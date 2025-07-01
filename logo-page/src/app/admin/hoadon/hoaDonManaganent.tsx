@@ -189,8 +189,7 @@ const HoaDonManagement = () => {
                 onClose={() => setOpen(false)}
                 detail={detail}
                 chiTietSanPham={chiTietSanPham}
-                exportExcel={() => { }}
-                exportDocx={() => { }}
+                handleViewDetail={handleViewDetail}
                 loadingDetail={false}
             />
         </div>
