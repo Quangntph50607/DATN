@@ -4,7 +4,7 @@ export interface Role {
 }
 
 export interface DTOUser {
-  id?: number; 
+  id?: number;
   ten: string;
   email: string;
   matKhau: string;
@@ -13,7 +13,7 @@ export interface DTOUser {
   trangThai: number;
   role_id: number;
   ngayTao?: number[];
-  role?: Role;  
+  role?: Role;
 }
 
 

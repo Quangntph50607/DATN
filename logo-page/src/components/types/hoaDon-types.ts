@@ -39,8 +39,6 @@ export interface HoaDonDetailDTO {
   id: number;
   hdId: number;
   spId: number;
-  tensp: string;
-  masp: string;
   soLuong: number;
   gia: number;
   tongTien: number;

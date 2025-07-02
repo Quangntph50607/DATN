@@ -2,12 +2,13 @@
 
 import React, { useEffect, useState } from "react";
 import { HoaDonService } from "@/services/hoaDonService";
-import { HoaDonDTO, TrangThaiHoaDon, PaymentMethods } from "@/components/types/hoaDon-types";
-
-import HoaDonDetail from "./hoaDondetail";
+import { HoaDonDTO, TrangThaiHoaDon, PaymentMethods, HoaDonDetailDTO } from "@/components/types/hoaDon-types";
+import { useSanPham } from "@/hooks/useSanPham";
 import HoaDonFilter from "./hoaDonFilter";
 import { toast } from "sonner";
 import HoaDonList from "./hoaDonList";
+import HoaDonDetail from "./hoaDondetail";
+import { useAccounts } from "@/hooks/useAccount";
 
 const PAGE_SIZE = 10;
 
@@ -39,14 +40,15 @@ function isValidTrangThaiTransition(current: string, next: string): boolean {
     }
 }
 
-function parseBackendDate(date: any): Date | null {
-    if (!date) return null;
+function parseBackendDate(date: any): string {
+    if (!date) return "N/A";
     if (Array.isArray(date) && date.length >= 3) {
         const [year, month, day, hour = 0, minute = 0, second = 0, nano = 0] = date;
-        return new Date(year, month - 1, day, hour, minute, second, Math.floor(nano / 1e6));
+        const parsedDate = new Date(year, month - 1, day, hour, minute, second, Math.floor(nano / 1e6));
+        return !isNaN(parsedDate.getTime()) ? parsedDate.toLocaleString("vi-VN") : "N/A";
     }
     const d = new Date(date);
-    return isNaN(d.getTime()) ? null : d;
+    return !isNaN(d.getTime()) ? d.toLocaleString("vi-VN") : "N/A";
 }
 
 const mapStatusToKey = (status: string): keyof typeof TrangThaiHoaDon | undefined =>
@@ -60,7 +62,14 @@ const HoaDonManagement = () => {
     const [data, setData] = useState<{ content: HoaDonDTO[]; totalPages: number } | null>(null);
     const [open, setOpen] = useState(false);
     const [detail, setDetail] = useState<HoaDonDTO | null>(null);
-    const [chiTietSanPham, setChiTietSanPham] = useState<any[]>([]);
+    const [chiTietSanPham, setChiTietSanPham] = useState<HoaDonDetailDTO[]>([]);
+
+    // Sử dụng hook useSanPham để lấy danh sách sản phẩm
+    const { data: sanPhams = [], isLoading: loadingSanPhams, error: sanPhamError } = useSanPham();
+
+    // Sử dụng hook useAccounts để lấy danh sách người dùng
+    const { data: users = [], isLoading: loadingUsers, error: userError } = useAccounts();
+
     const [filters, setFilters] = useState({
         keyword: "",
         trangThai: "all" as keyof typeof TrangThaiHoaDon | "all",
@@ -68,6 +77,20 @@ const HoaDonManagement = () => {
         from: "",
         to: "",
     });
+
+    // Xử lý lỗi khi lấy sản phẩm
+    useEffect(() => {
+        if (sanPhamError) {
+            toast.error("Lỗi khi tải danh sách sản phẩm");
+        }
+    }, [sanPhamError]);
+
+    // Xử lý lỗi khi lấy người dùng
+    useEffect(() => {
+        if (userError) {
+            toast.error("Lỗi khi tải danh sách người dùng");
+        }
+    }, [userError]);
 
     const fetchData = async () => {
         try {
@@ -84,11 +107,15 @@ const HoaDonManagement = () => {
             if (filters.keyword) {
                 const kw = filters.keyword.toLowerCase();
                 filtered = filtered.filter(
-                    (hd) =>
-                        (hd.ten?.toLowerCase().includes(kw)) ||
-                        (hd.maHD?.toLowerCase().includes(kw)) ||
-                        (hd.sdt?.includes(kw)) ||
-                        (hd.id + "").includes(kw)
+                    (hd) => {
+                        const user = users.find((u) => u.id === hd.userId);
+                        return (
+                            (user?.ten?.toLowerCase().includes(kw)) ||
+                            (hd.maHD?.toLowerCase().includes(kw)) ||
+                            (user?.sdt?.includes(kw)) ||
+                            (hd.id + "").includes(kw)
+                        );
+                    }
                 );
             }
 
@@ -108,7 +135,7 @@ const HoaDonManagement = () => {
                 const fromDate = new Date(filters.from);
                 filtered = filtered.filter((hd) => {
                     const d = parseBackendDate(hd.ngayTao);
-                    return d && d >= fromDate;
+                    return d && new Date(d) >= fromDate;
                 });
             }
 
@@ -116,7 +143,7 @@ const HoaDonManagement = () => {
                 const toDate = new Date(filters.to);
                 filtered = filtered.filter((hd) => {
                     const d = parseBackendDate(hd.ngayTao);
-                    return d && d <= toDate;
+                    return d && new Date(d) <= toDate;
                 });
             }
 
@@ -130,7 +157,7 @@ const HoaDonManagement = () => {
 
     useEffect(() => {
         fetchData();
-    }, [page, filters]);
+    }, [page, filters, users]);
 
     const handleViewDetail = async (id: number) => {
         try {
@@ -182,6 +209,7 @@ const HoaDonManagement = () => {
                 handleStatusChange={handleStatusChange}
                 PAGE_SIZE={PAGE_SIZE}
                 isValidTrangThaiTransition={isValidTrangThaiTransition}
+                users={users} // Truyền users vào HoaDonList
             />
 
             <HoaDonDetail
@@ -189,8 +217,8 @@ const HoaDonManagement = () => {
                 onClose={() => setOpen(false)}
                 detail={detail}
                 chiTietSanPham={chiTietSanPham}
-                exportExcel={() => { }}
-                exportDocx={() => { }}
+                sanPhams={sanPhams}
+                users={users} // Truyền danh sách users vào HoaDonDetail
                 loadingDetail={false}
             />
         </div>
