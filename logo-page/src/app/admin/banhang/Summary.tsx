@@ -12,6 +12,7 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
+import { useGetPhieuGiam } from '@/hooks/usePhieuGiam';
 
 interface Props {
   customerName: string;
@@ -30,13 +31,6 @@ interface Props {
   setCashGiven: (v: number | '') => void;
 }
 
-const discountOptions = [
-  { label: 'Không áp dụng', value: 0 },
-  { label: 'Phiếu 10%', value: 10 },
-  { label: 'Phiếu 20%', value: 20 },
-  { label: 'Phiếu 30%', value: 30 },
-];
-
 const Summary: React.FC<Props> = ({
   discount,
   subtotal,
@@ -51,6 +45,7 @@ const Summary: React.FC<Props> = ({
   cashGiven,
   setCashGiven,
 }) => {
+  const { data: phieuGiamGias = [] } = useGetPhieuGiam();
   const formatCurrency = (amount: number) =>
     new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
   const change = paymentMethod === 'cash' && cashGiven !== '' ? Number(cashGiven) - total : 0;
@@ -71,9 +66,11 @@ const Summary: React.FC<Props> = ({
               <SelectValue placeholder="Chọn phiếu giảm giá" />
             </SelectTrigger>
             <SelectContent className="rounded-xl border-2 border-primary/60 shadow-lg bg-[#23272f] text-white">
-              {discountOptions.map(opt => (
-                <SelectItem key={opt.value} value={String(opt.value)} className="rounded-xl">
-                  {opt.label}
+              <SelectItem value={"0"} className="rounded-xl">Không áp dụng</SelectItem>
+              {phieuGiamGias.map(opt => (
+                <SelectItem key={opt.id} value={String(opt.giaTriGiam)} className="rounded-xl">
+                  {opt.maPhieu ? `${opt.maPhieu} - ` : ''}
+                  {opt.loaiPhieuGiam === 'Theo %' ? `${opt.giaTriGiam}%` : formatCurrency(opt.giaTriGiam)}
                 </SelectItem>
               ))}
             </SelectContent>

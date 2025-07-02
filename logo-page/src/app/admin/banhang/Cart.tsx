@@ -196,7 +196,16 @@ const Cart: React.FC<Props> = ({ cart, updateQuantity, removeFromCart, customerN
                   </div>
                   <div>
                     <h4 className="text-sm font-medium text-white line-clamp-1">{item.tenSanPham}</h4>
-                    <p className="text-xs text-gray-400">{formatCurrency(item.gia)}</p>
+                    <p className="text-xs text-gray-400">
+                      {item.giaKhuyenMai != null && item.giaKhuyenMai > 0 ? (
+                        <>
+                          {formatCurrency(item.giaKhuyenMai)}
+                          <span className="ml-1 line-through text-xs text-gray-500">{formatCurrency(item.gia)}</span>
+                        </>
+                      ) : (
+                        formatCurrency(item.gia)
+                      )}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">

@@ -11,11 +11,11 @@ import Summary from './Summary';
 import PendingOrders from './PendingOrders';
 import { CartItem, PendingOrder } from '@/components/types/order.type';
 import { v4 as uuidv4 } from 'uuid';
-import { useSanPham } from '@/hooks/useSanPham';
+import { useListKhuyenMaiTheoSanPham } from '@/hooks/useKhuyenmai';
 import { SanPham } from '@/components/types/product.type';
 
 const POSPage = () => {
-  const { data: products = [] } = useSanPham();
+  const { data: products = [] } = useListKhuyenMaiTheoSanPham();
   const [cart, setCart] = useState<CartItem[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [discount, setDiscount] = useState(0);

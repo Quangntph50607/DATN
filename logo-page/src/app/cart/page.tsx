@@ -1,39 +1,46 @@
 "use client";
-import React, { useState } from "react";
+import React from "react";
 import CartList from "./(components)/CartList";
 import CartSummary from "./(components)/CartSummary";
+import { useCart, useAddToCart, useUpdateCartItem, useRemoveCartItem } from "@/hooks/useCart";
+
+const userId = 1; // TODO: Lấy userId thực tế từ context/auth
 
 export default function CartPage() {
-  const [items, setItems] = useState([
-    {
-      id: 1,
-      name: "Đò chơi Lego",
-      image: "/images/lego1.jpg",
-      price: 560000,
-      quantity: 2,
-    },
-    {
-      id: 2,
-      name: "Đò chơi Lego",
-      image: "/images/lego1.jpg",
-      price: 560000,
-      quantity: 2,
-    },
-  ]);
+  const { data: cart, isLoading } = useCart(userId);
+  const updateCartItem = useUpdateCartItem(userId);
+  const removeCartItem = useRemoveCartItem(userId);
+
+  if (isLoading) return <div>Đang tải giỏ hàng...</div>;
+  if (!cart) return <div>Không có dữ liệu giỏ hàng</div>;
+
+  // Map dữ liệu backend sang UI
+  const items = (cart.gioHangChiTiets || []).map((item: any): {
+    id: number;
+    name: string;
+    image: string;
+    price: number;
+    quantity: number;
+  } => ({
+    id: item.id,
+    name: item.sanPham?.tenSanPham || "",
+    image: item.sanPham?.anhDaiDien || "/no-image.png",
+    price: item.gia,
+    quantity: item.soLuong,
+  }));
+
   const handleQuantityChange = (id: number, delta: number) => {
-    setItems((prev) =>
-      prev.map((item) =>
-        item.id === id
-          ? { ...item, quantity: Math.max(1, item.quantity + delta) }
-          : item
-      )
-    );
+    const found = items.find((item: { id: number }) => item.id === id);
+    if (!found) return;
+    const newQuantity = found.quantity + delta;
+    if (newQuantity < 1) return;
+    updateCartItem.mutate({ itemId: id, soLuong: newQuantity });
   };
   const handleRemove = (id: number) => {
-    setItems((prev) => prev.filter((item) => item.id !== id));
+    removeCartItem.mutate({ itemId: id });
   };
   const total = items.reduce(
-    (sum, item) => sum + item.price * item.quantity,
+    (sum: number, item: { price: number; quantity: number }) => sum + item.price * item.quantity,
     0
   );
 
