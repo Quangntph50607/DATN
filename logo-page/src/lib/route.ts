@@ -30,6 +30,7 @@ export const adminRoutes = [
       },
     ],
   },
+  { label: "Phiếu giảm giá", href: "/admin/phieugiam", icon: "ticket" },
   { label: "Quản lý người dùng", href: "/admin/nguoidung", icon: "users" },
   { label: "Bán Hàng", href: "/admin/banhang", icon: "bar-chart-3" },
 ];
