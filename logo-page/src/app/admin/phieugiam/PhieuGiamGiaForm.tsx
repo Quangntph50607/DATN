@@ -1,6 +1,9 @@
 "use client";
 
-import type { PhieuGiamGia } from "@/components/types/phieugiam.type";
+import type {
+  PhieuGiamGia,
+  PhieuGiamGiaCreate,
+} from "@/components/types/phieugiam.type";
 import { Button } from "@/components/ui/button";
 import { DateTimePicker } from "@/components/ui/date-picker";
 import {
@@ -26,13 +29,14 @@ import { format, parse } from "date-fns";
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+
 interface Props {
   editing: PhieuGiamGia | null;
   setEditing: (data: PhieuGiamGia | null) => void;
-  onSucess: () => void;
+  onSucess?: () => void;
 }
 
-export default function PhieuGiamGia({ editing, setEditing }: Props) {
+export default function PhieuGiamGia({ editing, setEditing, onSucess }: Props) {
   const addPhieuGG = useAddPhieuGiamGia();
   const editPhieuGG = useEditPhieuGiamGia();
 
@@ -46,19 +50,11 @@ export default function PhieuGiamGia({ editing, setEditing }: Props) {
       loaiPhieuGiam: undefined,
       ngayBatDau: new Date(),
       ngayKetThuc: new Date(),
-      trangThai: undefined,
     },
   });
 
-  const PHIEU_GIAM_GIA = [
-    { label: "Theo %", value: "Theo %" },
-    { label: "Theo giá tiền", value: "Theo số tiền" },
-  ];
-  const TRANG_THAI = [
-    { label: "Đang hoạt động", value: "Đang hoạt động" },
-    { label: "Ngừng hoạt động", value: "Ngừng" },
-    { label: "Hết hạn", value: "Hết hạn" },
-  ];
+  const loaiPhieu = form.watch("loaiPhieuGiam");
+
   useEffect(() => {
     if (editing) {
       form.reset({
@@ -69,17 +65,19 @@ export default function PhieuGiamGia({ editing, setEditing }: Props) {
         loaiPhieuGiam: editing.loaiPhieuGiam,
         ngayBatDau: parse(editing.ngayBatDau, "dd-MM-yyyy", new Date()),
         ngayKetThuc: parse(editing.ngayKetThuc, "dd-MM-yyyy", new Date()),
-        trangThai: editing.trangThai,
       });
     }
   }, [editing, form]);
 
   function onSubmit(data: PhieuGiamGiaData) {
-    const payload = {
+    const payload: PhieuGiamGiaCreate = {
       ...data,
       ngayBatDau: format(data.ngayBatDau, "dd-MM-yyyy"),
       ngayKetThuc: format(data.ngayKetThuc, "dd-MM-yyyy"),
+      giamToiDa:
+        data.loaiPhieuGiam === "Theo %" ? data.giamToiDa ?? 0 : undefined,
     };
+
     if (editing) {
       editPhieuGG.mutate(
         {
@@ -95,6 +93,7 @@ export default function PhieuGiamGia({ editing, setEditing }: Props) {
             toast.success("Sửa khuyến mãi thành công!");
             setEditing(null);
             form.reset();
+            onSucess?.();
           },
           onError: () => {
             toast.error("Sửa thất bại");
@@ -106,6 +105,7 @@ export default function PhieuGiamGia({ editing, setEditing }: Props) {
         onSuccess: () => {
           toast.success("Thêm phiếu giảm thành công!");
           form.reset();
+          onSucess?.();
         },
         onError: () => {
           toast.error("Thêm phiếu giảm không thành công!");
@@ -113,10 +113,11 @@ export default function PhieuGiamGia({ editing, setEditing }: Props) {
       });
     }
   }
+
   return (
-    <div className=" ">
+    <div className="w-full mx-auto">
       <Form {...form}>
-        <form className="space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
+        <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
           <FormField
             control={form.control}
             name="soLuong"
@@ -126,77 +127,118 @@ export default function PhieuGiamGia({ editing, setEditing }: Props) {
                 <FormControl>
                   <Input
                     type="number"
+                    {...field}
                     value={field.value ?? ""}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      field.onChange(value === "" ? undefined : +value);
-                    }}
+                    onChange={(e) =>
+                      field.onChange(+e.target.value || undefined)
+                    }
                   />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
+
+          <FormField
+            control={form.control}
+            name="loaiPhieuGiam"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Loại phiếu</FormLabel>
+                <FormControl>
+                  <Select
+                    value={field.value ?? ""}
+                    onValueChange={(val) => {
+                      field.onChange(val);
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Chọn loại phiếu" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Theo %">Theo %</SelectItem>
+                      <SelectItem value="Theo số tiền">Theo số tiền</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           <FormField
             control={form.control}
             name="giaTriGiam"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Giá trị giảm</FormLabel>
+                <FormLabel>
+                  Giá trị giảm ({loaiPhieu === "Theo %" ? "%" : "VNĐ"})
+                </FormLabel>
                 <FormControl>
-                  <Input
-                    type="number"
-                    value={field.value ?? ""}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      field.onChange(value === "" ? undefined : +value);
-                    }}
-                  />
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      {...field}
+                      value={field.value ?? ""}
+                      onChange={(e) =>
+                        field.onChange(+e.target.value || undefined)
+                      }
+                      className="pr-12"
+                    />
+                    <span className="absolute top-1/2 right-3 -translate-y-1/2 text-sm text-gray-500">
+                      {loaiPhieu === "Theo %" ? "%" : "VNĐ"}
+                    </span>
+                  </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-          <FormField
-            control={form.control}
-            name="giamToiDa"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Giảm tối đa</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    value={field.value ?? ""}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      field.onChange(value === "" ? undefined : +value);
-                    }}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+
+          {loaiPhieu === "Theo %" && (
+            <FormField
+              control={form.control}
+              name="giamToiDa"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Giảm tối đa (VNĐ)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      value={field.value ?? ""}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        field.onChange(value === "" ? undefined : +value);
+                      }}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+
           <FormField
             control={form.control}
             name="giaTriToiThieu"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Giảm giá tối thiểu</FormLabel>
+                <FormLabel>Giá trị tối thiểu (áp dụng)</FormLabel>
                 <FormControl>
                   <Input
                     type="number"
+                    {...field}
                     value={field.value ?? ""}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      field.onChange(value === "" ? undefined : +value);
-                    }}
+                    onChange={(e) =>
+                      field.onChange(+e.target.value || undefined)
+                    }
                   />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
+
           <div className="flex gap-3">
             <FormField
               control={form.control}
@@ -233,66 +275,22 @@ export default function PhieuGiamGia({ editing, setEditing }: Props) {
                 </FormItem>
               )}
             />
-            <div className="flex gap-2 items-center">
-              <FormField
-                control={form.control}
-                name="loaiPhieuGiam"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Loại phiếu giảm</FormLabel>
-                    <FormControl>
-                      <Select
-                        value={field.value}
-                        onValueChange={field.onChange}
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Chọn phiếu giảm giá" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {PHIEU_GIAM_GIA.map((pgg) => (
-                            <SelectItem key={pgg.value} value={pgg.value}>
-                              {pgg.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="trangThai"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Trạng thái</FormLabel>
-                    <FormControl>
-                      <Select
-                        value={field.value}
-                        onValueChange={field.onChange}
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Trạng thái" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {TRANG_THAI.map((tt) => (
-                            <SelectItem key={tt.value} value={tt.value}>
-                              {tt.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
           </div>
-          <Button type="submit">
-            {editing ? "Cập nhật phiếu giảm" : "Thêm phiếu giảm"}
-          </Button>
+
+          <div className="flex gap-2 pt-4">
+            <Button type="submit">{editing ? "Cập nhật" : "Thêm mới"}</Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setEditing(null);
+                form.reset();
+                onSucess?.();
+              }}
+            >
+              Hủy bỏ
+            </Button>
+          </div>
         </form>
       </Form>
     </div>

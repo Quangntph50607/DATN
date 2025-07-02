@@ -25,7 +25,6 @@ export const phieuGiamGiaService = {
     }
     return res.json();
   },
-
   async suaPhieuGiamGia(id: number, data: PhieuGiamGia): Promise<PhieuGiamGia> {
     const res = await fetch(`${API_URL}/Update/${id}`, {
       method: "PUT",

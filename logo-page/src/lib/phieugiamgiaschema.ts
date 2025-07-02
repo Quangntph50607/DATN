@@ -14,9 +14,7 @@ export const phieuGiamGiaSchema = z
       .number({ required_error: "Giá trị giảm không được để trống" })
       .gt(0, { message: "Giá trị giảm phải lớn hơn 0" }),
 
-    giamToiDa: z
-      .number({ required_error: "Giảm tối đa không được để trống" })
-      .min(0, { message: "Giảm tối đa phải lớn hơn hoặc bằng 0" }),
+    giamToiDa: z.number().nullable().optional(),
 
     giaTriToiThieu: z
       .number({ required_error: "Giá trị tối thiểu không được để trống" })
@@ -24,27 +22,42 @@ export const phieuGiamGiaSchema = z
 
     ngayBatDau: z.date({ required_error: "Vui lòng chọn ngày bắt đầu" }),
     ngayKetThuc: z.date({ required_error: "Vui lòng chọn ngày kết thúc" }),
-
-    trangThai: z.enum(["Đang hoạt động", "Ngừng", "Hết hạn"], {
-      required_error: "Trạng thái không được để trống",
-    }),
   })
-  .refine((data) => data.ngayKetThuc >= data.ngayBatDau, {
-    message: "Ngày kết thúc phải sau hoặc bằng ngày bắt đầu",
+  .refine((data) => data.ngayKetThuc > data.ngayBatDau, {
+    message: "Ngày kết thúc phải sau ngày bắt đầu",
     path: ["ngayKetThuc"],
   })
   .refine(
-    (data) => (data.loaiPhieuGiam === "Theo %" ? data.giaTriGiam < 100 : true),
+    (data) => {
+      if (data.loaiPhieuGiam === "Theo %") {
+        return data.giaTriGiam < 100;
+      }
+      return true;
+    },
     {
       message: "Giá trị giảm (%) phải nhỏ hơn 100",
       path: ["giaTriGiam"],
     }
   )
   .refine(
-    (data) =>
-      data.loaiPhieuGiam === "Theo số tiền"
-        ? data.giaTriGiam <= data.giamToiDa
-        : true,
+    (data) => {
+      if (data.loaiPhieuGiam === "Theo %") {
+        return data.giamToiDa != null && data.giamToiDa > 0;
+      }
+      return true;
+    },
+    {
+      message: "Giảm tối đa phải lớn hơn 0 (với phiếu giảm theo %)",
+      path: ["giamToiDa"],
+    }
+  )
+  .refine(
+    (data) => {
+      if (data.loaiPhieuGiam === "Theo số tiền" && data.giamToiDa != null) {
+        return data.giaTriGiam <= data.giamToiDa;
+      }
+      return true;
+    },
     {
       message: "Giá trị giảm không được lớn hơn giảm tối đa",
       path: ["giaTriGiam"],
