@@ -42,7 +42,7 @@ export interface HoaDonDetailDTO {
   spId: number;
   tensp: string;
   masp: string;
-  soLuong: number;
+  soLuong?: number | string;
   gia: number;
   tongTien: number;
 }

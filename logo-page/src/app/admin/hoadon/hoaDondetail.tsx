@@ -1,4 +1,3 @@
-
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -9,10 +8,20 @@ import { Separator } from "@/components/ui/separator";
 import { X, FileSpreadsheet, FileText } from "lucide-react";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
-import { Document, Packer, Paragraph, Table, TableRow, TableCell, TextRun, WidthType } from "docx";
-import { useState } from "react";
+import {
+    Document,
+    Packer,
+    Paragraph,
+    Table,
+    TableRow,
+    TableCell,
+    TextRun,
+    WidthType,
+} from "docx";
+import { HoaDonDetailDTO, PaymentMethods, TrangThaiHoaDon } from "@/components/types/hoaDon-types";
+import { SanPham } from "@/components/types/product.type";
 
-// Define interfaces aligned with HoaDonDTO
+
 interface InvoiceDetail {
     maHD?: string;
     id?: number;
@@ -29,43 +38,43 @@ interface InvoiceDetail {
     maVanChuyen?: string;
 }
 
-interface ProductDetail {
-    id?: number;
-    hdId?: number;
-    spId?: number;
-    tensp?: string;
-    masp?: string;
-    soLuong?: number;
-    gia?: number;
-    tongTien?: number;
-}
-
 type HoaDonDetailProps = {
     open: boolean;
     onClose: () => void;
     detail: InvoiceDetail | null;
     loadingDetail: boolean;
-    chiTietSanPham: ProductDetail[];
+    chiTietSanPham: HoaDonDetailDTO[];
+    sanPhams: SanPham[];
 };
 
-// Mock enums to match HoaDonDTO
-enum TrangThaiHoaDon {
-    PENDING = "Đang xử lý",
-    PROCESSING = "Đã xác nhận",
-    PACKING = "Đang đóng gói",
-    SHIPPED = "Đang vận chuyển",
-    DELIVERED = "Đã giao",
-    COMPLETED = "Hoàn tất",
-    CANCELLED = "Đã hủy",
-    FAILED = "Thất bại",
-}
+// Hàm tra cứu thông tin sản phẩm
+const getSanPhamInfo = (
+    spId: number,
+    sanPhams: SanPham[]
+): { masp?: string; tensp?: string } => {
+    const sanPham = sanPhams.find((sp) => sp.id === spId);
+    return {
+        masp: sanPham?.maSanPham || "N/A",
+        tensp: sanPham?.tenSanPham || "N/A",
+    };
+};
 
-enum PaymentMethods {
-    CASH = "Tiền mặt",
-    BANK_TRANSFER = "Chuyển khoản",
-    CASH_ON_DELIVERY = "COD",
-}
+// Hàm bổ sung masp và tensp
+const enrichChiTietSanPham = (
+    chiTietSanPham: HoaDonDetailDTO[],
+    sanPhams: SanPham[]
+): HoaDonDetailDTO[] => {
+    return chiTietSanPham.map((item) => {
+        const sanPhamInfo = getSanPhamInfo(item.spId, sanPhams);
+        return {
+            ...item,
+            masp: sanPhamInfo.masp,
+            tensp: sanPhamInfo.tensp,
+        };
+    });
+};
 
+// Hàm xử lý định dạng ngày
 const parseBackendDate = (date: number | Date | string | null | undefined): string => {
     if (!date) return "N/A";
     if (Array.isArray(date) && date.length >= 3) {
@@ -77,6 +86,7 @@ const parseBackendDate = (date: number | Date | string | null | undefined): stri
     return !isNaN(d.getTime()) ? d.toLocaleString("vi-VN") : "N/A";
 };
 
+// Hàm lấy style cho trạng thái
 const getStatusStyles = (status: string) => {
     switch (status) {
         case TrangThaiHoaDon.PENDING:
@@ -100,12 +110,13 @@ const getStatusStyles = (status: string) => {
     }
 };
 
+// Hàm lấy nhãn trạng thái
 const getTrangThaiLabel = (status: string) => {
     return TrangThaiHoaDon[status as keyof typeof TrangThaiHoaDon] || status;
 };
 
-// Function to export invoice details to Excel
-const exportExcel = (detail: InvoiceDetail | null, chiTietSanPham: ProductDetail[]) => {
+// Hàm xuất Excel
+const exportExcel = (detail: InvoiceDetail | null, chiTietSanPham: HoaDonDetailDTO[]) => {
     if (!detail || !chiTietSanPham) {
         alert("Không có dữ liệu để xuất file!");
         return;
@@ -118,7 +129,6 @@ const exportExcel = (detail: InvoiceDetail | null, chiTietSanPham: ProductDetail
         ["Khách hàng", detail.ten || "N/A"],
         ["Số điện thoại", detail.sdt || ""],
         ["Địa chỉ giao hàng", detail.diaChiGiaoHang || ""],
-        ["User ID", detail.userId?.toString() || "N/A"],
         ["Mã vận chuyển", detail.maVanChuyen || "N/A"],
         ["Tạm tính", `${detail.tamTinh?.toLocaleString() || 0}₫`],
         ["Giảm giá", `${detail.soTienGiam?.toLocaleString() || 0}₫`],
@@ -127,18 +137,16 @@ const exportExcel = (detail: InvoiceDetail | null, chiTietSanPham: ProductDetail
         ["Chi tiết sản phẩm"],
         ["STT", "Mã SP", "Tên SP", "Số lượng", "Đơn giá", "Thành tiền"],
     ];
-
     chiTietSanPham.forEach((sp, idx) => {
         invoiceData.push([
             idx + 1,
-            sp.masp || "",
-            sp.tensp || "",
+            sp.masp || "N/A",
+            sp.tensp || "N/A",
             sp.soLuong || 0,
             `${Number(sp.gia || 0).toLocaleString()}₫`,
             `${Number(sp.tongTien || 0).toLocaleString()}₫`,
         ]);
     });
-
     const worksheet = XLSX.utils.aoa_to_sheet(invoiceData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "HoaDon");
@@ -150,8 +158,6 @@ const exportExcel = (detail: InvoiceDetail | null, chiTietSanPham: ProductDetail
         { wch: 15 },
         { wch: 15 },
         { wch: 20 },
-        { wch: 20 },
-        { wch: 15 },
     ];
 
     const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
@@ -159,8 +165,8 @@ const exportExcel = (detail: InvoiceDetail | null, chiTietSanPham: ProductDetail
     saveAs(data, `HoaDon_${detail.maHD || "unknown"}.xlsx`);
 };
 
-// Function to export invoice details to DOCX
-const exportDocx = (detail: InvoiceDetail | null, chiTietSanPham: ProductDetail[]) => {
+// Hàm xuất DOCX
+const exportDocx = (detail: InvoiceDetail | null, chiTietSanPham: HoaDonDetailDTO[]) => {
     if (!detail || !chiTietSanPham) {
         alert("Không có dữ liệu để xuất file!");
         return;
@@ -173,7 +179,7 @@ const exportDocx = (detail: InvoiceDetail | null, chiTietSanPham: ProductDetail[
                     new Paragraph({
                         children: [
                             new TextRun({
-                                text: `Chi tiết hóa đơn #${detail.maHD || "N/A"} `,
+                                text: `Chi tiết hóa đơn #${detail.maHD || "N/A"}`,
                                 bold: true,
                                 size: 28,
                                 color: "0000FF",
@@ -183,65 +189,49 @@ const exportDocx = (detail: InvoiceDetail | null, chiTietSanPham: ProductDetail[
                         spacing: { after: 200 },
                     }),
                     new Paragraph({
+                        children: [new TextRun({ text: `Mã hóa đơn: ${detail.maHD || "N/A"}`, bold: true })],
+                        spacing: { after: 100 },
+                    }),
+                    new Paragraph({
+                        children: [new TextRun({ text: `Ngày tạo: ${parseBackendDate(detail.ngayTao)}` })],
+                        spacing: { after: 100 },
+                    }),
+                    new Paragraph({
                         children: [
-                            new TextRun({ text: `Mã hóa đơn: ${detail.maHD || "N/A"} `, bold: true }),
+                            new TextRun({ text: `Trạng thái: ${getTrangThaiLabel(detail.trangThai || "")}`, bold: true }),
                         ],
                         spacing: { after: 100 },
                     }),
                     new Paragraph({
                         children: [
                             new TextRun({
-                                text: `Ngày tạo: ${parseBackendDate(detail.ngayTao)} `,
+                                text: `Phương thức thanh toán: ${detail.phuongThucThanhToan ? PaymentMethods[detail.phuongThucThanhToan] : "N/A"}`,
                             }),
                         ],
                         spacing: { after: 100 },
                     }),
                     new Paragraph({
-                        children: [
-                            new TextRun({ text: `Trạng thái: ${getTrangThaiLabel(detail.trangThai || "")} `, bold: true }),
-                        ],
+                        children: [new TextRun({ text: `Khách hàng: ${detail.ten || "N/A"}` })],
                         spacing: { after: 100 },
                     }),
                     new Paragraph({
-                        children: [
-                            new TextRun({
-                                text: `Phương thức thanh toán: ${detail.phuongThucThanhToan ? PaymentMethods[detail.phuongThucThanhToan] : "N/A"} `,
-                            }),
-                        ],
+                        children: [new TextRun({ text: `Số điện thoại: ${detail.sdt || ""}` })],
                         spacing: { after: 100 },
                     }),
                     new Paragraph({
-                        children: [new TextRun({ text: `Khách hàng: ${detail.ten || "N/A"} ` })],
+                        children: [new TextRun({ text: `Địa chỉ giao hàng: ${detail.diaChiGiaoHang || ""}` })],
                         spacing: { after: 100 },
                     }),
                     new Paragraph({
-                        children: [new TextRun({ text: `Số điện thoại: ${detail.sdt || ""} ` })],
+                        children: [new TextRun({ text: `Mã vận chuyển: ${detail.maVanChuyen || "N/A"}`, bold: true })],
                         spacing: { after: 100 },
                     }),
                     new Paragraph({
-                        children: [new TextRun({ text: `Địa chỉ giao hàng: ${detail.diaChiGiaoHang || ""} ` })],
+                        children: [new TextRun({ text: `Tạm tính: ${detail.tamTinh?.toLocaleString() || 0}₫`, bold: true })],
                         spacing: { after: 100 },
                     }),
                     new Paragraph({
-                        children: [new TextRun({ text: `User ID: ${detail.userId?.toString() || "N/A"} ` })],
-                        spacing: { after: 100 },
-                    }),
-                    new Paragraph({
-                        children: [
-                            new TextRun({ text: `Mã vận chuyển: ${detail.maVanChuyen || "N/A"} `, bold: true }),
-                        ],
-                        spacing: { after: 100 },
-                    }),
-                    new Paragraph({
-                        children: [
-                            new TextRun({ text: `Tạm tính: ${detail.tamTinh?.toLocaleString() || 0}₫`, bold: true }),
-                        ],
-                        spacing: { after: 100 },
-                    }),
-                    new Paragraph({
-                        children: [
-                            new TextRun({ text: `Giảm giá: ${detail.soTienGiam?.toLocaleString() || 0}₫`, bold: true }),
-                        ],
+                        children: [new TextRun({ text: `Giảm giá: ${detail.soTienGiam?.toLocaleString() || 0}₫`, bold: true })],
                         spacing: { after: 100 },
                     }),
                     new Paragraph({
@@ -271,32 +261,61 @@ const exportDocx = (detail: InvoiceDetail | null, chiTietSanPham: ProductDetail[
                                     new TableCell({ children: [new Paragraph("Thành tiền")], margins: { top: 100, bottom: 100 } }),
                                 ],
                             }),
-                            ...chiTietSanPham.map((sp, idx) => new TableRow({
-                                children: [
-                                    new TableCell({ children: [new Paragraph(`${idx + 1} `)], margins: { top: 100, bottom: 100 } }),
-                                    new TableCell({ children: [new Paragraph(sp.masp || "")], margins: { top: 100, bottom: 100 } }),
-                                    new TableCell({ children: [new Paragraph(sp.tensp || "")], margins: { top: 100, bottom: 100 } }),
-                                    new TableCell({ children: [new Paragraph(`${sp.soLuong || 0} `)], margins: { top: 100, bottom: 100 } }),
-                                    new TableCell({ children: [new Paragraph(`${Number(sp.gia || 0).toLocaleString()}₫`)], margins: { top: 100, bottom: 100 } }),
-                                    new TableCell({ children: [new Paragraph(`${Number(sp.tongTien || 0).toLocaleString()}₫`)], margins: { top: 100, bottom: 100 } }),
-                                ],
-                            })),
+                            ...chiTietSanPham.map((sp, idx) =>
+                                new TableRow({
+                                    children: [
+                                        new TableCell({ children: [new Paragraph(`${idx + 1}`)], margins: { top: 100, bottom: 100 } }),
+                                        new TableCell({ children: [new Paragraph(sp.masp || "N/A")], margins: { top: 100, bottom: 100 } }),
+                                        new TableCell({ children: [new Paragraph(sp.tensp || "N/A")], margins: { top: 100, bottom: 100 } }),
+                                        new TableCell({ children: [new Paragraph(`${sp.soLuong || 0}`)], margins: { top: 100, bottom: 100 } }),
+                                        new TableCell({
+                                            children: [new Paragraph(`${Number(sp.gia || 0).toLocaleString()}₫`)],
+                                            margins: { top: 100, bottom: 100 },
+                                        }),
+                                        new TableCell({
+                                            children: [new Paragraph(`${Number(sp.tongTien || 0).toLocaleString()}₫`)],
+                                            margins: { top: 100, bottom: 100 },
+                                        }),
+                                    ],
+                                })
+                            ),
                             new TableRow({
                                 children: [
-                                    new TableCell({ children: [new Paragraph("Tạm tính")], columnSpan: 5, margins: { top: 100, bottom: 100 } }),
-                                    new TableCell({ children: [new Paragraph(`${detail.tamTinh?.toLocaleString() || 0}₫`)], margins: { top: 100, bottom: 100 } }),
+                                    new TableCell({
+                                        children: [new Paragraph("Tạm tính")],
+                                        columnSpan: 5,
+                                        margins: { top: 100, bottom: 100 },
+                                    }),
+                                    new TableCell({
+                                        children: [new Paragraph(`${detail.tamTinh?.toLocaleString() || 0}₫`)],
+                                        margins: { top: 100, bottom: 100 },
+                                    }),
                                 ],
                             }),
                             new TableRow({
                                 children: [
-                                    new TableCell({ children: [new Paragraph("Giảm giá")], columnSpan: 5, margins: { top: 100, bottom: 100 } }),
-                                    new TableCell({ children: [new Paragraph(`${detail.soTienGiam?.toLocaleString() || 0}₫`)], margins: { top: 100, bottom: 100 } }),
+                                    new TableCell({
+                                        children: [new Paragraph("Giảm giá")],
+                                        columnSpan: 5,
+                                        margins: { top: 100, bottom: 100 },
+                                    }),
+                                    new TableCell({
+                                        children: [new Paragraph(`${detail.soTienGiam?.toLocaleString() || 0}₫`)],
+                                        margins: { top: 100, bottom: 100 },
+                                    }),
                                 ],
                             }),
                             new TableRow({
                                 children: [
-                                    new TableCell({ children: [new Paragraph("Tổng cộng")], columnSpan: 5, margins: { top: 100, bottom: 100 } }),
-                                    new TableCell({ children: [new Paragraph(`${detail.tongTien?.toLocaleString() || 0}₫`)], margins: { top: 100, bottom: 100 } }),
+                                    new TableCell({
+                                        children: [new Paragraph("Tổng cộng")],
+                                        columnSpan: 5,
+                                        margins: { top: 100, bottom: 100 },
+                                    }),
+                                    new TableCell({
+                                        children: [new Paragraph(`${detail.tongTien?.toLocaleString() || 0}₫`)],
+                                        margins: { top: 100, bottom: 100 },
+                                    }),
                                 ],
                             }),
                         ],
@@ -312,21 +331,10 @@ const exportDocx = (detail: InvoiceDetail | null, chiTietSanPham: ProductDetail[
 };
 
 export default function HoaDonDetail(props: HoaDonDetailProps) {
-    const { open, onClose, detail, loadingDetail, chiTietSanPham } = props;
-    console.log("Chi tiết hóa đơn:", detail);
-    const handleViewDetail = async (id: number) => {
-        setOpen(true);
-        setLoadingDetail(true);
-        try {
-            const data = await HoaDonService.getHoaDonById(id);
-            console.log("Chi tiết hóa đơn từ API:", data); // <== Thêm ở đây
-            setDetail(data);
-        } catch (error) {
-            console.error("Lỗi khi lấy chi tiết hóa đơn:", error);
-        } finally {
-            setLoadingDetail(false);
-        }
-    };
+    const { open, onClose, detail, loadingDetail, chiTietSanPham, sanPhams } = props;
+
+    // Bổ sung masp và tensp vào chiTietSanPham
+    const enrichedChiTietSanPham = enrichChiTietSanPham(chiTietSanPham, sanPhams);
 
     if (!open) return null;
 
@@ -337,7 +345,7 @@ export default function HoaDonDetail(props: HoaDonDetailProps) {
                     <CardTitle className="text-2xl font-bold text-center text-gray-900 dark:text-gray-100">
                         {detail ? (
                             <>
-                                Chi tiết hóa đơn <span className="text-blue-600 dark:text-blue-400">#{detail.maHD || "N/A"}</span>
+                                Chi tiết hóa đơn <span className="text-blue-600 dark:text-blue-400hores">#{detail.maHD || "N/A"}</span>
                             </>
                         ) : (
                             "Chi tiết hóa đơn"
@@ -371,7 +379,7 @@ export default function HoaDonDetail(props: HoaDonDetailProps) {
                                     <div className="flex items-center">
                                         <span className="font-semibold text-gray-700 dark:text-gray-200 w-32">Trạng thái:</span>
                                         <Badge
-                                            className={`uppercase px - 3 py - 1 text - xs font - medium ${getStatusStyles(detail.trangThai || "")} `}
+                                            className={`uppercase px-3 py-1 text-xs font-medium ${getStatusStyles(detail.trangThai || "")}`}
                                         >
                                             {getTrangThaiLabel(detail.trangThai || "")}
                                         </Badge>
@@ -400,7 +408,7 @@ export default function HoaDonDetail(props: HoaDonDetailProps) {
                                     </div>
                                     <div className="flex items-center">
                                         <span className="font-semibold text-gray-700 dark:text-gray-200 w-32">Khách hàng:</span>
-                                        <span>{detail.ten}</span>
+                                        <span>{detail.ten || "N/A"}</span>
                                     </div>
                                     <div className="flex items-center">
                                         <span className="font-semibold text-gray-700 dark:text-gray-200 w-32">Số điện thoại:</span>
@@ -410,23 +418,19 @@ export default function HoaDonDetail(props: HoaDonDetailProps) {
                                         <span className="font-semibold text-gray-700 dark:text-gray-200 w-32">Địa chỉ giao hàng:</span>
                                         <span>{detail.diaChiGiaoHang || "N/A"}</span>
                                     </div>
-                                    <div className="flex items-center">
-                                        <span className="font-semibold text-gray-700 dark:text-gray-200 w-32">User ID:</span>
-                                        <span>{detail.userId?.toString() || "N/A"}</span>
-                                    </div>
                                 </div>
                             </div>
 
                             <div className="flex justify-end gap-3 mb-6">
                                 <Button
-                                    onClick={() => exportExcel(detail, chiTietSanPham)}
+                                    onClick={() => exportExcel(detail, enrichedChiTietSanPham)}
                                     className="bg-green-600 hover:bg-green-700 text-white transition-colors duration-200"
                                 >
                                     <FileSpreadsheet className="w-4 h-4 mr-2" />
                                     Xuất Excel
                                 </Button>
                                 <Button
-                                    onClick={() => exportDocx(detail, chiTietSanPham)}
+                                    onClick={() => exportDocx(detail, enrichedChiTietSanPham)}
                                     className="bg-indigo-600 hover:bg-indigo-700 text-white transition-colors duration-200"
                                 >
                                     <FileText className="w-4 h-4 mr-2" />
@@ -449,11 +453,10 @@ export default function HoaDonDetail(props: HoaDonDetailProps) {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {chiTietSanPham.map((sp, idx) => (
+                                        {enrichedChiTietSanPham.map((sp, idx) => (
                                             <tr
                                                 key={sp.masp ?? idx}
-                                                className={`${idx % 2 === 0 ? "bg-white dark:bg-gray-800" : "bg-gray-50 dark:bg-gray-900"
-                                                    } hover: bg - gray - 100 dark: hover: bg - gray - 700 transition - colors`}
+                                                className={`${idx % 2 === 0 ? "bg-white dark:bg-gray-800" : "bg-gray-50 dark:bg-gray-900"} hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors`}
                                             >
                                                 <td className="p-3">{idx + 1}</td>
                                                 <td className="p-3">{sp.masp || "N/A"}</td>
