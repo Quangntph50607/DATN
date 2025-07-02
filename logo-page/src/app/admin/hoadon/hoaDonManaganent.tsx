@@ -3,12 +3,12 @@
 import React, { useEffect, useState } from "react";
 import { HoaDonService } from "@/services/hoaDonService";
 import { HoaDonDTO, TrangThaiHoaDon, PaymentMethods, HoaDonDetailDTO } from "@/components/types/hoaDon-types";
-import { SanPham } from "@/components/types/product.type"; // Cập nhật import
-import { useSanPham } from "@/hooks/useSanPham"; // Import hook useSanPham
+import { useSanPham } from "@/hooks/useSanPham";
 import HoaDonFilter from "./hoaDonFilter";
 import { toast } from "sonner";
 import HoaDonList from "./hoaDonList";
 import HoaDonDetail from "./hoaDondetail";
+import { useAccounts } from "@/hooks/useAccount";
 
 const PAGE_SIZE = 10;
 
@@ -67,6 +67,9 @@ const HoaDonManagement = () => {
     // Sử dụng hook useSanPham để lấy danh sách sản phẩm
     const { data: sanPhams = [], isLoading: loadingSanPhams, error: sanPhamError } = useSanPham();
 
+    // Sử dụng hook useAccounts để lấy danh sách người dùng
+    const { data: users = [], isLoading: loadingUsers, error: userError } = useAccounts();
+
     const [filters, setFilters] = useState({
         keyword: "",
         trangThai: "all" as keyof typeof TrangThaiHoaDon | "all",
@@ -81,6 +84,13 @@ const HoaDonManagement = () => {
             toast.error("Lỗi khi tải danh sách sản phẩm");
         }
     }, [sanPhamError]);
+
+    // Xử lý lỗi khi lấy người dùng
+    useEffect(() => {
+        if (userError) {
+            toast.error("Lỗi khi tải danh sách người dùng");
+        }
+    }, [userError]);
 
     const fetchData = async () => {
         try {
@@ -97,11 +107,15 @@ const HoaDonManagement = () => {
             if (filters.keyword) {
                 const kw = filters.keyword.toLowerCase();
                 filtered = filtered.filter(
-                    (hd) =>
-                        (hd.ten?.toLowerCase().includes(kw)) ||
-                        (hd.maHD?.toLowerCase().includes(kw)) ||
-                        (hd.sdt?.includes(kw)) ||
-                        (hd.id + "").includes(kw)
+                    (hd) => {
+                        const user = users.find((u) => u.id === hd.userId);
+                        return (
+                            (user?.ten?.toLowerCase().includes(kw)) ||
+                            (hd.maHD?.toLowerCase().includes(kw)) ||
+                            (user?.sdt?.includes(kw)) ||
+                            (hd.id + "").includes(kw)
+                        );
+                    }
                 );
             }
 
@@ -143,7 +157,7 @@ const HoaDonManagement = () => {
 
     useEffect(() => {
         fetchData();
-    }, [page, filters]);
+    }, [page, filters, users]);
 
     const handleViewDetail = async (id: number) => {
         try {
@@ -195,6 +209,7 @@ const HoaDonManagement = () => {
                 handleStatusChange={handleStatusChange}
                 PAGE_SIZE={PAGE_SIZE}
                 isValidTrangThaiTransition={isValidTrangThaiTransition}
+                users={users} // Truyền users vào HoaDonList
             />
 
             <HoaDonDetail
@@ -203,6 +218,7 @@ const HoaDonManagement = () => {
                 detail={detail}
                 chiTietSanPham={chiTietSanPham}
                 sanPhams={sanPhams}
+                users={users} // Truyền danh sách users vào HoaDonDetail
                 loadingDetail={false}
             />
         </div>

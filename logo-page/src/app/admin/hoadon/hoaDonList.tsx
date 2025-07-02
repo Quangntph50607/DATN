@@ -130,9 +130,20 @@ function HoaDonList({
                                 <TableCell>
                                     <Select
                                         value={hd.trangThai || ""}
-                                        onValueChange={(value: string) =>
-                                            handleStatusChange(hd.id, hd.trangThai || "", value)
-                                        }
+                                        onValueChange={(value: string) => {
+                                            if (
+                                                hd.trangThai &&
+                                                value !== hd.trangThai &&
+                                                isValidTrangThaiTransition(hd.trangThai, value)
+                                            ) {
+                                                const confirmed = window.confirm(
+                                                    `Bạn có chắc chắn muốn chuyển trạng thái từ "${hd.trangThai}" sang "${value}" không?`
+                                                );
+                                                if (confirmed) {
+                                                    handleStatusChange(hd.id, hd.trangThai || "", value);
+                                                }
+                                            }
+                                        }}
                                     >
                                         <SelectTrigger className="w-[130px] text-xs bg-muted/20 border border-border">
                                             <SelectValue placeholder="Trạng thái" />

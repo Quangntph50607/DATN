@@ -1,11 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { X, FileSpreadsheet, FileText } from "lucide-react";
+import { X, FileSpreadsheet, FileText, Printer, Undo2 } from "lucide-react";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import {
@@ -20,7 +21,7 @@ import {
 } from "docx";
 import { HoaDonDetailDTO, PaymentMethods, TrangThaiHoaDon } from "@/components/types/hoaDon-types";
 import { SanPham } from "@/components/types/product.type";
-
+import { DTOUser } from "@/components/types/account.type";
 
 interface InvoiceDetail {
     maHD?: string;
@@ -31,45 +32,46 @@ interface InvoiceDetail {
     tamTinh?: number;
     soTienGiam?: number;
     tongTien?: number;
-    ten?: string | null;
-    sdt?: string;
     diaChiGiaoHang?: string;
     userId?: number;
     maVanChuyen?: string;
 }
 
-type HoaDonDetailProps = {
+interface HoaDonDetailProps {
     open: boolean;
     onClose: () => void;
     detail: InvoiceDetail | null;
     loadingDetail: boolean;
     chiTietSanPham: HoaDonDetailDTO[];
     sanPhams: SanPham[];
-};
+    users: DTOUser[];
+}
 
 // Hàm tra cứu thông tin sản phẩm
-const getSanPhamInfo = (
-    spId: number,
-    sanPhams: SanPham[]
-): { masp?: string; tensp?: string } => {
-    const sanPham = sanPhams.find((sp) => sp.id === spId);
-    return {
-        masp: sanPham?.maSanPham || "N/A",
-        tensp: sanPham?.tenSanPham || "N/A",
-    };
+const getSanPhamMap = (sanPhams: SanPham[]) => {
+    const map = new Map<number, SanPham>();
+    sanPhams.forEach((sp) => map.set(sp.id, sp));
+    return map;
+};
+
+// Hàm tra cứu thông tin người dùng
+const getUserMap = (users: DTOUser[]) => {
+    const map = new Map<number, { ten: string; sdt: string }>();
+    users.forEach((user) => {
+        map.set(user.id, { ten: user.ten || "N/A", sdt: user.sdt || "N/A" });
+    });
+    return map;
 };
 
 // Hàm bổ sung masp và tensp
-const enrichChiTietSanPham = (
-    chiTietSanPham: HoaDonDetailDTO[],
-    sanPhams: SanPham[]
-): HoaDonDetailDTO[] => {
+const enrichChiTietSanPham = (chiTietSanPham: HoaDonDetailDTO[], sanPhams: SanPham[]): HoaDonDetailDTO[] => {
+    const spMap = getSanPhamMap(sanPhams);
     return chiTietSanPham.map((item) => {
-        const sanPhamInfo = getSanPhamInfo(item.spId, sanPhams);
+        const sp = spMap.get(item.spId);
         return {
             ...item,
-            masp: sanPhamInfo.masp,
-            tensp: sanPhamInfo.tensp,
+            masp: sp?.maSanPham || "N/A",
+            tensp: sp?.tenSanPham || "N/A",
         };
     });
 };
@@ -98,11 +100,9 @@ const getStatusStyles = (status: string) => {
         case TrangThaiHoaDon.SHIPPED:
             return "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200";
         case TrangThaiHoaDon.DELIVERED:
-            return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
         case TrangThaiHoaDon.COMPLETED:
             return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
         case TrangThaiHoaDon.CANCELLED:
-            return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
         case TrangThaiHoaDon.FAILED:
             return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
         default:
@@ -116,19 +116,21 @@ const getTrangThaiLabel = (status: string) => {
 };
 
 // Hàm xuất Excel
-const exportExcel = (detail: InvoiceDetail | null, chiTietSanPham: HoaDonDetailDTO[]) => {
+const exportExcel = (detail: InvoiceDetail | null, chiTietSanPham: HoaDonDetailDTO[], users: DTOUser[]) => {
     if (!detail || !chiTietSanPham) {
         alert("Không có dữ liệu để xuất file!");
         return;
     }
+    const userMap = getUserMap(users);
+    const { ten, sdt } = userMap.get(detail.userId!) || { ten: "N/A", sdt: "N/A" };
     const invoiceData = [
         ["Mã hóa đơn", detail.maHD || "N/A"],
         ["Ngày tạo", parseBackendDate(detail.ngayTao)],
         ["Trạng thái", getTrangThaiLabel(detail.trangThai || "")],
         ["Phương thức thanh toán", detail.phuongThucThanhToan ? PaymentMethods[detail.phuongThucThanhToan] : "N/A"],
-        ["Khách hàng", detail.ten || "N/A"],
-        ["Số điện thoại", detail.sdt || ""],
-        ["Địa chỉ giao hàng", detail.diaChiGiaoHang || ""],
+        ["Khách hàng", ten],
+        ["Số điện thoại", sdt],
+        ["Địa chỉ giao hàng", detail.diaChiGiaoHang || "N/A"],
         ["Mã vận chuyển", detail.maVanChuyen || "N/A"],
         ["Tạm tính", `${detail.tamTinh?.toLocaleString() || 0}₫`],
         ["Giảm giá", `${detail.soTienGiam?.toLocaleString() || 0}₫`],
@@ -150,7 +152,6 @@ const exportExcel = (detail: InvoiceDetail | null, chiTietSanPham: HoaDonDetailD
     const worksheet = XLSX.utils.aoa_to_sheet(invoiceData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "HoaDon");
-
     worksheet["!cols"] = [
         { wch: 10 },
         { wch: 15 },
@@ -159,18 +160,18 @@ const exportExcel = (detail: InvoiceDetail | null, chiTietSanPham: HoaDonDetailD
         { wch: 15 },
         { wch: 20 },
     ];
-
     const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
-    const data = new Blob([excelBuffer], { type: "application/octet-stream" });
-    saveAs(data, `HoaDon_${detail.maHD || "unknown"}.xlsx`);
+    saveAs(new Blob([excelBuffer], { type: "application/octet-stream" }), `HoaDon_${detail.maHD || "unknown"}.xlsx`);
 };
 
 // Hàm xuất DOCX
-const exportDocx = (detail: InvoiceDetail | null, chiTietSanPham: HoaDonDetailDTO[]) => {
+const exportDocx = (detail: InvoiceDetail | null, chiTietSanPham: HoaDonDetailDTO[], users: DTOUser[]) => {
     if (!detail || !chiTietSanPham) {
         alert("Không có dữ liệu để xuất file!");
         return;
     }
+    const userMap = getUserMap(users);
+    const { ten, sdt } = userMap.get(detail.userId!) || { ten: "N/A", sdt: "N/A" };
     const doc = new Document({
         sections: [
             {
@@ -211,15 +212,15 @@ const exportDocx = (detail: InvoiceDetail | null, chiTietSanPham: HoaDonDetailDT
                         spacing: { after: 100 },
                     }),
                     new Paragraph({
-                        children: [new TextRun({ text: `Khách hàng: ${detail.ten || "N/A"}` })],
+                        children: [new TextRun({ text: `Khách hàng: ${ten}` })],
                         spacing: { after: 100 },
                     }),
                     new Paragraph({
-                        children: [new TextRun({ text: `Số điện thoại: ${detail.sdt || ""}` })],
+                        children: [new TextRun({ text: `Số điện thoại: ${sdt}` })],
                         spacing: { after: 100 },
                     }),
                     new Paragraph({
-                        children: [new TextRun({ text: `Địa chỉ giao hàng: ${detail.diaChiGiaoHang || ""}` })],
+                        children: [new TextRun({ text: `Địa chỉ giao hàng: ${detail.diaChiGiaoHang || "N/A"}` })],
                         spacing: { after: 100 },
                     }),
                     new Paragraph({
@@ -330,33 +331,38 @@ const exportDocx = (detail: InvoiceDetail | null, chiTietSanPham: HoaDonDetailDT
     });
 };
 
-export default function HoaDonDetail(props: HoaDonDetailProps) {
-    const { open, onClose, detail, loadingDetail, chiTietSanPham, sanPhams } = props;
+export default function HoaDonDetail({ open, onClose, detail, loadingDetail, chiTietSanPham, sanPhams, users }: HoaDonDetailProps) {
+    // Debug log để kiểm tra dữ liệu
+    console.log("Debug - Users:", users);
+    console.log("Debug - Detail:", detail);
 
-    // Bổ sung masp và tensp vào chiTietSanPham
     const enrichedChiTietSanPham = enrichChiTietSanPham(chiTietSanPham, sanPhams);
+    const userMap = getUserMap(users);
+
+    // Tra cứu thông tin người dùng với kiểm tra kỹ hơn
+    const userInfo = detail && detail.userId ? userMap.get(detail.userId) : null;
+    const { ten, sdt } = userInfo || { ten: "N/A", sdt: "N/A" };
+    console.log("Debug - User Info:", { userId: detail?.userId, ten, sdt }); // Log kết quả tra cứu
 
     if (!open) return null;
 
+    const handlePrint = () => window.print();
+    const handleRefund = () => alert("Chức năng hoàn tiền đang được phát triển.");
+    const handleExportExcel = () => exportExcel(detail, enrichedChiTietSanPham, users);
+    const handleExportDocx = () => exportDocx(detail, enrichedChiTietSanPham, users);
+
     return (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 sm:p-6">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in">
             <Card className="w-full max-w-4xl max-h-[90vh] bg-white dark:bg-gray-800 shadow-xl rounded-xl border border-gray-200 dark:border-gray-700">
                 <CardHeader className="relative pb-2">
                     <CardTitle className="text-2xl font-bold text-center text-gray-900 dark:text-gray-100">
-                        {detail ? (
-                            <>
-                                Chi tiết hóa đơn <span className="text-blue-600 dark:text-blue-400hores">#{detail.maHD || "N/A"}</span>
-                            </>
-                        ) : (
-                            "Chi tiết hóa đơn"
-                        )}
+                        Chi tiết hóa đơn <span className="text-blue-600 dark:text-blue-400">#{detail?.maHD || "N/A"}</span>
                     </CardTitle>
                     <Button
                         variant="ghost"
                         size="icon"
-                        className="absolute top-4 right-4 text-gray-500 hover:text-red-500 dark:hover:text-red-400 transition-colors"
+                        className="absolute top-4 right-4 text-gray-500 hover:text-red-500 dark:hover:text-red-400"
                         onClick={onClose}
-                        aria-label="Đóng chi tiết hóa đơn"
                     >
                         <X className="w-5 h-5" />
                     </Button>
@@ -408,11 +414,11 @@ export default function HoaDonDetail(props: HoaDonDetailProps) {
                                     </div>
                                     <div className="flex items-center">
                                         <span className="font-semibold text-gray-700 dark:text-gray-200 w-32">Khách hàng:</span>
-                                        <span>{detail.ten || "N/A"}</span>
+                                        <span>{ten}</span>
                                     </div>
                                     <div className="flex items-center">
                                         <span className="font-semibold text-gray-700 dark:text-gray-200 w-32">Số điện thoại:</span>
-                                        <span>{detail.sdt || "N/A"}</span>
+                                        <span>{sdt}</span>
                                     </div>
                                     <div className="flex items-center">
                                         <span className="font-semibold text-gray-700 dark:text-gray-200 w-32">Địa chỉ giao hàng:</span>
@@ -421,71 +427,83 @@ export default function HoaDonDetail(props: HoaDonDetailProps) {
                                 </div>
                             </div>
 
-                            <div className="flex justify-end gap-3 mb-6">
+                            <div className="flex justify-end gap-2 mb-4">
                                 <Button
-                                    onClick={() => exportExcel(detail, enrichedChiTietSanPham)}
-                                    className="bg-green-600 hover:bg-green-700 text-white transition-colors duration-200"
+                                    variant="outline"
+                                    onClick={handleExportExcel}
+                                    className="text-emerald-600 border-emerald-300 hover:bg-emerald-100"
                                 >
-                                    <FileSpreadsheet className="w-4 h-4 mr-2" />
-                                    Xuất Excel
+                                    <FileSpreadsheet className="w-4 h-4 mr-2" /> Excel
                                 </Button>
                                 <Button
-                                    onClick={() => exportDocx(detail, enrichedChiTietSanPham)}
-                                    className="bg-indigo-600 hover:bg-indigo-700 text-white transition-colors duration-200"
+                                    variant="outline"
+                                    onClick={handleExportDocx}
+                                    className="text-indigo-600 border-indigo-300 hover:bg-indigo-100"
                                 >
-                                    <FileText className="w-4 h-4 mr-2" />
-                                    Xuất DOCX
+                                    <FileText className="w-4 h-4 mr-2" /> DOCX
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    onClick={handlePrint}
+                                    className="text-blue-600 border-blue-300 hover:bg-blue-100"
+                                >
+                                    <Printer className="w-4 h-4 mr-2" /> In hóa đơn
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    onClick={handleRefund}
+                                    className="text-red-600 border-red-300 hover:bg-red-100"
+                                >
+                                    <Undo2 className="w-4 h-4 mr-2" /> Hoàn tiền
                                 </Button>
                             </div>
 
-                            <Separator className="my-6 bg-gray-200 dark:bg-gray-700" />
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Chi tiết sản phẩm</h3>
-                            <div className="border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm overflow-hidden">
-                                <table className="w-full text-sm">
-                                    <thead className="bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                            <Separator className="my-4" />
+                            <h3 className="text-lg font-semibold mb-2">Chi tiết sản phẩm</h3>
+                            <div className="overflow-x-auto">
+                                <table className="min-w-full table-auto border border-gray-200 dark:border-gray-700">
+                                    <thead className="bg-gray-100 dark:bg-gray-700 text-left">
                                         <tr>
-                                            <th className="p-3 text-left font-semibold">STT</th>
-                                            <th className="p-3 text-left font-semibold">Mã SP</th>
-                                            <th className="p-3 text-left font-semibold">Tên SP</th>
-                                            <th className="p-3 text-center font-semibold">SL</th>
-                                            <th className="p-3 text-right font-semibold">Đơn giá</th>
-                                            <th className="p-3 text-right font-semibold">Thành tiền</th>
+                                            <th className="px-4 py-2 font-semibold">STT</th>
+                                            <th className="px-4 py-2 font-semibold">Mã SP</th>
+                                            <th className="px-4 py-2 font-semibold">Tên SP</th>
+                                            <th className="px-4 py-2 font-semibold">Số lượng</th>
+                                            <th className="px-4 py-2 font-semibold">Đơn giá</th>
+                                            <th className="px-4 py-2 font-semibold">Thành tiền</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {enrichedChiTietSanPham.map((sp, idx) => (
+                                        {enrichedChiTietSanPham.map((item, idx) => (
                                             <tr
-                                                key={sp.masp ?? idx}
+                                                key={item.masp ?? idx}
                                                 className={`${idx % 2 === 0 ? "bg-white dark:bg-gray-800" : "bg-gray-50 dark:bg-gray-900"} hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors`}
                                             >
-                                                <td className="p-3">{idx + 1}</td>
-                                                <td className="p-3">{sp.masp || "N/A"}</td>
-                                                <td className="p-3 truncate max-w-xs">{sp.tensp || "N/A"}</td>
-                                                <td className="p-3 text-center">{sp.soLuong || 0}</td>
-                                                <td className="p-3 text-right">{Number(sp.gia || 0).toLocaleString()}₫</td>
-                                                <td className="p-3 text-right">{Number(sp.tongTien || 0).toLocaleString()}₫</td>
+                                                <td className="px-4 py-2">{idx + 1}</td>
+                                                <td className="px-4 py-2">{item.masp || "N/A"}</td>
+                                                <td className="px-4 py-2">{item.tensp || "N/A"}</td>
+                                                <td className="px-4 py-2 text-center">{item.soLuong || 0}</td>
+                                                <td className="px-4 py-2 text-right">{Number(item.gia || 0).toLocaleString()}₫</td>
+                                                <td className="px-4 py-2 text-right">{Number(item.tongTien || 0).toLocaleString()}₫</td>
                                             </tr>
                                         ))}
                                         <tr className="font-semibold bg-gray-100 dark:bg-gray-700">
-                                            <td colSpan={5} className="p-3 text-right">Tạm tính:</td>
-                                            <td className="p-3 text-right">{detail.tamTinh?.toLocaleString() || 0}₫</td>
+                                            <td colSpan={5} className="px-4 py-2 text-right">Tạm tính:</td>
+                                            <td className="px-4 py-2 text-right">{detail.tamTinh?.toLocaleString() || 0}₫</td>
                                         </tr>
                                         <tr className="font-semibold bg-gray-100 dark:bg-gray-700">
-                                            <td colSpan={5} className="p-3 text-right">Giảm giá:</td>
-                                            <td className="p-3 text-right">{detail.soTienGiam?.toLocaleString() || 0}₫</td>
+                                            <td colSpan={5} className="px-4 py-2 text-right">Giảm giá:</td>
+                                            <td className="px-4 py-2 text-right">{detail.soTienGiam?.toLocaleString() || 0}₫</td>
                                         </tr>
                                         <tr className="font-bold bg-gray-100 dark:bg-gray-700 text-green-600 dark:text-green-400">
-                                            <td colSpan={5} className="p-3 text-right">Tổng cộng:</td>
-                                            <td className="p-3 text-right">{detail.tongTien?.toLocaleString() || 0}₫</td>
+                                            <td colSpan={5} className="px-4 py-2 text-right">Tổng cộng:</td>
+                                            <td className="px-4 py-2 text-right">{detail.tongTien?.toLocaleString() || 0}₫</td>
                                         </tr>
                                     </tbody>
                                 </table>
                             </div>
                         </ScrollArea>
                     ) : (
-                        <div className="text-red-500 dark:text-red-400 text-center py-12 font-medium">
-                            Không tìm thấy hóa đơn
-                        </div>
+                        <div className="text-red-500 dark:text-red-400 text-center py-12 font-medium">Không tìm thấy hóa đơn</div>
                     )}
                 </CardContent>
             </Card>
