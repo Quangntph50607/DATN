@@ -30,9 +30,9 @@ export default function SanPhamTable({ sanPhams, onDelete, onEdit }: Props) {
     boSuuTaps.find((bst) => bst.id === id)?.tenBoSuuTap || "Không rõ";
 
   return (
-    <div className="border-3 border-blue-900 rounded-2xl ">
+    <div className="border-3 border-blue-500 rounded-2xl mt-3 overflow-x-auto">
       <Table>
-        <TableHeader>
+        <TableHeader className="bg-blue-500">
           <TableRow>
             <TableHead>STT</TableHead>
             <TableHead>Mã sản phẩm</TableHead>
@@ -42,8 +42,8 @@ export default function SanPhamTable({ sanPhams, onDelete, onEdit }: Props) {
             <TableHead>Bộ sưu tập</TableHead>
             <TableHead>Độ tuổi</TableHead>
             <TableHead>Giá</TableHead>
-            <TableHead>Số lượng tồn</TableHead>
-            <TableHead>Số lượng mảnh ghép</TableHead>
+            <TableHead>SL Tồn</TableHead>
+            <TableHead>SL mảnh ghép</TableHead>
             <TableHead>Trạng Thái</TableHead>
             <TableHead>Hành động</TableHead>
           </TableRow>

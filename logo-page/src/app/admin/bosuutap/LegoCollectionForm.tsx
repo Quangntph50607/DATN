@@ -1,17 +1,12 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { BoSuuTap } from "@/components/types/product.type";
-import {
-  CalendarDays,
-  CalendarCheck2,
-  Palette,
-  PlusCircle,
-} from "lucide-react";
+import { CalendarDays, Palette, PlusCircle } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 
 interface Props {
   collectionToEdit: BoSuuTap | null;
@@ -66,72 +61,46 @@ const LegoCollectionForm: React.FC<Props> = ({
   };
 
   return (
-    <motion.form
-      onSubmit={handleSubmit}
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.3, ease: "easeOut" }}
-      className="glass-card p-6 mb-8 rounded-md border border-white/20 bg-[#10123c]"
-    >
+    <form onSubmit={handleSubmit} className="space-y-4">
       <h2 className="text-2xl font-bold mb-6 text-white pos-gradient-text">
         {collectionToEdit
           ? "Chỉnh sửa bộ sưu tập LEGO"
           : "Thêm bộ sưu tập LEGO mới"}
       </h2>
 
-      <div className="space-y-4">
-        <div>
-          <Label
-            htmlFor="tenBoSuuTap"
-            className="text-sm text-gray-300 flex items-center mb-1"
-          >
-            <CalendarDays className="w-4 h-4 mr-2 text-primary" />
-            Tên bộ sưu tập*
-          </Label>
-          <Input
-            id="tenBoSuuTap"
-            value={tenBoSuuTap}
-            onChange={(e) => setTenBoSuuTap(e.target.value)}
-            placeholder="Tên bộ sưu tập LEGO"
-            className="bg-background/70 border border-white/30 text-white"
-          />
-        </div>
+      <div>
+        <Label
+          htmlFor="tenBoSuuTap"
+          className="text-sm text-gray-300 flex items-center mb-1"
+        >
+          <CalendarDays className="w-4 h-4 mr-2 text-primary" />
+          Tên bộ sưu tập*
+        </Label>
+        <Input
+          id="tenBoSuuTap"
+          value={tenBoSuuTap}
+          onChange={(e) => setTenBoSuuTap(e.target.value)}
+          placeholder="Tên bộ sưu tập LEGO"
+          className="bg-background/70 border border-white/30 text-white"
+        />
+      </div>
 
-        <div>
-          <Label
-            htmlFor="moTa"
-            className="text-sm text-gray-300 flex items-center mb-1"
-          >
-            <Palette className="w-4 h-4 mr-2 text-primary" />
-            Mô tả
-          </Label>
-          <textarea
-            id="moTa"
-            rows={3}
-            value={moTa}
-            onChange={(e) => setMoTa(e.target.value)}
-            placeholder="Mô tả chi tiết về bộ sưu tập..."
-            className="w-full bg-background/70 border border-white/30 placeholder:text-gray-500 rounded-md p-2 text-sm text-white"
-          />
-        </div>
-
-        <div>
-          <Label
-            htmlFor="namPhatHanh"
-            className="text-sm text-gray-300 flex items-center mb-1"
-          >
-            <CalendarCheck2 className="w-4 h-4 mr-2 text-primary" />
-            Năm phát hành
-          </Label>
-          <Input
-            id="namPhatHanh"
-            type="number"
-            value={namPhatHanh}
-            onChange={(e) => setNamPhatHanh(Number(e.target.value))}
-            className="bg-background/70 border border-white/30 text-white"
-          />
-        </div>
+      <div>
+        <Label
+          htmlFor="moTa"
+          className="text-sm text-gray-300 flex items-center mb-1"
+        >
+          <Palette className="w-4 h-4 mr-2 text-primary" />
+          Mô tả
+        </Label>
+        <Textarea
+          id="moTa"
+          rows={3}
+          value={moTa}
+          onChange={(e) => setMoTa(e.target.value)}
+          placeholder="Mô tả chi tiết về bộ sưu tập..."
+          className="w-full h-30   p-2 text-sm "
+        />
       </div>
 
       <div className="flex justify-end gap-3 pt-6">
@@ -150,7 +119,7 @@ const LegoCollectionForm: React.FC<Props> = ({
           {collectionToEdit ? "Lưu thay đổi" : "Thêm bộ sưu tập"}
         </Button>
       </div>
-    </motion.form>
+    </form>
   );
 };
 

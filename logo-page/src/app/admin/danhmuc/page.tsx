@@ -13,16 +13,15 @@ import {
 } from "@/hooks/useDanhMuc";
 import { LegoCategoryForm } from "./LegoCategoryForm";
 import { Button } from "@/components/ui/button";
-import { PlusCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 
 export default function LegoCategoryPage() {
+  const { data: categories = [], isLoading } = useDanhMuc();
   const [categoryToEdit, setCategoryToEdit] = useState<DanhMuc | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [showForm, setShowForm] = useState(false);
-
-  const { data: categories = [], isLoading } = useDanhMuc();
+  const [currentPage, setCurrentPage] = useState(1);
   const addMutation = useAddSDanhMuc();
   const editMutation = useEditDanhMuc();
   const deleteMutation = useXoaDanhMuc();
@@ -78,6 +77,13 @@ export default function LegoCategoryPage() {
     (cat) =>
       cat.tenDanhMuc.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (cat.moTa?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
+  );
+  // Phân trang
+  const itemPerPage = 10;
+  const totalPages = Math.ceil(filteredCategories.length / itemPerPage);
+  const paginatedData = categories.slice(
+    (currentPage - 1) * itemPerPage,
+    currentPage * itemPerPage
   );
 
   return (

@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { motion } from "framer-motion";
 import { Edit, Trash2 } from "lucide-react";
 import {
   Table,
@@ -68,7 +67,7 @@ const LegoCollectionTable: React.FC<Props> = ({
           ))}
         </TableBody>
       </Table>
-    </motion.div>
+    </div>
   );
 };
 

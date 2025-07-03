@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { motion } from "framer-motion";
 import {
   Table,
   TableBody,
@@ -44,8 +43,12 @@ const LegoCategoryTable: React.FC<LegoCategoryTableProps> = ({
           {categories.map((c, index) => (
             <TableRow key={c.id}>
               <TableCell>{index + 1}</TableCell>
-              <TableCell>{c.tenDanhMuc}</TableCell>
-              <TableCell>{c.moTa}</TableCell>
+              <TableCell className="w-60 max-w-[240px] truncate">
+                {c.tenDanhMuc}
+              </TableCell>
+              <TableCell className="w-80 max-w-[320px] truncate">
+                {c.moTa}
+              </TableCell>
               <TableCell>
                 <div className="flex gap-2">
                   <Button
@@ -68,7 +71,7 @@ const LegoCategoryTable: React.FC<LegoCategoryTableProps> = ({
           ))}
         </TableBody>
       </Table>
-    </motion.div>
+    </div>
   );
 };
 

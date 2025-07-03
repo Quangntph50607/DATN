@@ -3,8 +3,6 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { motion } from "framer-motion";
-
 import { productSchema, ProductData } from "@/lib/sanphamschema";
 import { SanPham } from "@/components/types/product.type";
 import { useDanhMuc } from "@/hooks/useDanhMuc";
@@ -34,12 +32,14 @@ interface Props {
   onSubmit: (data: ProductData, id?: number) => void;
   edittingSanPham?: SanPham | null;
   onSucces?: () => void;
+  setEditing: (data: SanPham | null) => void;
 }
 
 export default function SanPhamForm({
   onSubmit,
   edittingSanPham,
   onSucces,
+  setEditing,
 }: Props) {
   const form = useForm<ProductData>({
     resolver: zodResolver(productSchema),
@@ -95,17 +95,13 @@ export default function SanPhamForm({
 
   return (
     <Form {...form}>
-      <motion.form
+      <form
         onSubmit={form.handleSubmit(async (data) => {
           console.log("Submit update:", data, edittingSanPham?.id);
           await onSubmit(data, edittingSanPham?.id);
           onSucces?.();
         })}
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -20 }}
-        transition={{ duration: 0.3, ease: "easeOut" }}
-        className="glass-card p-6 mb-8 space-y-4 rounded-md border border-white/20 bg-[#10123c]"
+        className="space-y-6 mt-2 "
       >
         <FormField
           control={form.control}
@@ -315,25 +311,23 @@ export default function SanPhamForm({
           <Switch />
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex gap-2 p-4">
           <Button type="submit">
             {edittingSanPham ? "Cập nhật sản phẩm" : "Thêm sản phẩm"}
           </Button>
-          {edittingSanPham && (
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                onSucces?.();
-                form.reset();
-                // setPreview(null);
-              }}
-            >
-              Hủy chỉnh sửa
-            </Button>
-          )}
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => {
+              onSucces?.();
+              form.reset();
+              setEditing(null);
+            }}
+          >
+            Hủy bỏ
+          </Button>
         </div>
-      </motion.form>
+      </form>
     </Form>
   );
 }

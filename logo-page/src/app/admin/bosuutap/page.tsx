@@ -1,12 +1,14 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { BoSuuTap } from '@/components/types/product.type';
-import LegoCollectionForm from './LegoCollectionForm';
-import LegoCollectionSearch from './LegoCollectionSearch';
-import LegoCollectionTable from './LegoCollectionTable';
-import { ToastProvider } from '@/components/ui/toast-provider';
-import { toast } from 'sonner';
+import { useState } from "react";
+import { BoSuuTap } from "@/components/types/product.type";
+import LegoCollectionForm from "./LegoCollectionForm";
+import LegoCollectionSearch from "./LegoCollectionSearch";
+import LegoCollectionTable from "./LegoCollectionTable";
+import { ToastProvider } from "@/components/ui/toast-provider";
+import { toast } from "sonner";
+import { motion } from "framer-motion";
+
 import {
   useAddBoSuuTap,
   useBoSuutap,
@@ -22,9 +24,12 @@ export default function LegoCollectionPage() {
   const addMutation = useAddBoSuuTap();
   const editMutation = useEditBoSuuTap();
   const deleteMutation = useXoaBoSuuTap();
+  const [currentPage, setCurrentPage] = useState(1);
 
-  const [collectionToEdit, setCollectionToEdit] = useState<BoSuuTap | null>(null);
-  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [collectionToEdit, setCollectionToEdit] = useState<BoSuuTap | null>(
+    null
+  );
+  const [searchTerm, setSearchTerm] = useState<string>("");
   const [showForm, setShowForm] = useState(false);
 
   const handleSubmit = (data: BoSuuTap) => {
@@ -33,20 +38,20 @@ export default function LegoCollectionPage() {
         { id: collectionToEdit.id, data },
         {
           onSuccess: () => {
-            toast.success('Cập nhật thành công!');
+            toast.success("Cập nhật thành công!");
             setCollectionToEdit(null);
             setShowForm(false);
           },
-          onError: () => toast.error('Cập nhật thất bại!'),
+          onError: () => toast.error("Cập nhật thất bại!"),
         }
       );
     } else {
       addMutation.mutate(data, {
         onSuccess: () => {
-          toast.success('Thêm thành công!');
+          toast.success("Thêm thành công!");
           setShowForm(false);
         },
-        onError: () => toast.error('Thêm thất bại!'),
+        onError: () => toast.error("Thêm thất bại!"),
       });
     }
   };
@@ -59,8 +64,8 @@ export default function LegoCollectionPage() {
   const handleDelete = (id: number, tenBoSuuTap: string) => {
     if (confirm(`Bạn có chắc chắn muốn xóa "${tenBoSuuTap}"?`)) {
       deleteMutation.mutate(id, {
-        onSuccess: () => toast.success('Xóa thành công!'),
-        onError: () => toast.error('Xóa thất bại!'),
+        onSuccess: () => toast.success("Xóa thành công!"),
+        onError: () => toast.error("Xóa thất bại!"),
       });
     }
   };
@@ -75,10 +80,17 @@ export default function LegoCollectionPage() {
     setShowForm(false);
   };
 
-  const filteredCollections = collections.filter((c) =>
-    c.tenBoSuuTap.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.moTa.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.namPhatHanh.toString().includes(searchTerm)
+  const filteredCollections = collections.filter(
+    (c) =>
+      c.tenBoSuuTap.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.moTa.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.namPhatHanh.toString().includes(searchTerm)
+  );
+  const itemPerPage = 10;
+  const totalPages = Math.ceil(filteredCollections.length / itemPerPage);
+  const paginatedData = collections.slice(
+    (currentPage - 1) * itemPerPage,
+    currentPage * itemPerPage
   );
 
   return (
