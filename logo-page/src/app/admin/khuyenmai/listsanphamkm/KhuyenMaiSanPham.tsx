@@ -37,11 +37,13 @@ export default function KhuyenMaiSanPham({ currentPage, itemPerPage }: Props) {
   const applyKM = useAddKhuyenMaiVaoSanPham();
   const [selectedKMId, setSelectedKMId] = useState<number | null>(null);
   const [selectedSPId, setSelectedSPId] = useState<number[]>([]);
+
   function toogleSanPham(id: number) {
     setSelectedSPId((prev) =>
       prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
     );
   }
+
   function handleApplyKM() {
     if (!selectedKMId || selectedSPId.length === 0) {
       toast.error("Vui lòng chọn mã khuyến mãi vào sản phẩm");
@@ -59,10 +61,12 @@ export default function KhuyenMaiSanPham({ currentPage, itemPerPage }: Props) {
       }
     );
   }
+
   const paginatedData = danhSachSanPhamKM.slice(
     (currentPage - 1) * itemPerPage,
     currentPage * itemPerPage
   );
+
   return (
     <div className="p-6 space-y-6">
       <h2 className="text-xl font-bold">Áp dụng khuyến mãi cho sản phẩm</h2>

@@ -24,9 +24,14 @@ import { motion } from "framer-motion";
 interface Props {
   editing: KhuyenMaiDTO | null;
   setEditing: (data: KhuyenMaiDTO | null) => void;
-  onSucces: () => void;
+  onSucess?: () => void;
 }
-export default function KhuyenMaiForm({ editing, setEditing }: Props) {
+
+export default function KhuyenMaiForm({
+  editing,
+  setEditing,
+  onSucess,
+}: Props) {
   const form = useForm<KhuyenMaiData>({
     resolver: zodResolver(khuyenMaiSchema),
     defaultValues: {
@@ -36,10 +41,12 @@ export default function KhuyenMaiForm({ editing, setEditing }: Props) {
       ngayKetThuc: new Date(),
     },
   });
+
   const parseDate = (dateString: string) => {
     const pared = parse(dateString, "dd-MM-YYYY HH:mm:ss", new Date());
     return isNaN(pared.getTime()) ? new Date() : pared;
   };
+
   useEffect(() => {
     if (editing) {
       form.reset({
@@ -80,6 +87,7 @@ export default function KhuyenMaiForm({ editing, setEditing }: Props) {
             toast.success("Sửa khuyến mãi thành công!");
             setEditing(null);
             form.reset();
+            onSucess?.();
           },
           onError: () => {
             toast.error("Sửa thất bại");
@@ -91,6 +99,7 @@ export default function KhuyenMaiForm({ editing, setEditing }: Props) {
         onSuccess: () => {
           toast.success("Thêm khuyến mãi thành công");
           form.reset();
+          onSucess?.();
         },
         onError: () => {
           toast.error("Thêm khuyến mãi thất bại");
