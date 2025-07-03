@@ -49,8 +49,7 @@ function OrderFilter({
   };
 
   const paymentMethods = Object.entries(PaymentMethods).map(([_, label]) => ({
-    value: label, // ✅ dùng label để so sánh
-    label,
+    value: label,
   }));
 
   return (
