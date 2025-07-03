@@ -26,15 +26,19 @@ const LegoCollectionTable: React.FC<Props> = ({
   onDelete,
 }) => {
   return (
-    <div className="border-3 border-blue-500 rounded-2xl overflow-x-auto">
+    <motion.div
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="border-3 border-blue-500 rounded-2xl mt-4 overflow-x-auto shadow-2xl shadow-blue-500/20"
+    >
       <Table>
         <TableHeader className="bg-blue-500">
-          <TableRow className="font-bold">
-            <TableHead className="w-20">STT</TableHead>
-            <TableHead className="w-60 truncate">Tên bộ sưu tập</TableHead>
-            <TableHead className="w-80 truncate">Mô tả</TableHead>
-            <TableHead className="w-60">Ngày tạo</TableHead>
-            <TableHead className="w-32">Hành đọng</TableHead>
+          <TableRow>
+            <TableHead className="text-white font-bold">STT</TableHead>
+            <TableHead className="text-white font-bold">Tên bộ sưu tập</TableHead>
+            <TableHead className="text-white font-bold">Mô tả</TableHead>
+            <TableHead className="text-white font-bold">Ngày tạo</TableHead>
+            <TableHead className="text-white font-bold">Thao tác</TableHead>
           </TableRow>
         </TableHeader>
 

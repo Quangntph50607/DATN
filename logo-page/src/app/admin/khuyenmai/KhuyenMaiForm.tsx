@@ -19,16 +19,14 @@ import { khuyenMaiSchema, KhuyenMaiData } from "@/lib/khuyenmaischema";
 import { useAddKhuyenMai, useEditKhuyenMai } from "@/hooks/useKhuyenmai";
 import { KhuyenMaiDTO } from "@/components/types/khuyenmai-type";
 import { useEffect } from "react";
+import { motion } from "framer-motion";
+
 interface Props {
   editing: KhuyenMaiDTO | null;
   setEditing: (data: KhuyenMaiDTO | null) => void;
   onSucess?: () => void;
 }
-export default function KhuyenMaiForm({
-  editing,
-  setEditing,
-  onSucess,
-}: Props) {
+export default function KhuyenMaiForm({ editing, setEditing, onSucess }: Props) {
   const form = useForm<KhuyenMaiData>({
     resolver: zodResolver(khuyenMaiSchema),
     defaultValues: {
@@ -38,10 +36,12 @@ export default function KhuyenMaiForm({
       ngayKetThuc: new Date(),
     },
   });
+
   const parseDate = (dateString: string) => {
     const pared = parse(dateString, "dd-MM-YYYY HH:mm:ss", new Date());
     return isNaN(pared.getTime()) ? new Date() : pared;
   };
+
   useEffect(() => {
     if (editing) {
       form.reset({
@@ -79,9 +79,10 @@ export default function KhuyenMaiForm({
         },
         {
           onSuccess: () => {
-            toast.success("Sửa khuyến mại thành công!");
+            toast.success("Sửa khuyến mãi thành công!");
             setEditing(null);
             form.reset();
+            onSucess?.();
           },
           onError: () => {
             toast.error("Sửa thất bại");
@@ -91,69 +92,56 @@ export default function KhuyenMaiForm({
     } else {
       addKhuyenMai.mutate(payload, {
         onSuccess: () => {
-          toast.success("Thêm khuyến mại thành công");
+          toast.success("Thêm khuyến mãi thành công");
           form.reset();
+          onSucess?.();
         },
         onError: () => {
-          toast.error("Thêm khuyến mại thất bại");
+          toast.error("Thêm khuyến mãi thất bại");
         },
       });
     }
   };
 
   return (
-    <Form {...form}>
-      <form
-        className="space-y-6 mt-2 w-full mx-auto"
-        onSubmit={form.handleSubmit(onSubmit)}
-      >
-        {/* Tên khuyến mại */}
-        <FormField
-          control={form.control}
-          name="tenKhuyenMai"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Tên Khuyến mại</FormLabel>
-              <FormControl>
-                <Input placeholder="Nhập tên khuyến mại" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* Phần trăm */}
-        <FormField
-          control={form.control}
-          name="phanTramKhuyenMai"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Phần trăm khuyến mại (%)</FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  placeholder="0 - 60"
-                  {...field}
-                  onChange={(e) => field.onChange(+e.target.value)}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* Ngày bắt đầu - kết thúc */}
-        <div className="flex gap-3">
+    <motion.div
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
+      className="glass-card p-6 mb-8 rounded-md border border-white/20 bg-[#10123c] shadow-2xl shadow-blue-500/20 backdrop-blur-sm"
+    >
+      <Form {...form}>
+        <p className="text-2xl font-bold">Khuyến mãi</p>
+        <form className="space-y-6 mt-2" onSubmit={form.handleSubmit(onSubmit)}>
+          {/* Tên khuyến mãi */}
           <FormField
             control={form.control}
-            name="ngayBatDau"
+            name="tenKhuyenMai"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Ngày bắt đầu</FormLabel>
+                <FormLabel>Tên Khuyến Mãi</FormLabel>
                 <FormControl>
-                  <DateTimePicker
-                    value={field.value}
-                    onChange={field.onChange}
+                  <Input placeholder="Nhập tên khuyến mãi" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Phần trăm */}
+          <FormField
+            control={form.control}
+            name="phanTramKhuyenMai"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Phần trăm khuyến mãi (%)</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    placeholder="0 - 60"
+                    {...field}
+                    onChange={(e) => field.onChange(+e.target.value)}
                   />
                 </FormControl>
                 <FormMessage />
@@ -161,40 +149,68 @@ export default function KhuyenMaiForm({
             )}
           />
 
-          <FormField
-            control={form.control}
-            name="ngayKetThuc"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Ngày kết thúc</FormLabel>
-                <FormControl>
-                  <DateTimePicker
-                    value={field.value}
-                    onChange={field.onChange}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+          {/* Ngày bắt đầu - kết thúc */}
+          <div className="flex gap-3">
+            <FormField
+              control={form.control}
+              name="ngayBatDau"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Ngày bắt đầu</FormLabel>
+                  <FormControl>
+                    <DateTimePicker
+                      value={field.value}
+                      onChange={field.onChange}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-        {/* Submit */}
-        <div className="flex gap-2 pt-4">
-          <Button type="submit">{editing ? "Cập nhật" : "Thêm mới"}</Button>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => {
-              setEditing(null);
-              form.reset();
-              onSucess?.();
-            }}
-          >
-            Hủy bỏ
-          </Button>
-        </div>
-      </form>
-    </Form>
+            <FormField
+              control={form.control}
+              name="ngayKetThuc"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Ngày kết thúc</FormLabel>
+                  <FormControl>
+                    <DateTimePicker
+                      value={field.value}
+                      onChange={field.onChange}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          {/* Submit */}
+          <div className="flex gap-2">
+            <Button type="submit">
+              {editing ? "Sửa khuyến mãi" : "Thêm khuyến mãi"}
+            </Button>
+            {editing && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setEditing(null);
+                  form.reset({
+                    tenKhuyenMai: "",
+                    phanTramKhuyenMai: 10,
+                    ngayBatDau: new Date(),
+                    ngayKetThuc: new Date(),
+                  });
+                }}
+              >
+                Hủy chỉnh sửa
+              </Button>
+            )}
+          </div>
+        </form>
+      </Form>
+    </motion.div>
   );
 }

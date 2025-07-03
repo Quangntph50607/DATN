@@ -9,6 +9,8 @@ export interface PendingOrder {
     items: CartItem[];
     totalAmount: number;
     customerName: string;
+    customerEmail?: string;
+    customerPhone?: string;
     discount: number;
     discountAmount: number;
     timestamp: Date;

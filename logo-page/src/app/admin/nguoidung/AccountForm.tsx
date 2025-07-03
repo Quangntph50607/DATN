@@ -118,7 +118,7 @@ const AccountForm: React.FC<AccountFormProps> = ({
           exit={{ opacity: 0 }}
         >
           <motion.div
-            className="relative w-full max-w-3xl rounded-2xl border border-blue-500/20 bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800 p-6 shadow-lg"
+            className="relative w-full max-w-3xl rounded-2xl bg-[#10123c] p-6 shadow-2xl backdrop-blur-sm"
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}

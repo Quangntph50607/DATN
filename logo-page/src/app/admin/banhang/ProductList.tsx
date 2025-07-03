@@ -39,7 +39,18 @@ const ProductList: React.FC<Props> = ({ products, searchTerm, onSearch, onAddToC
                       <img src={image} alt={product.tenSanPham} className="w-full h-full object-cover" />
                     </div>
                     <h3 className="text-sm font-semibold text-white line-clamp-2">{product.tenSanPham}</h3>
-                    <p className="text-xs text-primary font-bold">{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(product.gia)}</p>
+                    <p className="text-xs text-primary font-bold">
+                      {product.giaKhuyenMai != null && product.giaKhuyenMai > 0 ? (
+                        <>
+                          {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(product.giaKhuyenMai)}
+                          <span className="ml-2 text-gray-400 line-through text-xs">
+                            {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(product.gia)}
+                          </span>
+                        </>
+                      ) : (
+                        new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(product.gia)
+                      )}
+                    </p>
                     <p className={`text-xs ${product.soLuongTon > 0 ? 'text-gray-400' : 'text-red-400'}`}>Kho: {product.soLuongTon}</p>
                   </CardContent>
                 </Card>

@@ -22,10 +22,10 @@ interface Props {
 const formatVND = (value?: number) =>
   value != null
     ? new Intl.NumberFormat("vi-VN", {
-        style: "currency",
-        currency: "VND",
-        maximumFractionDigits: 0,
-      }).format(value)
+      style: "currency",
+      currency: "VND",
+      maximumFractionDigits: 0,
+    }).format(value)
     : "-";
 
 const formatTrangThai = (status?: string) => {
