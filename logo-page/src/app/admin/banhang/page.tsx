@@ -20,6 +20,8 @@ const POSPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [discount, setDiscount] = useState(0);
   const [customerName, setCustomerName] = useState('');
+  const [customerEmail, setCustomerEmail] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
   const [pendingOrders, setPendingOrders] = useLocalStorage('pending-orders', []);
   const [paymentMethod, setPaymentMethod] = useState<'' | 'cash' | 'transfer'>('');
   const [cashGiven, setCashGiven] = useState<number | ''>('');
@@ -81,6 +83,8 @@ const POSPage = () => {
     setCart([]);
     setDiscount(0);
     setCustomerName('');
+    setCustomerEmail('');
+    setCustomerPhone('');
     toast.success(`Thanh toán thành công! Cảm ơn ${customerName || "quý khách"}`);
   };
 
@@ -94,6 +98,8 @@ const POSPage = () => {
       items: cart,
       totalAmount: total,
       customerName,
+      customerEmail,
+      customerPhone,
       discount,
       discountAmount,
       timestamp: new Date(),
@@ -102,12 +108,16 @@ const POSPage = () => {
     setCart([]);
     setDiscount(0);
     setCustomerName('');
+    setCustomerEmail('');
+    setCustomerPhone('');
     toast.success('Đã lưu hóa đơn chờ!');
   };
 
   const handleLoadPendingOrder = (order: PendingOrder) => {
     setCart(order.items as unknown as CartItem[]);
     setCustomerName(order.customerName);
+    setCustomerEmail(order.customerEmail || '');
+    setCustomerPhone(order.customerPhone || '');
     setDiscount(order.discount);
     setPendingOrders(pendingOrders.filter((o: PendingOrder) => o.id !== order.id));
   };
@@ -117,45 +127,60 @@ const POSPage = () => {
   };
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-8 min-h-screen flex gap-6">
-      <ProductList products={filteredProducts} searchTerm={searchTerm} onSearch={setSearchTerm} onAddToCart={addToCart} />
-      <div className="w-2/5 mx-auto h-full">
-        <Card className="glass-card flex flex-col max-h-[700px]">
-          <CardHeader><CardTitle className="text-2xl font-bold text-white">Đơn hàng</CardTitle></CardHeader>
-          <CardContent className="flex-grow flex flex-col p-4 max-h-[600px] overflow-y-auto">
-            <Cart
-              cart={cart}
-              updateQuantity={updateQuantity}
-              removeFromCart={removeFromCart}
-              customerName={customerName}
-              onChangeName={setCustomerName}
-            />
-            <Summary
-              customerName={customerName}
-              discount={discount}
-              subtotal={subtotal}
-              discountAmount={discountAmount}
-              total={total}
-              onChangeName={setCustomerName}
-              onChangeDiscount={setDiscount}
-              onCheckout={handleCheckout}
-              isCheckoutDisabled={cart.length === 0}
-              onSavePending={handleSavePendingOrder}
-              paymentMethod={paymentMethod}
-              setPaymentMethod={setPaymentMethod}
-              cashGiven={cashGiven}
-              setCashGiven={setCashGiven}
-              cart={cart}
-            />
-          </CardContent>
-        </Card>
-        <PendingOrders
-          orders={pendingOrders}
-          onLoad={handleLoadPendingOrder}
-          onDelete={handleDeletePendingOrder}
-        />
+    <Card className="p-4 bg-gray-800 shadow-md w-full max-w-full min-h-screen">
+      <div className="text-center">
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">
+          Bán Hàng
+        </h1>
       </div>
-    </motion.div>
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-8 min-h-screen flex gap-6">
+        <ProductList products={filteredProducts} searchTerm={searchTerm} onSearch={setSearchTerm} onAddToCart={addToCart} />
+        <div className="w-2/5 mx-auto h-full">
+          <Card className="glass-card flex flex-col max-h-[700px]">
+            <CardHeader><CardTitle className="text-2xl font-bold text-white">Đơn hàng</CardTitle></CardHeader>
+            <CardContent className="flex-grow flex flex-col p-4 max-h-[600px] overflow-y-auto">
+              <Cart
+                cart={cart}
+                updateQuantity={updateQuantity}
+                removeFromCart={removeFromCart}
+                customerName={customerName}
+                customerEmail={customerEmail}
+                customerPhone={customerPhone}
+                onChangeName={setCustomerName}
+                onChangeEmail={setCustomerEmail}
+                onChangePhone={setCustomerPhone}
+              />
+              <Summary
+                customerName={customerName}
+                customerEmail={customerEmail}
+                customerPhone={customerPhone}
+                discount={discount}
+                subtotal={subtotal}
+                discountAmount={discountAmount}
+                total={total}
+                onChangeName={setCustomerName}
+                onChangeEmail={setCustomerEmail}
+                onChangePhone={setCustomerPhone}
+                onChangeDiscount={setDiscount}
+                onCheckout={handleCheckout}
+                isCheckoutDisabled={cart.length === 0}
+                onSavePending={handleSavePendingOrder}
+                paymentMethod={paymentMethod}
+                setPaymentMethod={setPaymentMethod}
+                cashGiven={cashGiven}
+                setCashGiven={setCashGiven}
+                cart={cart}
+              />
+            </CardContent>
+          </Card>
+          <PendingOrders
+            orders={pendingOrders}
+            onLoad={handleLoadPendingOrder}
+            onDelete={handleDeletePendingOrder}
+          />
+        </div>
+      </motion.div>
+    </Card>
   );
 };
 

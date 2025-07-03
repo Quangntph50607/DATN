@@ -22,9 +22,9 @@ import {
   useKhuyenMai,
   useListKhuyenMaiTheoSanPham,
 } from "@/hooks/useKhuyenmai";
+import { PlusIcon } from "lucide-react";
 import React, { useState } from "react";
 import { toast } from "sonner";
-import { motion } from "framer-motion";
 interface Props {
   currentPage: number;
   itemPerPage: number;
@@ -65,36 +65,36 @@ export default function KhuyenMaiSanPham({ currentPage, itemPerPage }: Props) {
   );
   return (
     <div className="p-6 space-y-6">
-      <h2 className="text-xl font-bold">Áp dụng khuyến mãi cho sản phẩm</h2>
-
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -20 }}
-        transition={{ duration: 0.3, ease: "easeOut" }}
-        className="glass-card flex gap-3 p-6 mb-8 rounded-md border border-white/20 bg-[#10123c]"
-      >
+      <div className="glass-card flex gap-3 p-6 mb-8 rounded-md border border-white">
         <Select onValueChange={(value) => setSelectedKMId(Number(value))}>
-          <SelectTrigger className="w-72">
+          <SelectTrigger className="w-72 ">
             <SelectValue placeholder="Chọn khuyến mãi" />
           </SelectTrigger>
           <SelectContent>
             {danhSachKhuyenMai.map((km: KhuyenMaiDTO) => (
-              <SelectItem key={km.id} value={km.id.toString()}>
-                {km.tenKhuyenMai} (${km.phanTramKhuyenMai}%)
+              <SelectItem
+                key={km.id}
+                value={km.id.toString()}
+                disabled={km.trangThai === "expired"}
+                className="cursor-pointer"
+              >
+                {km.tenKhuyenMai} - (giảm {km.phanTramKhuyenMai}%)
+                {km.trangThai === "expired" && " (Đã hết hạn)"}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
-        <Button onClick={handleApplyKM}>Áp dung khuyến mãi</Button>
-      </motion.div>
+        <Button onClick={handleApplyKM} className="bg-purple-400 px-2">
+          <PlusIcon /> Áp dung khuyến mãi
+        </Button>
+      </div>
       {/* Table */}
       {isLoading ? (
         <div className="text-center py-4">Đang tải dữ liệu ....</div>
       ) : (
-        <div className="border-3 border-blue-900 rounded-2xl ">
+        <div className="border-3 border-blue-500 rounded-2xl mt-3 overflow-x-auto">
           <Table>
-            <TableHeader>
+            <TableHeader className="bg-blue-500">
               <TableRow>
                 <TableHead>#</TableHead>
                 <TableHead>STT</TableHead>
@@ -139,13 +139,13 @@ export default function KhuyenMaiSanPham({ currentPage, itemPerPage }: Props) {
                           : "-"}
                       </TableCell>
                       <TableCell>
-                        {apDungKhuyenMai ? (
-                          <span className="text-green-600 font-medium">
-                            Đã áp dụng
+                        {sp.trangThaiKM === "Đang áp dụng" ? (
+                          <span className="text-green-500 font-semibold">
+                            {sp.trangThaiKM}
                           </span>
                         ) : (
-                          <span className="text-gray-400 italic">
-                            Chưa áp dụng
+                          <span className="text-red-500 font-semibold">
+                            {sp.trangThaiKM}
                           </span>
                         )}
                       </TableCell>

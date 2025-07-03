@@ -24,9 +24,9 @@ import { motion } from "framer-motion";
 interface Props {
   editing: KhuyenMaiDTO | null;
   setEditing: (data: KhuyenMaiDTO | null) => void;
-  onSucces: () => void;
+  onSucess?: () => void;
 }
-export default function KhuyenMaiForm({ editing, setEditing }: Props) {
+export default function KhuyenMaiForm({ editing, setEditing, onSucess }: Props) {
   const form = useForm<KhuyenMaiData>({
     resolver: zodResolver(khuyenMaiSchema),
     defaultValues: {
@@ -36,10 +36,12 @@ export default function KhuyenMaiForm({ editing, setEditing }: Props) {
       ngayKetThuc: new Date(),
     },
   });
+
   const parseDate = (dateString: string) => {
     const pared = parse(dateString, "dd-MM-YYYY HH:mm:ss", new Date());
     return isNaN(pared.getTime()) ? new Date() : pared;
   };
+
   useEffect(() => {
     if (editing) {
       form.reset({
@@ -80,6 +82,7 @@ export default function KhuyenMaiForm({ editing, setEditing }: Props) {
             toast.success("Sửa khuyến mãi thành công!");
             setEditing(null);
             form.reset();
+            onSucess?.();
           },
           onError: () => {
             toast.error("Sửa thất bại");
@@ -91,6 +94,7 @@ export default function KhuyenMaiForm({ editing, setEditing }: Props) {
         onSuccess: () => {
           toast.success("Thêm khuyến mãi thành công");
           form.reset();
+          onSucess?.();
         },
         onError: () => {
           toast.error("Thêm khuyến mãi thất bại");
@@ -105,7 +109,7 @@ export default function KhuyenMaiForm({ editing, setEditing }: Props) {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
-      className="glass-card p-6 mb-8 rounded-md border border-white/20 bg-[#10123c]"
+      className="glass-card p-6 mb-8 rounded-md border border-white/20 bg-[#10123c] shadow-2xl shadow-blue-500/20 backdrop-blur-sm"
     >
       <Form {...form}>
         <p className="text-2xl font-bold">Khuyến mãi</p>

@@ -96,6 +96,11 @@ const OrderTable = memo(
                     return;
                 }
 
+                const confirmed = window.confirm(
+                    `Bạn có chắc chắn muốn chuyển trạng thái từ "${currentStatus}" sang "${nextStatus}" không?`
+                );
+                if (!confirmed) return;
+
                 try {
                     const response = await HoaDonService.updateTrangThai(id, nextStatus);
                     if (isMounted.current && response?.trangThai) {
@@ -112,6 +117,7 @@ const OrderTable = memo(
             },
             [fetchData]
         );
+
 
         return (
             <>

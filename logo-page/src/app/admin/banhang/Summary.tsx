@@ -28,11 +28,15 @@ import { BadgePercent } from 'lucide-react';
 
 interface Props {
   customerName: string;
+  customerEmail: string;
+  customerPhone: string;
   discount: number;
   subtotal: number;
   discountAmount: number;
   total: number;
   onChangeName: (name: string) => void;
+  onChangeEmail: (email: string) => void;
+  onChangePhone: (phone: string) => void;
   onChangeDiscount: (value: number) => void;
   onCheckout: () => void;
   isCheckoutDisabled: boolean;
@@ -50,6 +54,9 @@ const Summary: React.FC<Props> = ({
   discountAmount,
   total,
   onChangeDiscount,
+  onChangeName,
+  onChangeEmail,
+  onChangePhone,
   onCheckout,
   isCheckoutDisabled,
   onSavePending,
@@ -58,6 +65,8 @@ const Summary: React.FC<Props> = ({
   cashGiven,
   setCashGiven,
   customerName,
+  customerEmail,
+  customerPhone,
   cart,
 }) => {
   const { data: phieuGiamGias = [] } = useGetPhieuGiam();
@@ -71,6 +80,8 @@ const Summary: React.FC<Props> = ({
     if (typeof window !== 'undefined') {
       localStorage.setItem('cart', JSON.stringify(cart || []));
       localStorage.setItem('customerName', customerName || '');
+      localStorage.setItem('customerEmail', customerEmail || '');
+      localStorage.setItem('customerPhone', customerPhone || '');
       localStorage.setItem('cartTotal', String(total));
       router.push('/admin/banhang/checkout');
     }
@@ -92,6 +103,12 @@ const Summary: React.FC<Props> = ({
           <div className="my-4 space-y-2">
             <div>
               <span className="font-semibold">Khách hàng:</span> {customerName || "Khách lẻ"}
+            </div>
+            <div>
+              <span className="font-semibold">Email:</span> {customerEmail || "-"}
+            </div>
+            <div>
+              <span className="font-semibold">SĐT:</span> {customerPhone || "-"}
             </div>
             <ScrollArea className="h-48 pr-4 my-2">
               <div className="space-y-2">
@@ -168,7 +185,14 @@ const Summary: React.FC<Props> = ({
             <DialogClose asChild>
               <Button variant="outline">Hủy</Button>
             </DialogClose>
-            <Button onClick={onCheckout}>Xác nhận</Button>
+            <Button
+              onClick={() => {
+                onCheckout();
+                setOpen(false);
+              }}
+            >
+              Xác nhận
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

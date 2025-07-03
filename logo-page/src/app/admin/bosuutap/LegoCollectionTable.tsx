@@ -30,16 +30,16 @@ const LegoCollectionTable: React.FC<Props> = ({
     <motion.div
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="glass-card p-6 mb-8 rounded-md border border-white/20 bg-[#10123c]"
+      className="border-3 border-blue-500 rounded-2xl mt-4 overflow-x-auto shadow-2xl shadow-blue-500/20"
     >
       <Table>
-        <TableHeader>
+        <TableHeader className="bg-blue-500">
           <TableRow>
-            <TableHead className="font-bold">STT</TableHead>
-            <TableHead className="font-bold">Tên bộ sưu tập</TableHead>
-            <TableHead className="font-bold">Mô tả</TableHead>
-            <TableHead className="font-bold">Ngày tạo</TableHead>
-            <TableHead className="font-bold">Thao tác</TableHead>
+            <TableHead className="text-white font-bold">STT</TableHead>
+            <TableHead className="text-white font-bold">Tên bộ sưu tập</TableHead>
+            <TableHead className="text-white font-bold">Mô tả</TableHead>
+            <TableHead className="text-white font-bold">Ngày tạo</TableHead>
+            <TableHead className="text-white font-bold">Thao tác</TableHead>
           </TableRow>
         </TableHeader>
 

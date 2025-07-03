@@ -45,9 +45,9 @@ const AccountTable: React.FC<AccountTableProps> = ({
   console.log("Account role_ids:", accounts.map((a) => a.role_id));
 
   return (
-    <div className="rounded-md border mt-4">
+    <div className="border-3 border-blue-500 rounded-2xl mt-4 overflow-x-auto shadow-2xl shadow-blue-500/20">
       <Table>
-        <TableHeader>
+        <TableHeader className="bg-blue-500">
           <TableRow>
             <TableHead>STT</TableHead>
             <TableHead>Họ tên</TableHead>
@@ -102,16 +102,22 @@ const AccountTable: React.FC<AccountTableProps> = ({
 
               {/* Action */}
               <TableCell className="text-right space-x-2">
-                <Button variant="outline" size="icon" onClick={() => onEdit(acc)}>
-                  <Edit className="h-4 w-4" />
+                <Button
+                  size="icon"
+                  className="hover:opacity-80 transition"
+                  onClick={() => onEdit(acc)}
+                  title="Chỉnh sửa"
+                >
+                  <Edit className="h-4 w-4 text-blue-500" />
                 </Button>
                 <Button
-                  variant="outline"
                   size="icon"
+                  className="hover:opacity-80 transition"
                   onClick={() => onDelete(acc)}
                   disabled={acc.trangThai === 0}
+                  title="Xóa"
                 >
-                  <Trash2 className="h-4 w-4 text-red-600" />
+                  <Trash2 className="h-4 w-4 text-red-500" />
                 </Button>
               </TableCell>
             </TableRow>

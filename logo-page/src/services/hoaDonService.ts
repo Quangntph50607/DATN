@@ -3,7 +3,29 @@ import { HoaDonDTO } from "@/components/types/hoaDon-types";
 
 const API_URL = "http://localhost:8080/api/lego-store/hoa-don";
 
+
+
 export const HoaDonService = {
+
+
+
+    async getAllHoaDons(): Promise<HoaDonDTO[]> {
+        try {
+            const res = await fetch(`${API_URL}/get-all-hoa-don`, {
+                cache: 'no-store',
+            });
+
+            if (!res.ok) {
+                throw new Error('Không thể tải danh sách hóa đơn');
+            }
+
+            return await res.json();
+        } catch (error) {
+            console.error('Lỗi:', error);
+            throw error;
+        }
+    },
+
     // Hàm lấy tất cả hóa đơn (có phân trang)
     async getPagedHoaDons(page: number = 0, size: number = 10): Promise<{
         content: HoaDonDTO[];
