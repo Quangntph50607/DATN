@@ -3,6 +3,8 @@ import React, { useState } from "react";
 import KhuyenMaiSanPham from "./KhuyenMaiSanPham";
 import { Button } from "@/components/ui/button";
 import { useListKhuyenMaiTheoSanPham } from "@/hooks/useKhuyenmai";
+import { Card } from "@/components/ui/card";
+import { motion } from "framer-motion";
 
 export default function Page() {
   const { data: danhSachSanPhamKM = [] } = useListKhuyenMaiTheoSanPham();
@@ -11,25 +13,36 @@ export default function Page() {
   const totalPages = Math.ceil(danhSachSanPhamKM.length / itemPerPage);
 
   return (
-    <div className="space-y-4">
+    <Card className="p-4 bg-gray-800 shadow-md max-h-screen w-full h-full">
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="text-center mb-8"
+      >
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">
+          Áp dụng khuyến mại cho sản phẩm
+        </h1>
+      </motion.div>
       <KhuyenMaiSanPham currentPage={currentPage} itemPerPage={itemPerPage} />
-      <div className="flex justify-center items-center gap-2 mt-4">
+      <div className="flex flex-wrap gap-2 justify-center items-center">
         <Button
+          variant="outline"
           disabled={currentPage === 1}
-          onClick={() => setCurrentPage((p) => p - 1)}
+          onClick={() => setCurrentPage((prev) => prev - 1)}
         >
-          Trước
+          Trang trước
         </Button>
-        <span>
-          Trang {currentPage} /{totalPages}
+        <span className="text-sm font-medium">
+          Trang {currentPage} / {totalPages}
         </span>
         <Button
-          disabled={currentPage === totalPages || totalPages === 0}
-          onClick={() => setCurrentPage((p) => p + 1)}
+          variant="outline"
+          disabled={currentPage === totalPages}
+          onClick={() => setCurrentPage((prev) => prev + 1)}
         >
-          Sau
+          Trang sau
         </Button>
       </div>
-    </div>
+    </Card>
   );
 }
