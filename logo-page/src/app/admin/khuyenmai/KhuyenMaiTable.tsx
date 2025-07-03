@@ -20,9 +20,9 @@ interface Props {
 }
 export default function KhuyenMaiTable({ khuyenMai, onDelete, onEdit }: Props) {
   return (
-    <div className="border-2  border-blue-500  rounded-2xl mt-2">
-      <Table className="">
-        <TableHeader>
+    <div className="border-3 border-blue-500 rounded-2xl mt-3 overflow-x-auto">
+      <Table>
+        <TableHeader className="bg-blue-500">
           <TableRow>
             <TableHead>STT</TableHead>
             <TableHead>Mã Khuyến Mại</TableHead>

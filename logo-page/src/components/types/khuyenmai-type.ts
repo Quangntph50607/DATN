@@ -28,6 +28,7 @@ export interface KhuyenMaiTheoSanPham {
   idDanhMuc: number | null;
   idBoSuuTap: number | null;
   trangThai: string;
+  trangThaiKM: string;
   giaKhuyenMai: number | null;
   phanTramKhuyenMai: number | null;
 }
