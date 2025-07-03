@@ -18,7 +18,7 @@ export default function TrangThaiHoaDonPage() {
     const [statusCounts, setStatusCounts] = useState<Record<string, number>>({});
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(0);
-    const PAGE_SIZE = 10;
+    const PAGE_SIZE = 5;
 
     // 🔄 Gọi API lấy danh sách hóa đơn
     const fetchHoaDons = useCallback(() => {
@@ -58,7 +58,7 @@ export default function TrangThaiHoaDonPage() {
         const searchText = search.toLowerCase();
 
         return hoaDonData.content.filter((o) => {
-            // ⚠️ Map từ label (tiếng Việt) → enumKey (ví dụ: "Đang xử lý" → "PROCESSING")
+            //  Map từ label (tiếng Việt) → enumKey (ví dụ: "Đang xử lý" → "PROCESSING")
             const statusKey = Object.entries(TrangThaiHoaDon).find(
                 ([_, label]) => label === o.trangThai
             )?.[0].toUpperCase();
@@ -108,12 +108,8 @@ export default function TrangThaiHoaDonPage() {
                     setFilterStatus={setFilterStatus}
                     filterPayment={filterPayment}
                     setFilterPayment={setFilterPayment}
-                    from={from}
-                    to={to}
-                    setFrom={setFrom}
-                    setTo={setTo}
-                    setPage={setPage}
                     orders={hoaDonData?.content || []}
+                    setPage={setPage}
                 />
             </div>
 

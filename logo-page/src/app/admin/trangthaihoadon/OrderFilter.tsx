@@ -19,6 +19,7 @@ interface OrderFilterProps {
   setFilterPayment: (v: string) => void;
   setPage: (v: number) => void;
   orders: HoaDonDTO[];
+  PAGE_SIZE: number;
 }
 
 function OrderFilter({
@@ -48,7 +49,7 @@ function OrderFilter({
   };
 
   const paymentMethods = Object.entries(PaymentMethods).map(([_, label]) => ({
-    value: label, // ✅ dùng label để so sánh
+    value: label,
     label,
   }));
 
@@ -60,7 +61,7 @@ function OrderFilter({
         value={search}
         onChange={(e) => {
           setSearch(e.target.value);
-          setPage(0);
+          setPage(0); // Reset về trang đầu
         }}
       />
 
@@ -68,7 +69,7 @@ function OrderFilter({
         value={filterStatus}
         onValueChange={(v) => {
           setFilterStatus(v);
-          setPage(0);
+          setPage(0); // Reset về trang đầu
         }}
       >
         <SelectTrigger className="w-48 bg-[#232b3b] border border-blue-500 text-white rounded-lg">
@@ -94,7 +95,7 @@ function OrderFilter({
         value={filterPayment}
         onValueChange={(v) => {
           setFilterPayment(v);
-          setPage(0);
+          setPage(0); // Reset về trang đầu
         }}
       >
         <SelectTrigger className="w-48 bg-[#232b3b] border border-blue-500 text-white rounded-lg">
