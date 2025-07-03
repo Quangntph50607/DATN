@@ -353,7 +353,7 @@ export default function HoaDonDetail({ open, onClose, detail, loadingDetail, chi
 
     return (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in">
-            <Card className="w-full max-w-4xl max-h-[90vh] bg-white dark:bg-gray-800 shadow-xl rounded-xl border border-gray-200 dark:border-gray-700">
+            <Card className="w-full max-w-4xl max-h-[70vh] bg-white dark:bg-gray-800 shadow-xl rounded-xl border border-gray-200 dark:border-gray-700">
                 <CardHeader className="relative pb-2">
                     <CardTitle className="text-2xl font-bold text-center text-gray-900 dark:text-gray-100">
                         Chi tiết hóa đơn <span className="text-blue-600 dark:text-blue-400">#{detail?.maHD || "N/A"}</span>

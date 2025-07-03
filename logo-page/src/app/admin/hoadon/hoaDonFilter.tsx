@@ -63,7 +63,6 @@ export default function HoaDonFilter({ filters, setFilters, setPage, hoaDons }: 
                         Trạng thái đơn hàng
                     </label>
                     <Select
-                        id="trangThai"
                         value={filters.trangThai}
                         onValueChange={(value) => {
                             setFilters((f) => ({ ...f, trangThai: value as keyof typeof TrangThaiHoaDon | "all" }));
