@@ -29,7 +29,7 @@ import {
     HoaDonDTO,
 } from "@/components/types/hoaDon-types";
 
-const loaiHDOptions: { value: string; label: string }[] = [
+const loaiHDOptions = [
     { value: "all", label: "Tất cả" },
     { value: "1", label: "Tại quầy" },
     { value: "2", label: "Online" },
@@ -56,14 +56,15 @@ function HoaDonList({
 }: HoaDonListProps) {
     const [filterLoaiHD, setFilterLoaiHD] = useState<string>("all");
 
-    const parseBackendDate = (date: any): Date | null => {
-        if (!date) return null;
+    const parseBackendDate = (date: any): string => {
+        if (!date) return "N/A";
         if (Array.isArray(date) && date.length >= 3) {
             const [year, month, day, hour = 0, minute = 0, second = 0, nano = 0] = date;
-            return new Date(year, month - 1, day, hour, minute, second, Math.floor(nano / 1e6));
+            const d = new Date(year, month - 1, day, hour, minute, second, Math.floor(nano / 1e6));
+            return d.toLocaleString("vi-VN");
         }
         const d = new Date(date);
-        return isNaN(d.getTime()) ? null : d;
+        return isNaN(d.getTime()) ? "N/A" : d.toLocaleString("vi-VN");
     };
 
     const filteredData = useMemo(() => {
@@ -80,15 +81,15 @@ function HoaDonList({
     return (
         <>
             {/* Tabs lọc loại hóa đơn */}
-            <div className="flex justify-start mb-10 mr-100 animate-in fade-in slide-in-from-left-10 duration-500">
+            <div className="flex justify-start mb-6 animate-in fade-in slide-in-from-left-10 duration-500">
                 <Tabs value={filterLoaiHD} onValueChange={setFilterLoaiHD}>
-                    <TabsList className="bg-card border shadow-sm p-1 rounded-xl">
+                    <TabsList className="bg-[#181e29] border border-blue-400 text-white rounded-xl shadow-md">
                         {loaiHDOptions.map((opt) => (
                             <TabsTrigger
                                 key={opt.value}
                                 value={opt.value}
-                                className="data-[state=active]:bg-primary data-[state=active]:text-white
-                                text-sm font-medium px-4 py-2 rounded-lg transition-all hover:bg-muted"
+                                className="data-[state=active]:bg-blue-700 data-[state=active]:text-white
+                                    text-sm font-medium px-4 py-2 rounded-lg transition-all hover:bg-blue-800 hover:text-white"
                             >
                                 {opt.label}
                             </TabsTrigger>
@@ -97,58 +98,61 @@ function HoaDonList({
                 </Tabs>
             </div>
 
-            {/* Bảng danh sách hóa đơn */}
-            <div className="rounded-2xl shadow-lg bg-background border border-muted overflow-auto">
+            {/* Bảng hóa đơn */}
+            <div className="rounded-2xl shadow-xl overflow-x-auto bg-[#181e29] border border-blue-400">
                 <Table>
                     <TableHeader>
-                        <TableRow className="bg-muted/40">
+                        <TableRow className="bg-[#232b3b]">
                             {[
-                                "STT", "Mã HĐ", "Tên", "SĐT", "Tổng tiền", "Ngày tạo",
-                                "Loại HĐ", "Trạng thái", "Thanh toán", ""
-                            ].map((header, i) => (
-                                <TableHead
-                                    key={i}
-                                    className="whitespace-nowrap text-foreground font-semibold text-sm"
-                                >
+                                "STT", "Mã HĐ", "Khách hàng", "Tổng tiền", "Ngày tạo",
+                                "Trạng thái", "Thanh toán", "Loại HĐ", "Xem"
+                            ].map((header, idx) => (
+                                <TableHead key={idx} className="text-white text-center text-sm font-semibold bg-[#113c91]">
                                     {header}
                                 </TableHead>
                             ))}
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {filteredData.map((hd: HoaDonDTO, index) => (
-                            <TableRow key={hd.id} className="hover:bg-muted/20 transition-colors">
-                                <TableCell>{page * PAGE_SIZE + index + 1}</TableCell>
-                                <TableCell className="text-blue-500 font-semibold">{hd.maHD || "N/A"}</TableCell>
-                                <TableCell>{hd.ten || "N/A"}</TableCell>
-                                <TableCell>{hd.sdt || "N/A"}</TableCell>
-                                <TableCell className="text-green-500 font-medium">
+                        {filteredData.map((hd, index) => (
+                            <TableRow key={hd.id} className="hover:bg-[#232b3b] transition">
+                                <TableCell className="text-white text-center">
+                                    {page * PAGE_SIZE + index + 1}
+                                </TableCell>
+                                <TableCell className="text-blue-400 font-semibold text-center">
+                                    {hd.maHD || "N/A"}
+                                </TableCell>
+                                <TableCell className="text-white text-center">
+                                    {hd.ten || "N/A"}
+                                </TableCell>
+                                <TableCell className="text-green-400 text-center font-medium">
                                     {hd.tongTien.toLocaleString("vi-VN")}₫
                                 </TableCell>
-                                <TableCell>{parseBackendDate(hd.ngayTao)?.toLocaleString("vi-VN") || "N/A"}</TableCell>
-                                <TableCell>{getLoaiHDLabel(hd.loaiHD)}</TableCell>
-                                <TableCell>
+                                <TableCell className="text-white text-center">
+                                    {parseBackendDate(hd.ngayTao)}
+                                </TableCell>
+                                <TableCell >
                                     <Select
                                         value={hd.trangThai || ""}
-                                        onValueChange={(value: string) => {
+                                        onValueChange={(value) => {
                                             if (
                                                 hd.trangThai &&
                                                 value !== hd.trangThai &&
                                                 isValidTrangThaiTransition(hd.trangThai, value)
                                             ) {
                                                 const confirmed = window.confirm(
-                                                    `Bạn có chắc chắn muốn chuyển trạng thái từ "${hd.trangThai}" sang "${value}" không?`
+                                                    `Chuyển từ "${hd.trangThai}" sang "${value}"?`
                                                 );
                                                 if (confirmed) {
-                                                    handleStatusChange(hd.id, hd.trangThai || "", value);
+                                                    handleStatusChange(hd.id, hd.trangThai, value);
                                                 }
                                             }
                                         }}
                                     >
-                                        <SelectTrigger className="w-[130px] text-xs bg-muted/20 border border-border">
+                                        <SelectTrigger className="w-[130px] bg-white/10 border border-blue-400 text-white text-xs font-semibold rounded-lg">
                                             <SelectValue placeholder="Trạng thái" />
                                         </SelectTrigger>
-                                        <SelectContent>
+                                        <SelectContent className="bg-[#181e29] border border-blue-400 text-white">
                                             {Object.values(TrangThaiHoaDon).map((status, idx) => (
                                                 <SelectItem
                                                     key={idx}
@@ -167,40 +171,52 @@ function HoaDonList({
                                         </SelectContent>
                                     </Select>
                                 </TableCell>
-                                <TableCell>
+                                <TableCell className="text-white text-center">
                                     {hd.phuongThucThanhToan
                                         ? PaymentMethods[hd.phuongThucThanhToan]
                                         : "N/A"}
                                 </TableCell>
-                                <TableCell>
+                                <TableCell className="text-white text-center">
+                                    {getLoaiHDLabel(hd.loaiHD)}
+                                </TableCell>
+                                <TableCell className="text-center">
                                     <Button
                                         size="icon"
                                         variant="ghost"
                                         onClick={() => handleViewDetail(hd.id)}
                                     >
-                                        <Eye className="w-5 h-5 text-blue-500" />
+                                        <Eye className="w-5 h-5 text-blue-400" />
                                     </Button>
                                 </TableCell>
                             </TableRow>
                         ))}
+                        {(!data || filteredData.length === 0) && (
+                            <TableRow>
+                                <TableCell colSpan={10} className="text-center text-gray-400 py-8">
+                                    Không có dữ liệu phù hợp.
+                                </TableCell>
+                            </TableRow>
+                        )}
                     </TableBody>
                 </Table>
             </div>
 
             {/* Phân trang */}
-            <div className="flex justify-between items-center mt-6">
+            <div className="flex justify-center items-center mt-4 bg-[#181e29] p-2 rounded-lg ">
                 <Button
                     variant="outline"
+                    className="text-white border-blue-400 bg-[#232b3b] hover:bg-[#2c3550] rounded-lg px-4 py-2"
                     onClick={() => setPage(Math.max(0, page - 1))}
                     disabled={page === 0}
                 >
                     Trang trước
                 </Button>
-                <span className="text-sm text-muted-foreground">
+                <span className="text-sm text-gray-400 mx-4">
                     Trang <strong>{page + 1}</strong> / {data?.totalPages || 1}
                 </span>
                 <Button
                     variant="outline"
+                    className="text-white border-blue-400 bg-[#232b3b] hover:bg-[#2c3550] rounded-lg px-4 py-2"
                     onClick={() =>
                         setPage((prev) => (data && prev < data.totalPages - 1 ? prev + 1 : prev))
                     }

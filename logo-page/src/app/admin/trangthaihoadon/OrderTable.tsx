@@ -124,7 +124,7 @@ const OrderTable = memo(
                 <div className="rounded-2xl shadow-xl overflow-x-auto bg-[#181e29] border border-blue-900">
                     <Table>
                         <TableHeader>
-                            <TableRow className="bg-[#232b3b]">
+                            <TableRow className="bg-[#14326c]">
                                 <TableHead className="text-white text-center text-sm font-semibold">STT</TableHead>
                                 <TableHead className="text-white text-center text-sm font-semibold">Mã HĐ</TableHead>
                                 <TableHead className="text-white text-center text-sm font-semibold">Khách hàng</TableHead>
@@ -134,7 +134,6 @@ const OrderTable = memo(
                                 <TableHead className="text-white text-center text-sm font-semibold">Thanh toán</TableHead>
                                 <TableHead className="text-white text-center text-sm font-semibold">Loại HĐ</TableHead>
                                 <TableHead className="text-white text-center text-sm font-semibold">Mã VC</TableHead>
-                                <TableHead className="text-white text-center text-sm font-semibold">Xem</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -190,43 +189,32 @@ const OrderTable = memo(
                                     <TableCell className="text-white text-center">
                                         {hd.maVanChuyen || "N/A"}
                                     </TableCell>
-                                    <TableCell className="text-center">
-                                        <Button size="icon" variant="ghost" onClick={() => handleViewDetail(hd.id)}>
-                                            <Eye className="w-5 h-5 text-blue-400" />
-                                        </Button>
-                                    </TableCell>
                                 </TableRow>
                             ))}
-                            {(!data || data.content.length === 0) && (
-                                <TableRow>
-                                    <TableCell colSpan={10} className="text-center text-gray-400 py-8">
-                                        Không có dữ liệu phù hợp.
-                                    </TableCell>
-                                </TableRow>
-                            )}
+
                         </TableBody>
                     </Table>
                 </div>
 
-                <div className="flex justify-between items-center mt-4">
+                <div className="flex justify-center items-center mt-4 bg-[#181e29] p-2 rounded-lg">
                     <Button
                         variant="outline"
+                        className="text-white border-blue-400 bg-[#232b3b] hover:bg-[#2c3550] rounded-lg px-4 py-2"
                         onClick={() => setPage(Math.max(0, page - 1))}
                         disabled={page === 0}
-                        className="text-white border-blue-400"
                     >
                         Trang trước
                     </Button>
-                    <span className="text-sm text-gray-400">
+                    <span className="text-sm text-gray-400 mx-4">
                         Trang <strong>{page + 1}</strong> / {data?.totalPages || 1}
                     </span>
                     <Button
                         variant="outline"
+                        className="text-white border-blue-400 bg-[#232b3b] hover:bg-[#2c3550] rounded-lg px-4 py-2"
                         onClick={() =>
                             setPage((prev) => (data && prev < data.totalPages - 1 ? prev + 1 : prev))
                         }
-                        disabled={!data || page >= (data.totalPages - 1)}
-                        className="text-white border-blue-400"
+                        disabled={!data || page >= data.totalPages - 1}
                     >
                         Trang sau
                     </Button>

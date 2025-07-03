@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import {
     Select,
@@ -53,16 +53,17 @@ export default function HoaDonFilter({ filters, setFilters, setPage, hoaDons }: 
 
     return (
         <form
-            className="w-full border border-muted rounded-xl p-6 mb-8 shadow bg-white dark:bg-[#1e2633]"
+            className="w-full border border-blue-400 rounded-xl p-6 mb-8 shadow bg-[#181e29] text-white"
             onSubmit={(e) => e.preventDefault()}
         >
-            <p className="text-muted-foreground font-medium text-sm mb-4">🔎 Bộ lọc tìm kiếm nâng cao</p>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
                 {/* Trạng thái */}
                 <div>
-                    <label className="text-sm text-muted-foreground mb-1 block">Trạng thái đơn hàng</label>
+                    <label htmlFor="trangThai" className="text-sm text-muted-foreground mb-1 block">
+                        Trạng thái đơn hàng
+                    </label>
                     <Select
+                        id="trangThai"
                         value={filters.trangThai}
                         onValueChange={(value) => {
                             setFilters((f) => ({ ...f, trangThai: value as keyof typeof TrangThaiHoaDon | "all" }));
@@ -85,8 +86,11 @@ export default function HoaDonFilter({ filters, setFilters, setPage, hoaDons }: 
 
                 {/* Phương thức thanh toán */}
                 <div>
-                    <label className="text-sm text-muted-foreground mb-1 block">Phương thức thanh toán</label>
+                    <label htmlFor="phuongThuc" className="text-sm text-muted-foreground mb-1 block">
+                        Phương thức thanh toán
+                    </label>
                     <Select
+                        id="phuongThuc"
                         value={filters.phuongThuc}
                         onValueChange={(value) => {
                             setFilters((f) => ({ ...f, phuongThuc: value as keyof typeof PaymentMethods | "all" }));
@@ -106,11 +110,13 @@ export default function HoaDonFilter({ filters, setFilters, setPage, hoaDons }: 
                         </SelectContent>
                     </Select>
                 </div>
-
                 {/* Từ ngày */}
-                <div>
-                    <label className="text-sm text-muted-foreground mb-1 block">Từ ngày</label>
+                <div >
+                    <label htmlFor="fromDate" className="text-sm text-muted-foreground mb-1 block">
+                        Từ ngày
+                    </label>
                     <Input
+                        id="fromDate"
                         type="datetime-local"
                         value={filters.from}
                         onChange={(e) => {
@@ -121,9 +127,12 @@ export default function HoaDonFilter({ filters, setFilters, setPage, hoaDons }: 
                 </div>
 
                 {/* Đến ngày */}
-                <div>
-                    <label className="text-sm text-muted-foreground mb-1 block">Đến ngày</label>
+                <div >
+                    <label htmlFor="toDate" className="text-sm text-muted-foreground mb-1 block">
+                        Đến ngày
+                    </label>
                     <Input
+                        id="toDate"
                         type="datetime-local"
                         value={filters.to}
                         onChange={(e) => {
@@ -137,8 +146,11 @@ export default function HoaDonFilter({ filters, setFilters, setPage, hoaDons }: 
             {/* Tìm kiếm + Đặt lại */}
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 items-end">
                 <div className="lg:col-span-4 relative">
-                    <label className="text-sm text-muted-foreground mb-1 block">Tìm kiếm (Mã đơn, Mã HD, tên, SĐT...)</label>
+                    <label htmlFor="keyword" className="text-sm text-muted-foreground mb-1 block">
+                        Tìm kiếm (Mã đơn, Mã HD, tên, SĐT...)
+                    </label>
                     <Input
+                        id="keyword"
                         placeholder="Nhập mã hóa đơn, tên khách hoặc SĐT..."
                         value={filters.keyword}
                         onChange={(e) => {
@@ -192,14 +204,21 @@ export default function HoaDonFilter({ filters, setFilters, setPage, hoaDons }: 
                         variant="outline"
                         className="w-full"
                         onClick={() => {
-                            setFilters({
-                                keyword: "",
-                                trangThai: "all",
-                                phuongThuc: "all",
-                                from: "",
-                                to: "",
-                            });
-                            setPage(0);
+                            if (window.confirm("Bạn có chắc muốn đặt lại tất cả bộ lọc?")) {
+                                setFilters({
+                                    keyword: "",
+                                    trangThai: "all",
+                                    phuongThuc: "all",
+                                    from: "",
+                                    to: "",
+                                    loaiHD: "all",
+                                });
+                                setPage(0);
+                                toast({
+                                    title: "Đã đặt lại bộ lọc",
+                                    description: "Tất cả bộ lọc đã được xóa, hiển thị toàn bộ hóa đơn.",
+                                });
+                            }
                         }}
                     >
                         <RotateCcw className="w-4 h-4 mr-2" /> Đặt lại
