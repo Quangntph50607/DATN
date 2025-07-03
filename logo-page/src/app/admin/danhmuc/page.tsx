@@ -13,15 +13,17 @@ import {
 } from "@/hooks/useDanhMuc";
 import { LegoCategoryForm } from "./LegoCategoryForm";
 import { Button } from "@/components/ui/button";
-import { PlusCircle } from "lucide-react";
 import { toast } from "sonner";
+import { motion } from "framer-motion";
+import { Card } from "@/components/ui/card";
+import { PlusIcon } from "lucide-react";
 
 export default function LegoCategoryPage() {
+  const { data: categories = [], isLoading } = useDanhMuc();
   const [categoryToEdit, setCategoryToEdit] = useState<DanhMuc | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [showForm, setShowForm] = useState(false);
-
-  const { data: categories = [], isLoading } = useDanhMuc();
+  const [currentPage, setCurrentPage] = useState(1);
   const addMutation = useAddSDanhMuc();
   const editMutation = useEditDanhMuc();
   const deleteMutation = useXoaDanhMuc();
@@ -78,65 +80,96 @@ export default function LegoCategoryPage() {
       cat.tenDanhMuc.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (cat.moTa?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
   );
+  // Phân trang
+  const itemPerPage = 10;
+  const totalPages = Math.ceil(filteredCategories.length / itemPerPage);
+  const paginatedData = categories.slice(
+    (currentPage - 1) * itemPerPage,
+    currentPage * itemPerPage
+  );
 
   return (
     <ToastProvider>
-      <h1 className="text-white text-3xl font-bold mb-6 text-center">
-        QUẢN LÝ DANH MỤC
-      </h1>
-      <div className="min-h-screen py-10 space-y-10 px-6 bg-[#2b2c4f]">
+      <Card className="p-4 bg-gray-800 shadow-md max-h-screen w-full h-full">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center mb-8"
+        >
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent ">
+            Quản Lý Danh Mục
+          </h1>
+        </motion.div>
         {/* Nút thêm danh mục */}
-        <div className="flex justify-between items-center mb-4">
-          <Button
-            className="ml-auto shadow-lg flex items-center"
-            onClick={handleOpenForm}
-          >
-            <PlusCircle className="mr-2 h-5 w-5" />
+        <div className="items-center flex gap-4 ">
+          <LegoCategorySearch
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+          />
+          <Button className=" shadow-lg bg-purple-400" onClick={handleOpenForm}>
+            <PlusIcon />
             Thêm danh mục
           </Button>
         </div>
 
-        <LegoCategorySearch
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-        />
-
         {isLoading ? (
           <p className="text-white">Đang tải danh mục...</p>
         ) : (
-          <LegoCategoryTable
-            categories={filteredCategories}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-          />
-        )}
-      </div>
-
-      {/* Form popup */}
-      {showForm && (
-        <div
-          className="fixed inset-0 bg-opacity-60 backdrop-blur-sm flex justify-center items-center z-50"
-          onClick={handleClearEdit}
-        >
-          <div
-            className="bg-[#191a32] rounded-lg p-8 w-full max-w-3xl relative shadow-lg"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              onClick={handleClearEdit}
-              className="absolute top-3 right-3 text-gray-400 hover:text-gray-200 text-2xl font-bold"
-              title="Đóng"
-            >
-              &times;
-            </button>
-            <LegoCategoryForm
-              onSubmit={handleSubmit}
-              categoryToEdit={categoryToEdit}
-              onClearEdit={handleClearEdit}
+          <>
+            <h2 className="text-lg font-bold">Danh sách danh mục</h2>
+            <LegoCategoryTable
+              categories={paginatedData}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
             />
+          </>
+        )}
+
+        {/* Form popup */}
+        {showForm && (
+          <div
+            className="fixed inset-0 bg-opacity-60 backdrop-blur-sm flex justify-center items-center z-50"
+            onClick={handleClearEdit}
+          >
+            <div
+              className="bg-[#191a32] rounded-lg p-8 w-full max-w-3xl relative shadow-lg"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={handleClearEdit}
+                className="absolute top-3 right-3 text-gray-400 hover:text-gray-200 text-2xl font-bold"
+                title="Đóng"
+              >
+                &times;
+              </button>
+              <LegoCategoryForm
+                onSubmit={handleSubmit}
+                categoryToEdit={categoryToEdit}
+                onClearEdit={handleClearEdit}
+              />
+            </div>
           </div>
+        )}
+        <div className="flex flex-wrap gap-2 justify-center items-center">
+          <Button
+            variant="outline"
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage((prev) => prev - 1)}
+          >
+            Trang trước
+          </Button>
+          <span className="text-sm font-medium">
+            Trang {currentPage} / {totalPages}
+          </span>
+          <Button
+            variant="outline"
+            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage((prev) => prev + 1)}
+          >
+            Trang sau
+          </Button>
         </div>
-      )}
+      </Card>
     </ToastProvider>
   );
 }

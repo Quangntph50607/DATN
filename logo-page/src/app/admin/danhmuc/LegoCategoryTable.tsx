@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { motion } from "framer-motion";
 import {
   Table,
   TableBody,
@@ -26,26 +25,26 @@ const LegoCategoryTable: React.FC<LegoCategoryTableProps> = ({
   onDelete,
 }) => {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="glass-card p-6 mb-8 rounded-md border border-white/20 bg-[#10123c]"
-    >
+    <div className="border-3 border-blue-500 rounded-2xl overflow-x-auto">
       <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="font-bold">STT</TableHead>
-            <TableHead className="font-bold">Tên danh mục</TableHead>
-            <TableHead className="font-bold">Mô tả</TableHead>
-            <TableHead className="font-bold">Thao tác</TableHead>
+        <TableHeader className="bg-blue-500">
+          <TableRow className="font-bold">
+            <TableHead className="w-20">STT</TableHead>
+            <TableHead className="w-60 truncate">Tên danh mục</TableHead>
+            <TableHead className="w-80 truncate">Mô tả</TableHead>
+            <TableHead className="w-32">Hành động</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {categories.map((c, index) => (
             <TableRow key={c.id}>
               <TableCell>{index + 1}</TableCell>
-              <TableCell>{c.tenDanhMuc}</TableCell>
-              <TableCell>{c.moTa}</TableCell>
+              <TableCell className="w-60 max-w-[240px] truncate">
+                {c.tenDanhMuc}
+              </TableCell>
+              <TableCell className="w-80 max-w-[320px] truncate">
+                {c.moTa}
+              </TableCell>
               <TableCell>
                 <div className="flex gap-2">
                   <Button
@@ -68,7 +67,7 @@ const LegoCategoryTable: React.FC<LegoCategoryTableProps> = ({
           ))}
         </TableBody>
       </Table>
-    </motion.div>
+    </div>
   );
 };
 
