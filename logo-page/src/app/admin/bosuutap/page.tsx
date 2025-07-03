@@ -14,10 +14,10 @@ import {
   useBoSuutap,
   useEditBoSuuTap,
   useXoaBoSuuTap,
-} from '@/hooks/useBoSutap';
-import { Button } from '@/components/ui/button';
-import { PlusCircle } from 'lucide-react';
-import { Card } from '@/components/ui/card';
+} from "@/hooks/useBoSutap";
+import { Button } from "@/components/ui/button";
+import { PlusIcon } from "lucide-react";
+import { Card } from "@/components/ui/card";
 
 export default function LegoCollectionPage() {
   const { data: collections = [], isLoading } = useBoSuutap();
@@ -94,32 +94,43 @@ export default function LegoCollectionPage() {
   );
 
   return (
-    <Card className="p-4 bg-gray-800 shadow-md w-full max-w-full min-h-screen">
-      <ToastProvider>
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-2 text-center">QUẢN LÝ BỘ SƯU TẬP</h1>
-        <div className="min-h-screen py-10 space-y-10 px-6 rounded">
-          {/* Nút thêm */}
-          <div className="flex justify-between items-center mb-4">
-            <Button className="ml-auto shadow-lg flex items-center" onClick={handleOpenForm}>
-              <PlusCircle className="mr-2 h-5 w-5" />
-              Thêm bộ sưu tập
-            </Button>
-          </div>
-
+    <ToastProvider>
+      <Card className="p-4 bg-gray-800 shadow-md max-h-screen w-full h-full">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center mb-8"
+        >
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent ">
+            Quản Lý Bộ Sưu Tập
+          </h1>
+        </motion.div>
+        {/* Nút thêm */}
+        <div className="items-center flex gap-4 ">
           {/* Tìm kiếm */}
-          <LegoCollectionSearch searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+          <LegoCollectionSearch
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+          />
+          <Button className=" shadow-lg bg-purple-400" onClick={handleOpenForm}>
+            <PlusIcon />
+            Thêm Bộ Sưu Tập
+          </Button>
+        </div>
 
-          {/* Bảng dữ liệu */}
-          {isLoading ? (
-            <p className="text-white">Đang tải dữ liệu...</p>
-          ) : (
+        {/* Bảng dữ liệu */}
+        {isLoading ? (
+          <p className="text-white">Đang tải dữ liệu...</p>
+        ) : (
+          <>
+            <h2 className="text-lg font-bold">Danh sách bộ sưu tập</h2>
             <LegoCollectionTable
-              collections={filteredCollections}
+              collections={paginatedData}
               onEdit={handleEdit}
               onDelete={handleDelete}
             />
-          )}
-        </div>
+          </>
+        )}
 
         {/* Form Popup */}
         {showForm && (
@@ -146,7 +157,26 @@ export default function LegoCollectionPage() {
             </div>
           </div>
         )}
-      </ToastProvider>
-    </Card>
+        <div className="flex items-center justify-center gap-2">
+          <Button
+            variant="outline"
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage((prev) => prev - 1)}
+          >
+            Trang trước
+          </Button>
+          <span className="text-sm font-medium">
+            Trang {currentPage} / {totalPages}
+          </span>
+          <Button
+            variant="outline"
+            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage((prev) => prev + 1)}
+          >
+            Trang sau
+          </Button>
+        </div>
+      </Card>
+    </ToastProvider>
   );
 }
