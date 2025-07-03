@@ -31,6 +31,7 @@ const POSPage = () => {
 
   const addToCart = (product: SanPham) => {
     const existingItem = cart.find((item) => item.id === product.id);
+    const firstImage = product.anhSps && product.anhSps.length > 0 ? product.anhSps[0].url : product.anhDaiDien || '/no-image.png';
     if (existingItem) {
       if (existingItem.quantity < (product.soLuongTon ?? 0)) {
         setCart(cart.map((item) => item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item));
@@ -38,7 +39,14 @@ const POSPage = () => {
         toast.error(`Chỉ còn ${product.soLuongTon ?? 0} sản phẩm trong kho`);
       }
     } else {
-      setCart([...cart, { ...product, quantity: 1 }]);
+      setCart([
+        ...cart,
+        {
+          ...product,
+          quantity: 1,
+          anhDaiDien: firstImage,
+        },
+      ]);
     }
   };
 
@@ -137,6 +145,7 @@ const POSPage = () => {
               setPaymentMethod={setPaymentMethod}
               cashGiven={cashGiven}
               setCashGiven={setCashGiven}
+              cart={cart}
             />
           </CardContent>
         </Card>

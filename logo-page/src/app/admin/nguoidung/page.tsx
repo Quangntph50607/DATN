@@ -42,34 +42,52 @@ function UserManagementContent() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState<DTOUser | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [formKey, setFormKey] = useState(0);
 
-  const { data: employees = [] } = useAccountsByRole("2");
-  const { data: customers = [] } = useAccountsByRole("3");
+  const { data: allAccounts = [] } = useAccounts();
   const { data: roles = [] } = useRoles();
 
-  const inactiveAccounts = [...employees, ...customers].filter(
-    (a) => a.trangThai === 0
-  );
+  const employees = allAccounts.filter((a) => a.role_id === 2 && a.trangThai === 1);
+  const customers = allAccounts.filter((a) => a.role_id === 3 && a.trangThai === 1);
+  const inactiveAccounts = allAccounts.filter((a) => a.trangThai === 0);
+
+  // Thêm biến để đếm tổng số (bao gồm cả ngừng hoạt động)
+  const totalEmployees = allAccounts.filter((a) => a.role_id === 2);
+  const totalCustomers = allAccounts.filter((a) => a.role_id === 3);
 
   let accounts: DTOUserWithId[] = [];
   if (currentTab === "employee") {
-    accounts = employees.filter((a) => a.trangThai === 1) as DTOUserWithId[];
+    accounts = employees as DTOUserWithId[];
   } else if (currentTab === "customer") {
-    accounts = customers.filter((a) => a.trangThai === 1) as DTOUserWithId[];
+    accounts = customers as DTOUserWithId[];
   } else {
     accounts = inactiveAccounts as DTOUserWithId[];
-  }  
+  }
 
   const getRoleName = (roleId: number) => {
     return roles.find((r) => r.id === roleId)?.name || `Sai role ID: ${roleId}`;
-  };  
-  
+  };
+
   const filteredAccounts: DTOUserWithId[] = accounts.filter((acc) =>
     [acc.ten, acc.email, getRoleName(acc.role_id)].some((field) =>
       field.toLowerCase().includes(searchTerm.toLowerCase())
     )
-  );  
-  
+  );
+
+  // Phân trang
+  const itemPerPage = 5;
+  const totalPages = Math.ceil(filteredAccounts.length / itemPerPage);
+  const paginatedAccounts = filteredAccounts.slice(
+    (currentPage - 1) * itemPerPage,
+    currentPage * itemPerPage
+  );
+
+  // Reset về trang 1 khi thay đổi tab hoặc search
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [currentTab, searchTerm]);
+
   const createUser = useCreateUser();
   const updateUser = useUpdateAccount();
   const softDelete = useSoftDeleteAccount();
@@ -81,6 +99,17 @@ function UserManagementContent() {
   };
 
   const handleSaveAccount = (accountData: DTOUser) => {
+    // Kiểm tra email trùng lặp ở frontend
+    const existingUser = allAccounts.find(user =>
+      user.email.toLowerCase() === accountData.email.toLowerCase() &&
+      (!editingAccount || user.id !== editingAccount.id)
+    );
+
+    if (existingUser) {
+      toast.error("Email đã tồn tại trong hệ thống");
+      return;
+    }
+
     if (editingAccount) {
       updateUser.mutate(
         {
@@ -92,7 +121,7 @@ function UserManagementContent() {
             sdt: accountData.sdt,
             diaChi: accountData.diaChi,
             trangThai: accountData.trangThai,
-            role_id: accountData.role_id, // <-- đổi tên nếu cần
+            role_id: accountData.role_id,
           },
         },
         {
@@ -102,11 +131,11 @@ function UserManagementContent() {
             setEditingAccount(null);
             refetch();
           },
-          onError: () => {
-            toast.error("Lỗi cập nhật tài khoản");
+          onError: (error) => {
+            toast.error(error.message || "Lỗi cập nhật tài khoản");
           },
         }
-      );      
+      );
     } else {
       createUser.mutate(accountData, {
         onSuccess: () => {
@@ -114,12 +143,12 @@ function UserManagementContent() {
           setIsFormOpen(false);
           refetch();
         },
-        onError: () => {
-          toast.error("Thêm tài khoản thất bại");
+        onError: (error) => {
+          toast.error(error.message || "Thêm tài khoản thất bại");
         },
       });
     }
-  };  
+  };
 
   const handleAddNew = () => {
     setEditingAccount(null);
@@ -128,11 +157,10 @@ function UserManagementContent() {
 
   const handleDelete = (account: DTOUser) => {
     if (!confirm("Bạn có chắc chắn muốn ngừng hoạt động tài khoản này?")) return;
-  
+
     softDelete.mutate(
       {
-        ...account,
-        role: { id: account.role_id },
+        ...account
       },
       {
         onSuccess: () => {
@@ -144,10 +172,13 @@ function UserManagementContent() {
         },
       }
     );
-  };  
+  };
 
-console.log("Employees:", employees);
-console.log("Role of first employee:", employees[0]?.role_id);
+  console.log("Employees:", employees);
+  console.log("Customers:", customers);
+  console.log("Inactive accounts:", inactiveAccounts);
+  console.log("Current tab:", currentTab);
+  console.log("Filtered accounts:", filteredAccounts);
 
 
   return (
@@ -170,10 +201,10 @@ console.log("Role of first employee:", employees[0]?.role_id);
           transition={{ delay: 0.2 }}
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
         >
-          <StatsCard title="Tổng nhân viên" value={employees.length} icon={Users} color="border-blue-500/60"/>
-          <StatsCard title="Nhân viên hoạt động" value={employees.filter((a) => a.trangThai === 1).length} icon={UserCheck} color="border-green-500/60"/>
-          <StatsCard title="Tổng khách hàng" value={customers.length} icon={Building} color="border-purple-500/60"/>
-          <StatsCard title="Khách hàng hoạt động" value={customers.filter((a) => a.trangThai === 1).length} icon={TrendingUp} color="border-green-500/60"/>
+          <StatsCard title="Tổng nhân viên" value={totalEmployees.length} icon={Users} color="border-blue-500/60" />
+          <StatsCard title="Nhân viên hoạt động" value={employees.length} icon={UserCheck} color="border-green-500/60" />
+          <StatsCard title="Tổng khách hàng" value={totalCustomers.length} icon={Building} color="border-purple-500/60" />
+          <StatsCard title="Khách hàng hoạt động" value={customers.length} icon={TrendingUp} color="border-green-500/60" />
         </motion.div>
 
         {/* Tabs & Search */}
@@ -185,16 +216,25 @@ console.log("Role of first employee:", employees[0]?.role_id);
         >
           <Tabs value={currentTab} onValueChange={(value) => setCurrentTab(value as TabType)}>
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 space-y-4 lg:space-y-0">
-              <TabsList className="bg-slate-800/50 border border-blue-500/20">
-                <TabsTrigger value="employee" className="data-[state=active]:bg-blue-600">
+              <TabsList className="bg-slate-800/50 border border-blue-500/20 p-1 rounded-xl">
+                <TabsTrigger
+                  value="employee"
+                  className="data-[state=active]:!bg-blue-600 data-[state=active]:!text-white text-sm font-medium px-4 py-2 rounded-lg transition-all hover:bg-blue-500/20"
+                >
                   <Users className="h-4 w-4 mr-2" />
                   Nhân viên
                 </TabsTrigger>
-                <TabsTrigger value="customer" className="data-[state=active]:bg-purple-600">
+                <TabsTrigger
+                  value="customer"
+                  className="data-[state=active]:!bg-purple-600 data-[state=active]:!text-white text-sm font-medium px-4 py-2 rounded-lg transition-all hover:bg-purple-500/20"
+                >
                   <Building className="h-4 w-4 mr-2" />
                   Khách hàng
                 </TabsTrigger>
-                <TabsTrigger value="inactive" className="data-[state=active]:bg-yellow-600">
+                <TabsTrigger
+                  value="inactive"
+                  className="data-[state=active]:!bg-yellow-600 data-[state=active]:!text-white text-sm font-medium px-4 py-2 rounded-lg transition-all hover:bg-yellow-500/20"
+                >
                   <UserX className="h-4 w-4 mr-2" />
                   Ngừng hoạt động
                 </TabsTrigger>
@@ -224,34 +264,91 @@ console.log("Role of first employee:", employees[0]?.role_id);
 
             <TabsContent value="employee" className="mt-6">
               <AccountTable
-                accounts={filteredAccounts}
+                accounts={paginatedAccounts}
                 onEdit={handleEditAccount}
                 onDelete={handleDelete}
                 roles={roles}
                 type="employee"
               />
+              {/* Phân trang */}
+              <div className="flex gap-2 items-center justify-center mt-4">
+                <Button
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage((prev) => prev - 1)}
+                >
+                  Trước
+                </Button>
+                <span>
+                  {currentPage} / {totalPages}
+                </span>
+                <Button
+                  disabled={currentPage === totalPages || totalPages === 0}
+                  onClick={() => setCurrentPage((prev) => prev + 1)}
+                >
+                  Sau
+                </Button>
+              </div>
             </TabsContent>
 
             <TabsContent value="customer" className="mt-6">
-            <AccountTable
-              accounts={filteredAccounts}
-              roles={roles}
-              onEdit={handleEditAccount}
-              onDelete={handleDelete}
-              type={currentTab}
-            />
-
+              <AccountTable
+                accounts={paginatedAccounts}
+                roles={roles}
+                onEdit={handleEditAccount}
+                onDelete={handleDelete}
+                type={currentTab}
+              />
+              {/* Phân trang */}
+              <div className="flex gap-2 items-center justify-center mt-4">
+                <Button
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage((prev) => prev - 1)}
+                >
+                  Trước
+                </Button>
+                <span>
+                  {currentPage} / {totalPages}
+                </span>
+                <Button
+                  disabled={currentPage === totalPages || totalPages === 0}
+                  onClick={() => setCurrentPage((prev) => prev + 1)}
+                >
+                  Sau
+                </Button>
+              </div>
             </TabsContent>
 
             <TabsContent value="inactive" className="mt-6">
-            <AccountTable
-              accounts={filteredAccounts} 
-              roles={roles}
-              onEdit={handleEditAccount}
-              onDelete={handleDelete}
-              type={currentTab}
-            />
-
+              <div className="mb-4 p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+                <p className="text-yellow-400 text-sm">
+                  Số lượng tài khoản ngừng hoạt động: {filteredAccounts.length}
+                </p>
+              </div>
+              <AccountTable
+                accounts={paginatedAccounts}
+                roles={roles}
+                onEdit={handleEditAccount}
+                onDelete={handleDelete}
+                type={currentTab}
+              />
+              {/* Phân trang */}
+              <div className="flex gap-2 items-center justify-center mt-4">
+                <Button
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage((prev) => prev - 1)}
+                >
+                  Trước
+                </Button>
+                <span>
+                  {currentPage} / {totalPages}
+                </span>
+                <Button
+                  disabled={currentPage === totalPages || totalPages === 0}
+                  onClick={() => setCurrentPage((prev) => prev + 1)}
+                >
+                  Sau
+                </Button>
+              </div>
             </TabsContent>
           </Tabs>
         </motion.div>

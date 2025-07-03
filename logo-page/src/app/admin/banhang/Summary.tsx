@@ -13,6 +13,18 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { useGetPhieuGiam } from '@/hooks/usePhieuGiam';
+import { useRouter } from 'next/navigation';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+  DialogDescription,
+  DialogClose,
+} from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { BadgePercent } from 'lucide-react';
 
 interface Props {
   customerName: string;
@@ -29,6 +41,7 @@ interface Props {
   setPaymentMethod: (m: '' | 'cash' | 'transfer') => void;
   cashGiven: number | '';
   setCashGiven: (v: number | '') => void;
+  cart: any[];
 }
 
 const Summary: React.FC<Props> = ({
@@ -44,15 +57,121 @@ const Summary: React.FC<Props> = ({
   setPaymentMethod,
   cashGiven,
   setCashGiven,
+  customerName,
+  cart,
 }) => {
   const { data: phieuGiamGias = [] } = useGetPhieuGiam();
+  const router = useRouter();
   const formatCurrency = (amount: number) =>
     new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
   const change = paymentMethod === 'cash' && cashGiven !== '' ? Number(cashGiven) - total : 0;
+  const [open, setOpen] = React.useState(false);
+
+  const handleGoToCheckout = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('cart', JSON.stringify(cart || []));
+      localStorage.setItem('customerName', customerName || '');
+      localStorage.setItem('cartTotal', String(total));
+      router.push('/admin/banhang/checkout');
+    }
+  };
 
   return (
     <>
       <Separator className="my-4 bg-white/10" />
+
+      {/* Dialog xác nhận thanh toán */}
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Xác nhận thanh toán</DialogTitle>
+            <DialogDescription>
+              Vui lòng kiểm tra lại thông tin đơn hàng trước khi xác nhận thanh toán.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="my-4 space-y-2">
+            <div>
+              <span className="font-semibold">Khách hàng:</span> {customerName || "Khách lẻ"}
+            </div>
+            <ScrollArea className="h-48 pr-4 my-2">
+              <div className="space-y-2">
+                {cart.map((item: any) => (
+                  <div key={item.id} className="flex justify-between items-center text-sm">
+                    <div className="flex items-center gap-2">
+                      <img
+                        src={item.anhDaiDien}
+                        alt={item.tenSanPham}
+                        className="w-10 h-10 object-cover rounded"
+                        onError={e => (e.currentTarget.src = '/no-image.png')}
+                      />
+                      <div>
+                        <span className="font-medium">{item.tenSanPham || item.name}</span>
+                        <span className="text-muted-foreground"> x {item.quantity}</span>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      {item.giaKhuyenMai && item.giaKhuyenMai > 0 ? (
+                        <>
+                          <span className="text-primary font-bold">{formatCurrency(item.giaKhuyenMai)}</span>
+                          <span className="ml-2 line-through text-xs text-gray-500">{formatCurrency(item.gia)}</span>
+                        </>
+                      ) : (
+                        <span>{formatCurrency(item.gia)}</span>
+                      )}
+                      <div className="text-xs text-gray-400">
+                        Thành tiền: {formatCurrency((item.giaKhuyenMai && item.giaKhuyenMai > 0 ? item.giaKhuyenMai : item.gia) * item.quantity)}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
+            <Separator className="my-4" />
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Tạm tính</span>
+                <span className="font-medium">{formatCurrency(subtotal)}</span>
+              </div>
+              {discount > 0 && (
+                <div className="flex justify-between text-green-600">
+                  <span className="flex items-center">
+                    <BadgePercent className="w-4 h-4 mr-1" />
+                    Giảm giá
+                  </span>
+                  <span className="font-medium">- {formatCurrency(discountAmount)}</span>
+                </div>
+              )}
+              <Separator className="my-2" />
+              <div className="flex justify-between font-bold text-lg">
+                <span>Tổng cộng</span>
+                <span className="text-primary">{formatCurrency(total)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Phương thức thanh toán</span>
+                <span>{paymentMethod === 'cash' ? 'Tiền mặt' : paymentMethod === 'transfer' ? 'Chuyển khoản' : ''}</span>
+              </div>
+              {paymentMethod === 'cash' && (
+                <>
+                  <div className="flex justify-between">
+                    <span>Khách đưa</span>
+                    <span>{formatCurrency(Number(cashGiven) || 0)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Tiền thừa</span>
+                    <span>{formatCurrency(change)}</span>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">Hủy</Button>
+            </DialogClose>
+            <Button onClick={onCheckout}>Xác nhận</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <div className="space-y-2 text-sm mb-4">
         <div className="flex justify-between text-gray-300">
@@ -123,7 +242,7 @@ const Summary: React.FC<Props> = ({
         size="lg"
         variant="default"
         className="w-full py-6 text-lg mb-2"
-        onClick={onCheckout}
+        onClick={() => setOpen(true)}
         disabled={isCheckoutDisabled}
       >
         <DollarSign className="mr-2 h-6 w-6" /> Thanh toán

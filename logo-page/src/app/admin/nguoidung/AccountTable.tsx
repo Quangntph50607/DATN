@@ -43,7 +43,7 @@ const AccountTable: React.FC<AccountTableProps> = ({
 
   console.log("Roles list:", roles);
   console.log("Account role_ids:", accounts.map((a) => a.role_id));
-  
+
   return (
     <div className="rounded-md border mt-4">
       <Table>
@@ -78,7 +78,12 @@ const AccountTable: React.FC<AccountTableProps> = ({
               {/* TÊN VAI TRÒ */}
               <TableCell>
                 {roles.find((r) => r.id === Number(acc.role_id)) ? (
-                  <Badge variant="outline">{getRoleName(Number(acc.role_id))}</Badge>
+                  <Badge
+                    variant="outline"
+                    className={Number(acc.role_id) === 2 ? "bg-blue-600 text-white border-blue-600" : "bg-purple-600 text-white border-purple-600"}
+                  >
+                    {getRoleName(Number(acc.role_id))}
+                  </Badge>
                 ) : (
                   <Badge variant="destructive">Sai role ID: {String(acc.role_id)}</Badge>
                 )}
