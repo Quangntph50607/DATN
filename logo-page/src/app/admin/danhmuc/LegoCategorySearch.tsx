@@ -13,15 +13,13 @@ function LegoCategorySearch({
   setSearchTerm,
 }: LegoCategorySearchProps) {
   return (
-    <div className=" mb-6 w-full">
-      <Input
-        type="text"
-        placeholder="Tìm kiếm tên danh mục "
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        className="w-full sm:w-1/2 border-white"
-      />
-    </div>
+    <Input
+      type="text"
+      placeholder="Tìm kiếm tên danh mục "
+      value={searchTerm}
+      onChange={(e) => setSearchTerm(e.target.value)}
+      className="w-full sm:w-2/5 border-white"
+    />
   );
 }
 
