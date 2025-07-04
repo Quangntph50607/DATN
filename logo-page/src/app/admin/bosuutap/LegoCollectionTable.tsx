@@ -26,7 +26,7 @@ const LegoCollectionTable: React.FC<Props> = ({
   onDelete,
 }) => {
   return (
-    <div className="border-3 border-blue-500 rounded-2xl overflow-x-auto">
+    <div className="border-3 border-blue-500 rounded-2xl mt-3 overflow-x-auto shadow-2xl shadow-blue-500/20">
       <Table>
         <TableHeader className="bg-blue-500">
           <TableRow className="font-bold">

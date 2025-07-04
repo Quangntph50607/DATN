@@ -30,7 +30,7 @@ export default function SanPhamTable({ sanPhams, onDelete, onEdit }: Props) {
     boSuuTaps.find((bst) => bst.id === id)?.tenBoSuuTap || "Không rõ";
 
   return (
-    <div className="border-3 border-blue-500 rounded-2xl mt-3 overflow-x-auto">
+    <div className=" border-2 border-blue-500 rounded-2xl mt-3 overflow-x-auto shadow-2xl shadow-blue-500/40">
       <Table>
         <TableHeader className="bg-blue-500">
           <TableRow>
@@ -45,7 +45,7 @@ export default function SanPhamTable({ sanPhams, onDelete, onEdit }: Props) {
             <TableHead>SL Tồn</TableHead>
             <TableHead>SL mảnh ghép</TableHead>
             <TableHead>Trạng Thái</TableHead>
-            <TableHead>Hành động</TableHead>
+            <TableHead className="text-center">Hành động</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -68,8 +68,8 @@ export default function SanPhamTable({ sanPhams, onDelete, onEdit }: Props) {
                       : sanPham.moTa
                     : ""}
                 </TableCell>
-                <TableCell>{getTenDanhMuc(sanPham.idDanhMuc)}</TableCell>
-                <TableCell>{getTenBST(sanPham.idBoSuuTap)}</TableCell>
+                <TableCell>{getTenDanhMuc(sanPham.danhMucId)}</TableCell>
+                <TableCell>{getTenBST(sanPham.boSuuTapId)}</TableCell>
                 <TableCell>{sanPham.doTuoi}</TableCell>
                 <TableCell>{sanPham.gia.toLocaleString()}đ</TableCell>
                 <TableCell>{sanPham.soLuongTon}</TableCell>
