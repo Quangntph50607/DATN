@@ -96,11 +96,21 @@ export default function Page() {
           <p className="text-muted-foreground">Đang tải danh sách...</p>
         ) : (
           <>
+<<<<<<< HEAD
+            <div className="overflow-auto border-none ">
+              <PhieuGiamTable
+                phieuGiamGias={paginatedData}
+                onDelete={handleDelete}
+                onEdit={handleEdit}
+              />
+            </div>
+=======
             <PhieuGiamTable
               phieuGiamGias={paginatedData}
               onDelete={handleDelete}
               onEdit={handleEdit}
             />
+>>>>>>> 959bb71c003f55a9ebd637224587965b6aa7977f
 
             <div className="flex flex-wrap gap-2 justify-center items-center">
               <Button
