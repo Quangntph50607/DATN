@@ -3,11 +3,6 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-<<<<<<< HEAD
-import { motion } from "framer-motion";
-
-=======
->>>>>>> 959bb71c003f55a9ebd637224587965b6aa7977f
 import { productSchema, ProductData } from "@/lib/sanphamschema";
 import { SanPham } from "@/components/types/product.type";
 import { useDanhMuc } from "@/hooks/useDanhMuc";
@@ -36,10 +31,7 @@ import { Switch } from "@/components/ui/switch";
 interface Props {
   onSubmit: (data: ProductData, id?: number) => void;
   edittingSanPham?: SanPham | null;
-<<<<<<< HEAD
-=======
   setEditing: (data: SanPham | null) => void;
->>>>>>> 959bb71c003f55a9ebd637224587965b6aa7977f
   onSucces?: () => void;
 }
 
@@ -47,10 +39,7 @@ export default function SanPhamForm({
   onSubmit,
   edittingSanPham,
   onSucces,
-<<<<<<< HEAD
-=======
   setEditing,
->>>>>>> 959bb71c003f55a9ebd637224587965b6aa7977f
 }: Props) {
   const form = useForm<ProductData>({
     resolver: zodResolver(productSchema),
@@ -72,36 +61,20 @@ export default function SanPhamForm({
     useBoSuutap();
 
   useEffect(() => {
-<<<<<<< HEAD
-    if (edittingSanPham) {
-      form.reset({
-        tenSanPham: edittingSanPham.tenSanPham,
-        moTa: edittingSanPham.moTa ?? "",
-        danhMucId: edittingSanPham.idDanhMuc,
-        boSuuTapId: edittingSanPham.idBoSuuTap,
-=======
     if (edittingSanPham && danhMucList.length > 0 && BoSuuTapList.length > 0) {
       form.reset({
         tenSanPham: edittingSanPham.tenSanPham,
         moTa: edittingSanPham.moTa ?? "",
         danhMucId: edittingSanPham.danhMucId,
         boSuuTapId: edittingSanPham.boSuuTapId,
->>>>>>> 959bb71c003f55a9ebd637224587965b6aa7977f
         soLuongTon: edittingSanPham.soLuongTon,
         gia: edittingSanPham.gia,
         doTuoi: edittingSanPham.doTuoi,
         soLuongManhGhep: edittingSanPham.soLuongManhGhep,
         trangThai: edittingSanPham.trangThai,
       });
-<<<<<<< HEAD
-    } else {
-      form.reset();
-    }
-  }, [edittingSanPham, form]);
-=======
     }
   }, [edittingSanPham, danhMucList, BoSuuTapList, form]);
->>>>>>> 959bb71c003f55a9ebd637224587965b6aa7977f
 
   useEffect(() => {
     const subscription = form.watch((values) => {
@@ -120,25 +93,13 @@ export default function SanPhamForm({
 
   return (
     <Form {...form}>
-<<<<<<< HEAD
-      <motion.form
-=======
       <form
->>>>>>> 959bb71c003f55a9ebd637224587965b6aa7977f
         onSubmit={form.handleSubmit(async (data) => {
           console.log("Submit update:", data, edittingSanPham?.id);
           await onSubmit(data, edittingSanPham?.id);
           onSucces?.();
         })}
-<<<<<<< HEAD
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -20 }}
-        transition={{ duration: 0.3, ease: "easeOut" }}
-        className="glass-card p-6 mb-8 space-y-4 rounded-md border border-white/20 bg-[#10123c]"
-=======
         className="space-y-6 mt-2 "
->>>>>>> 959bb71c003f55a9ebd637224587965b6aa7977f
       >
         <FormField
           control={form.control}
@@ -187,14 +148,10 @@ export default function SanPhamForm({
                       disabled={isLoadingDanhMuc}
                     >
                       <SelectTrigger>
-<<<<<<< HEAD
-                        <SelectValue placeholder="Chọn danh mục" />
-=======
                         <SelectValue placeholder="Chọn danh mục">
                           {danhMucList.find((dm) => dm.id === field.value)
                             ?.tenDanhMuc ?? ""}
                         </SelectValue>
->>>>>>> 959bb71c003f55a9ebd637224587965b6aa7977f
                       </SelectTrigger>
                       <SelectContent>
                         {danhMucList.map((dm) => (
@@ -355,27 +312,6 @@ export default function SanPhamForm({
           <Switch />
         </div>
 
-<<<<<<< HEAD
-        <div className="flex gap-2">
-          <Button type="submit">
-            {edittingSanPham ? "Cập nhật sản phẩm" : "Thêm sản phẩm"}
-          </Button>
-          {edittingSanPham && (
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                onSucces?.();
-                form.reset();
-                // setPreview(null);
-              }}
-            >
-              Hủy chỉnh sửa
-            </Button>
-          )}
-        </div>
-      </motion.form>
-=======
         <div className="flex gap-2 pt-4">
           <Button type="submit">
             {edittingSanPham ? "Cập nhật" : "Thêm mới"}
@@ -393,7 +329,6 @@ export default function SanPhamForm({
           </Button>
         </div>
       </form>
->>>>>>> 959bb71c003f55a9ebd637224587965b6aa7977f
     </Form>
   );
 }
