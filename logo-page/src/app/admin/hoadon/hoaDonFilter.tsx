@@ -1,3 +1,4 @@
+// app/components/sanpham/HoaDonFilter.tsx
 "use client";
 
 import React, { useState } from "react";
@@ -11,6 +12,14 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { RotateCcw } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
+import { CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
 import { HoaDonDTO, PaymentMethods, TrangThaiHoaDon } from "@/components/types/hoaDon-types";
 
 interface HoaDonFilterProps {
@@ -35,6 +44,8 @@ interface HoaDonFilterProps {
 export default function HoaDonFilter({ filters, setFilters, setPage, hoaDons }: HoaDonFilterProps) {
     const [suggestions, setSuggestions] = useState<HoaDonDTO[]>([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
+    const [fromDate, setFromDate] = useState<Date | undefined>(filters.from ? new Date(filters.from) : undefined);
+    const [toDate, setToDate] = useState<Date | undefined>(filters.to ? new Date(filters.to) : undefined);
 
     const getSuggestions = (value: string) => {
         const inputValue = value.trim().toLowerCase();
@@ -63,7 +74,7 @@ export default function HoaDonFilter({ filters, setFilters, setPage, hoaDons }: 
                         Trạng thái đơn hàng
                     </label>
                     <Select
-                        id="trangThai"
+
                         value={filters.trangThai}
                         onValueChange={(value) => {
                             setFilters((f) => ({ ...f, trangThai: value as keyof typeof TrangThaiHoaDon | "all" }));
@@ -90,7 +101,7 @@ export default function HoaDonFilter({ filters, setFilters, setPage, hoaDons }: 
                         Phương thức thanh toán
                     </label>
                     <Select
-                        id="phuongThuc"
+
                         value={filters.phuongThuc}
                         onValueChange={(value) => {
                             setFilters((f) => ({ ...f, phuongThuc: value as keyof typeof PaymentMethods | "all" }));
@@ -110,36 +121,65 @@ export default function HoaDonFilter({ filters, setFilters, setPage, hoaDons }: 
                         </SelectContent>
                     </Select>
                 </div>
+
                 {/* Từ ngày */}
-                <div >
+                <div>
                     <label htmlFor="fromDate" className="text-sm text-muted-foreground mb-1 block">
                         Từ ngày
                     </label>
-                    <Input
-                        id="fromDate"
-                        type="datetime-local"
-                        value={filters.from}
-                        onChange={(e) => {
-                            setFilters((f) => ({ ...f, from: e.target.value }));
-                            setPage(0);
-                        }}
-                    />
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <Button
+                                variant="outline"
+                                className="w-full justify-start text-left font-normal"
+                            >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {fromDate ? format(fromDate, "PPP") : "Chọn ngày"}
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0">
+                            <Calendar
+                                mode="single"
+                                selected={fromDate}
+                                onSelect={(date) => {
+                                    setFromDate(date);
+                                    setFilters((f) => ({ ...f, from: date ? format(date, "yyyy-MM-dd'T'HH:mm:ss") : "" }));
+                                    setPage(0);
+                                }}
+                                initialFocus
+                            />
+                        </PopoverContent>
+                    </Popover>
                 </div>
 
                 {/* Đến ngày */}
-                <div >
+                <div>
                     <label htmlFor="toDate" className="text-sm text-muted-foreground mb-1 block">
                         Đến ngày
                     </label>
-                    <Input
-                        id="toDate"
-                        type="datetime-local"
-                        value={filters.to}
-                        onChange={(e) => {
-                            setFilters((f) => ({ ...f, to: e.target.value }));
-                            setPage(0);
-                        }}
-                    />
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <Button
+                                variant="outline"
+                                className="w-full justify-start text-left font-normal"
+                            >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {toDate ? format(toDate, "PPP") : "Chọn ngày"}
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0">
+                            <Calendar
+                                mode="single"
+                                selected={toDate}
+                                onSelect={(date) => {
+                                    setToDate(date);
+                                    setFilters((f) => ({ ...f, to: date ? format(date, "yyyy-MM-dd'T'HH:mm:ss") : "" }));
+                                    setPage(0);
+                                }}
+                                initialFocus
+                            />
+                        </PopoverContent>
+                    </Popover>
                 </div>
             </div>
 
@@ -213,11 +253,9 @@ export default function HoaDonFilter({ filters, setFilters, setPage, hoaDons }: 
                                     to: "",
                                     loaiHD: "all",
                                 });
+                                setFromDate(undefined);
+                                setToDate(undefined);
                                 setPage(0);
-                                toast({
-                                    title: "Đã đặt lại bộ lọc",
-                                    description: "Tất cả bộ lọc đã được xóa, hiển thị toàn bộ hóa đơn.",
-                                });
                             }
                         }}
                     >

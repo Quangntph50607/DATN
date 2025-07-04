@@ -17,7 +17,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Eye } from "lucide-react";
 import { HoaDonDTO, TrangThaiHoaDon, PaymentMethods } from "@/components/types/hoaDon-types";
 import { HoaDonService } from "@/services/hoaDonService";
 import { toast } from "sonner";
@@ -80,7 +79,7 @@ const getPaymentMethodLabel = (method: string | null | undefined): string => {
 };
 
 const OrderTable = memo(
-    ({ data, page, setPage, handleViewDetail, PAGE_SIZE, fetchData }: OrderTableProps) => {
+    ({ data, page, setPage, PAGE_SIZE, fetchData }: OrderTableProps) => {
         const isMounted = useRef(true);
 
         useEffect(() => {
@@ -118,22 +117,30 @@ const OrderTable = memo(
             [fetchData]
         );
 
-
         return (
             <>
-                <div className="rounded-2xl shadow-xl overflow-x-auto bg-[#181e29] border border-blue-900">
+                <div className="rounded-2xl shadow-xl overflow-x-auto bg-[#1A1F2E] border border-[#3B82F6]">
                     <Table>
                         <TableHeader>
-                            <TableRow className="bg-[#14326c]">
-                                <TableHead className="text-white text-center text-sm font-semibold">STT</TableHead>
-                                <TableHead className="text-white text-center text-sm font-semibold">Mã HĐ</TableHead>
-                                <TableHead className="text-white text-center text-sm font-semibold">Khách hàng</TableHead>
-                                <TableHead className="text-white text-center text-sm font-semibold">Tổng tiền</TableHead>
-                                <TableHead className="text-white text-center text-sm font-semibold">Ngày tạo</TableHead>
-                                <TableHead className="text-white text-center text-sm font-semibold">Trạng thái</TableHead>
-                                <TableHead className="text-white text-center text-sm font-semibold">Thanh toán</TableHead>
-                                <TableHead className="text-white text-center text-sm font-semibold">Loại HĐ</TableHead>
-                                <TableHead className="text-white text-center text-sm font-semibold">Mã VC</TableHead>
+                            <TableRow className="bg-[#2A2F4E]">
+                                {[
+                                    "STT",
+                                    "Mã HĐ",
+                                    "Khách hàng",
+                                    "Tổng tiền",
+                                    "Ngày tạo",
+                                    "Trạng thái",
+                                    "Thanh toán",
+                                    "Loại HĐ",
+                                    "Mã VC",
+                                ].map((header, idx) => (
+                                    <TableHead
+                                        key={idx}
+                                        className="text-white text-center text-sm font-semibold bg-blue-500"
+                                    >
+                                        {header}
+                                    </TableHead>
+                                ))}
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -142,12 +149,14 @@ const OrderTable = memo(
                                     <TableCell className="text-white text-center">
                                         {page * PAGE_SIZE + index + 1}
                                     </TableCell>
-                                    <TableCell className="text-blue-400 font-semibold text-center">
+                                    <TableCell className="text-[#A855F7] font-semibold text-center">
                                         {hd.maHD || "N/A"}
                                     </TableCell>
-                                    <TableCell className="text-white text-center">{hd.ten || "N/A"}</TableCell>
+                                    <TableCell className="text-white text-center">
+                                        {hd.ten || "N/A"}
+                                    </TableCell>
                                     <TableCell className="text-green-400 text-center font-medium">
-                                        {hd.tongTien.toLocaleString("vi-VN")}₫
+                                        {hd.tongTien?.toLocaleString("vi-VN") || "0"}₫
                                     </TableCell>
                                     <TableCell className="text-white text-center">
                                         {parseBackendDate(hd.ngayTao)}
@@ -159,17 +168,18 @@ const OrderTable = memo(
                                                 handleStatusUpdate(hd.id, hd.trangThai || "", value)
                                             }
                                         >
-                                            <SelectTrigger className="w-[130px] bg-white/10 border border-blue-400 text-white text-xs font-semibold rounded-lg">
+                                            <SelectTrigger className="w-[130px] bg-[#2A2F4E] border border-[#3B82F6] text-white text-xs font-semibold rounded-lg">
                                                 <SelectValue placeholder="Trạng thái" />
                                             </SelectTrigger>
-                                            <SelectContent>
+                                            <SelectContent className="bg-[#1A1F2E] border border-[#3B82F6] text-white">
                                                 {Object.values(TrangThaiHoaDon).map((status, idx) => (
                                                     <SelectItem
                                                         key={idx}
                                                         value={status}
                                                         disabled={
                                                             hd.trangThai
-                                                                ? !isValidTrangThaiTransition(hd.trangThai, status) || hd.trangThai === status
+                                                                ? !isValidTrangThaiTransition(hd.trangThai, status) ||
+                                                                hd.trangThai === status
                                                                 : false
                                                         }
                                                         className="text-xs"
@@ -184,22 +194,31 @@ const OrderTable = memo(
                                         {getPaymentMethodLabel(hd.phuongThucThanhToan)}
                                     </TableCell>
                                     <TableCell className="text-white text-center">
-                                        {hd.loaiHD}
+                                        {hd.loaiHD === 1 ? "Tại quầy" : hd.loaiHD === 2 ? "Online" : "N/A"}
                                     </TableCell>
                                     <TableCell className="text-white text-center">
                                         {hd.maVanChuyen || "N/A"}
                                     </TableCell>
                                 </TableRow>
                             ))}
-
+                            {!data?.content.length && (
+                                <TableRow>
+                                    <TableCell
+                                        colSpan={10}
+                                        className="text-center text-gray-400 py-8"
+                                    >
+                                        Không có dữ liệu.
+                                    </TableCell>
+                                </TableRow>
+                            )}
                         </TableBody>
                     </Table>
                 </div>
 
-                <div className="flex justify-center items-center mt-4 bg-[#181e29] p-2 rounded-lg">
+                <div className="flex justify-center items-center mt-4 bg-[#1A1F2E] p-2 rounded-lg">
                     <Button
                         variant="outline"
-                        className="text-white border-blue-400 bg-[#232b3b] hover:bg-[#2c3550] rounded-lg px-4 py-2"
+                        className="text-white border-[#3B82F6] bg-[#2A2F4E] hover:bg-[#3B82F6] hover:text-white rounded-lg px-4 py-2"
                         onClick={() => setPage(Math.max(0, page - 1))}
                         disabled={page === 0}
                     >
@@ -210,9 +229,11 @@ const OrderTable = memo(
                     </span>
                     <Button
                         variant="outline"
-                        className="text-white border-blue-400 bg-[#232b3b] hover:bg-[#2c3550] rounded-lg px-4 py-2"
+                        className="text-white border-[#3B82F6] bg-[#2A2F4E] hover:bg-[#3B82F6] hover:text-white rounded-lg px-4 py-2"
                         onClick={() =>
-                            setPage((prev) => (data && prev < data.totalPages - 1 ? prev + 1 : prev))
+                            setPage((prev) =>
+                                data && prev < data.totalPages - 1 ? prev + 1 : prev
+                            )
                         }
                         disabled={!data || page >= data.totalPages - 1}
                     >

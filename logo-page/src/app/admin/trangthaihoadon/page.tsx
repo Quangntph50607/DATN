@@ -7,6 +7,7 @@ import OrderFilter from "./OrderFilter";
 import StatusCardList from "./StatusCardList";
 import OrderTable from "./OrderTable";
 import { toast } from "sonner";
+import { Card } from "@/components/ui/card";
 
 export default function TrangThaiHoaDonPage() {
     const [search, setSearch] = useState("");
@@ -89,10 +90,7 @@ export default function TrangThaiHoaDonPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#181e29] py-8 px-2 md:px-8">
-            <h1 className="text-3xl md:text-4xl font-extrabold text-center text-white mb-10 tracking-tight drop-shadow">
-                Quản lý trạng thái đơn hàng
-            </h1>
+        <Card className="p-4 bg-gray-800 shadow-md max-h-screen w-full h-full">
 
             <StatusCardList
                 statusCounts={statusCounts}
@@ -102,6 +100,10 @@ export default function TrangThaiHoaDonPage() {
 
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
                 <OrderFilter
+                    from={from}
+                    setFrom={setFrom}
+                    to={to}
+                    setTo={setTo}
                     search={search}
                     setSearch={setSearch}
                     filterStatus={filterStatus}
@@ -124,8 +126,6 @@ export default function TrangThaiHoaDonPage() {
                     fetchStatusCounts(); // ✅ load lại thống kê
                 }}
             />
-
-            {loading && <div className="text-white text-center mt-4">Đang tải dữ liệu...</div>}
-        </div>
+        </Card>
     );
 }
