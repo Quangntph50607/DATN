@@ -79,6 +79,10 @@ export default function SanPhamTable({ sanPhams, onDelete, onEdit }: Props) {
                     <span className="text-green-600 font-semibold">
                       Đang kinh doanh
                     </span>
+                  ) : sanPham.trangThai === "Ngừng kinh doanh" ? (
+                    <span className="text-yellow-500 font-semibold">
+                      Ngừng kinh doanh
+                    </span>
                   ) : (
                     <span className="text-red-300 font-semibold">Hết hàng</span>
                   )}

@@ -25,6 +25,8 @@ import {
 } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { BadgePercent } from 'lucide-react';
+import Image from 'next/image';
+import { CartItem } from '@/components/types/order.type';
 
 interface Props {
   customerName: string;
@@ -45,7 +47,7 @@ interface Props {
   setPaymentMethod: (m: '' | 'cash' | 'transfer') => void;
   cashGiven: number | '';
   setCashGiven: (v: number | '') => void;
-  cart: any[];
+  cart: CartItem[];
 }
 
 const Summary: React.FC<Props> = ({
@@ -54,9 +56,6 @@ const Summary: React.FC<Props> = ({
   discountAmount,
   total,
   onChangeDiscount,
-  onChangeName,
-  onChangeEmail,
-  onChangePhone,
   onCheckout,
   isCheckoutDisabled,
   onSavePending,
@@ -112,14 +111,16 @@ const Summary: React.FC<Props> = ({
             </div>
             <ScrollArea className="h-48 pr-4 my-2">
               <div className="space-y-2">
-                {cart.map((item: any) => (
+                {cart.map((item) => (
                   <div key={item.id} className="flex justify-between items-center text-sm">
                     <div className="flex items-center gap-2">
-                      <img
-                        src={item.anhDaiDien}
+                      <Image
+                        src={item.anhDaiDien || '/no-image.png'}
                         alt={item.tenSanPham}
+                        width={40}
+                        height={40}
                         className="w-10 h-10 object-cover rounded"
-                        onError={e => (e.currentTarget.src = '/no-image.png')}
+                        unoptimized
                       />
                       <div>
                         <span className="font-medium">{item.tenSanPham || item.name}</span>

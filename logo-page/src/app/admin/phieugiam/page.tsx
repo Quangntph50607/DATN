@@ -50,7 +50,7 @@ export default function Page() {
   };
 
   return (
-    <Card className="p-4 bg-gray-800 shadow-md max-h-screen w-full h-full">
+    <Card className="p-4 bg-gray-800 shadow-md  w-full h-full">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -96,11 +96,21 @@ export default function Page() {
           <p className="text-muted-foreground">Đang tải danh sách...</p>
         ) : (
           <>
+<<<<<<< HEAD
+            <div className="overflow-auto border-none ">
+              <PhieuGiamTable
+                phieuGiamGias={paginatedData}
+                onDelete={handleDelete}
+                onEdit={handleEdit}
+              />
+            </div>
+=======
             <PhieuGiamTable
               phieuGiamGias={paginatedData}
               onDelete={handleDelete}
               onEdit={handleEdit}
             />
+>>>>>>> 959bb71c003f55a9ebd637224587965b6aa7977f
 
             <div className="flex flex-wrap gap-2 justify-center items-center">
               <Button
