@@ -1,7 +1,6 @@
 "use client";
 import { useSanPham } from "@/hooks/useSanPham";
 import React from "react";
-import SanPhamList from "./SanPhamList";
 import Navbar from "../(pages)/Navbar";
 import { useDanhMuc } from "@/hooks/useDanhMuc";
 const CATEGORY_NAMES = ["Siêu anh hùng", "Ninjago"];
@@ -45,7 +44,7 @@ export default function MainHome() {
         selectedCategories.map((category) => (
           <div key={category.id} className="px-5 mt-10">
             <h1 className="text-xl font-bold mb-2">{category.tenDanhMuc}</h1>
-            <SanPhamList products={productByCategory(category.id)} />
+            {/* <SanPhamList products={productByCategory(category.id)} /> */}
           </div>
         ))
       )}
