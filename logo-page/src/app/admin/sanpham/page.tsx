@@ -17,6 +17,10 @@ import { useSearchStore } from "@/context/useSearch.store";
 import { useDanhMuc } from "@/hooks/useDanhMuc";
 import { useBoSuutap } from "@/hooks/useBoSutap";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { motion } from "framer-motion";
+import { Modal } from "@/components/layout/(components)/(pages)/Modal";
+import { PlusIcon } from "lucide-react";
 
 export default function SanPhamPage() {
   const { data: sanPhams = [], isLoading, refetch } = useSanPham();
@@ -29,7 +33,7 @@ export default function SanPhamPage() {
   const [selectedDanhMuc, setSelectedDanhMuc] = useState<number | null>(null);
   const [selectedBoSuuTap, setSelectedBoSuuTap] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const addSanPhamMutation = useAddSanPham();
   const deleteSanPhamMutation = useXoaSanPham();
   const editSanPhamMutation = useEditSanPham();
@@ -46,9 +50,9 @@ export default function SanPhamPage() {
       sp.maSanPham?.toLowerCase().includes(lowerKeyword);
 
     const matchDanhMuc =
-      selectedDanhMuc === null || sp.idDanhMuc === selectedDanhMuc;
+      selectedDanhMuc === null || sp.danhMucId === selectedDanhMuc;
     const matchBoSuuTap =
-      selectedBoSuuTap === null || sp.idBoSuuTap === selectedBoSuuTap;
+      selectedBoSuuTap === null || sp.boSuuTapId === selectedBoSuuTap;
 
     return matchKeyword && matchDanhMuc && matchBoSuuTap;
   });
@@ -93,54 +97,92 @@ export default function SanPhamPage() {
     setEditSanPham(null);
     setFormKey((prev) => prev + 1);
     refetch();
+    setIsModalOpen(false);
   };
 
   return (
-    <div className="space-y-6">
-      <SanPhamForm
-        key={formKey}
-        onSubmit={handleSubmit}
-        edittingSanPham={editSanPham}
-        onSucces={handleSuccess}
-      />
-      {isLoading ? (
-        <p>Đang tải danh sách sản phẩm...</p>
-      ) : (
-        <>
-          <span className="text-2xl font-bold mb-4">Danh sách sản phẩm</span>
-          <SanPhamFilter
-            danhMucs={danhMucs}
-            boSuuTaps={boSuuTaps}
-            selectedDanhMuc={selectedDanhMuc}
-            selectedBoSuuTap={selectedBoSuuTap}
-            onChangeDanhMuc={setSelectedDanhMuc}
-            onChangeBoSuuTap={setSelectedBoSuuTap}
-          />
+    <Card className="p-4 bg-gray-800 shadow-md max-h-screen w-full h-full">
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="text-center mb-8"
+      >
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">
+          Quản Lý Sản Phẩm
+        </h1>
+      </motion.div>
+      <Modal
+        open={isModalOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            setEditSanPham(null);
+          }
+          setIsModalOpen(open);
+        }}
+        title={editSanPham ? "Chỉnh sửa sản phẩm" : "Thêm sản phẩm"}
+        className="max-w-5xl"
+      >
+        <SanPhamForm
+          key={formKey}
+          onSubmit={handleSubmit}
+          edittingSanPham={editSanPham}
+          onSucces={handleSuccess}
+          setEditing={setEditSanPham}
+        />
+      </Modal>
+      <div className="space-y-6">
+        <SanPhamFilter
+          danhMucs={danhMucs}
+          boSuuTaps={boSuuTaps}
+          selectedDanhMuc={selectedDanhMuc}
+          selectedBoSuuTap={selectedBoSuuTap}
+          onChangeDanhMuc={setSelectedDanhMuc}
+          onChangeBoSuuTap={setSelectedBoSuuTap}
+        />
+        {isLoading ? (
+          <p>Đang tải danh sách sản phẩm...</p>
+        ) : (
+          <>
+            <div className="flex items-center  justify-between">
+              <p className="text-2xl font-bold ">Danh sách sản phẩm</p>
+              <Button
+                onClick={() => setIsModalOpen(true)}
+                className="bg-purple-400 px-2"
+              >
+                <PlusIcon /> Thêm sản phẩm
+              </Button>
+            </div>
 
-          <SanPhamTable
-            sanPhams={paginatedSanPhams}
-            onDelete={handleDelete}
-            onEdit={(product) => setEditSanPham({ ...product })}
-          />
-          <div className="flex gap-2 items-center justify-center">
-            <Button
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage((prev) => prev - 1)}
-            >
-              Trước
-            </Button>
-            <span>
-              {currentPage} / {totalPages}
-            </span>
-            <Button
-              disabled={currentPage === totalPages}
-              onClick={() => setCurrentPage((prev) => prev + 1)}
-            >
-              Sau
-            </Button>
-          </div>
-        </>
-      )}
-    </div>
+            <SanPhamTable
+              sanPhams={paginatedSanPhams}
+              onDelete={handleDelete}
+              onEdit={(product) => {
+                setEditSanPham({ ...product });
+                setIsModalOpen(true);
+              }}
+            />
+          </>
+        )}
+        <div className="flex gap-2 items-center justify-center">
+          <Button
+            disabled={currentPage === 1}
+            variant="outline"
+            onClick={() => setCurrentPage((prev) => prev - 1)}
+          >
+            Trang trước
+          </Button>
+          <span className="font-medium">
+            Trang {currentPage} / {totalPages}
+          </span>
+          <Button
+            disabled={currentPage === totalPages}
+            variant="outline"
+            onClick={() => setCurrentPage((prev) => prev + 1)}
+          >
+            Trang sau
+          </Button>
+        </div>
+      </div>
+    </Card>
   );
 }

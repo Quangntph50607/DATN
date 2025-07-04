@@ -1,21 +1,38 @@
 import { HoaDonDTO } from "@/components/types/hoaDon-types";
 import { HoaDonService } from "@/services/hoaDonService";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-interface PagedHoaDonResponse {
-    content: HoaDonDTO[];
-    totalPages: number;
-    totalElements: number;
-    number: number;
-}
 
-const FIVE_MINUTES = 1000 * 60 * 5;
+
 
 export function useHoaDonPaging(page: number, size: number = 10) {
-    return useQuery<PagedHoaDonResponse, Error>({
-        queryKey: ['hoaDons', page, size],
+    return useQuery({
+        queryKey: ["hoaDons", page, size],
         queryFn: () => HoaDonService.getPagedHoaDons(page, size),
-        keepPreviousData: true,
-        staleTime: FIVE_MINUTES,
+
+    });
+}
+export function useHoaDonById(id: number) {
+    return useQuery<HoaDonDTO>({
+        queryKey: ["hoaDons", id],
+        queryFn: () => HoaDonService.getHoaDonById(id),
+        enabled: !!id,
+    });
+}
+
+export function useUpdateTrangThai() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ id, trangThai }: { id: number; trangThai: string }) =>
+            HoaDonService.updateTrangThai(id, trangThai),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["hoaDons"] });
+        },
+    });
+}
+export function useHoaDonStatusCounts() {
+    return useQuery<Record<string, number>, Error>({
+        queryKey: ["hoaDons", "statusCounts"],
+        queryFn: HoaDonService.getStatusCounts,
     });
 }

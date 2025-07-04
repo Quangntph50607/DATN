@@ -30,9 +30,15 @@ export default function SanPhamTable({ sanPhams, onDelete, onEdit }: Props) {
     boSuuTaps.find((bst) => bst.id === id)?.tenBoSuuTap || "Không rõ";
 
   return (
+<<<<<<< HEAD
     <div className="border-3 border-blue-900 rounded-2xl ">
       <Table>
         <TableHeader>
+=======
+    <div className=" border-2 border-blue-500 rounded-2xl mt-3 overflow-x-auto shadow-2xl shadow-blue-500/40">
+      <Table>
+        <TableHeader className="bg-blue-500">
+>>>>>>> 959bb71c003f55a9ebd637224587965b6aa7977f
           <TableRow>
             <TableHead>STT</TableHead>
             <TableHead>Mã sản phẩm</TableHead>
@@ -42,10 +48,17 @@ export default function SanPhamTable({ sanPhams, onDelete, onEdit }: Props) {
             <TableHead>Bộ sưu tập</TableHead>
             <TableHead>Độ tuổi</TableHead>
             <TableHead>Giá</TableHead>
+<<<<<<< HEAD
             <TableHead>Số lượng tồn</TableHead>
             <TableHead>Số lượng mảnh ghép</TableHead>
             <TableHead>Trạng Thái</TableHead>
             <TableHead>Hành động</TableHead>
+=======
+            <TableHead>SL Tồn</TableHead>
+            <TableHead>SL mảnh ghép</TableHead>
+            <TableHead>Trạng Thái</TableHead>
+            <TableHead className="text-center">Hành động</TableHead>
+>>>>>>> 959bb71c003f55a9ebd637224587965b6aa7977f
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -68,8 +81,13 @@ export default function SanPhamTable({ sanPhams, onDelete, onEdit }: Props) {
                       : sanPham.moTa
                     : ""}
                 </TableCell>
+<<<<<<< HEAD
                 <TableCell>{getTenDanhMuc(sanPham.idDanhMuc)}</TableCell>
                 <TableCell>{getTenBST(sanPham.idBoSuuTap)}</TableCell>
+=======
+                <TableCell>{getTenDanhMuc(sanPham.danhMucId)}</TableCell>
+                <TableCell>{getTenBST(sanPham.boSuuTapId)}</TableCell>
+>>>>>>> 959bb71c003f55a9ebd637224587965b6aa7977f
                 <TableCell>{sanPham.doTuoi}</TableCell>
                 <TableCell>{sanPham.gia.toLocaleString()}đ</TableCell>
                 <TableCell>{sanPham.soLuongTon}</TableCell>

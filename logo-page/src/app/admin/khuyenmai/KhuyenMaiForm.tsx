@@ -36,16 +36,18 @@ export default function KhuyenMaiForm({
     resolver: zodResolver(khuyenMaiSchema),
     defaultValues: {
       tenKhuyenMai: "",
-      phanTramKhuyenMai: 10,
+      phanTramKhuyenMai: undefined,
       ngayBatDau: new Date(),
       ngayKetThuc: new Date(),
     },
   });
 
+
   const parseDate = (dateString: string) => {
     const pared = parse(dateString, "dd-MM-YYYY HH:mm:ss", new Date());
     return isNaN(pared.getTime()) ? new Date() : pared;
   };
+
 
   useEffect(() => {
     if (editing) {
@@ -85,8 +87,10 @@ export default function KhuyenMaiForm({
         {
           onSuccess: () => {
             toast.success("Sửa khuyến mãi thành công!");
+            toast.success("Sửa khuyến mãi thành công!");
             setEditing(null);
             form.reset();
+            onSucess?.();
             onSucess?.();
           },
           onError: () => {
@@ -98,10 +102,13 @@ export default function KhuyenMaiForm({
       addKhuyenMai.mutate(payload, {
         onSuccess: () => {
           toast.success("Thêm khuyến mãi thành công");
+          toast.success("Thêm khuyến mãi thành công");
           form.reset();
+          onSucess?.();
           onSucess?.();
         },
         onError: () => {
+          toast.error("Thêm khuyến mãi thất bại");
           toast.error("Thêm khuyến mãi thất bại");
         },
       });
@@ -153,6 +160,25 @@ export default function KhuyenMaiForm({
               </FormItem>
             )}
           />
+          {/* Phần trăm */}
+          <FormField
+            control={form.control}
+            name="phanTramKhuyenMai"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Phần trăm khuyến mãi (%)</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    placeholder="0 - 60"
+                    {...field}
+                    onChange={(e) => field.onChange(+e.target.value)}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
           {/* Ngày bắt đầu - kết thúc */}
           <div className="flex gap-3">
@@ -172,7 +198,42 @@ export default function KhuyenMaiForm({
                 </FormItem>
               )}
             />
+          {/* Ngày bắt đầu - kết thúc */}
+          <div className="flex gap-3">
+            <FormField
+              control={form.control}
+              name="ngayBatDau"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Ngày bắt đầu</FormLabel>
+                  <FormControl>
+                    <DateTimePicker
+                      value={field.value}
+                      onChange={field.onChange}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
+            <FormField
+              control={form.control}
+              name="ngayKetThuc"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Ngày kết thúc</FormLabel>
+                  <FormControl>
+                    <DateTimePicker
+                      value={field.value}
+                      onChange={field.onChange}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
             <FormField
               control={form.control}
               name="ngayKetThuc"

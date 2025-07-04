@@ -44,6 +44,8 @@ export const useCreateUser = () => {
     mutationFn: accountService.createUser,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["accounts"] });
+      queryClient.invalidateQueries({ queryKey: ["accounts", "role", "2"] });
+      queryClient.invalidateQueries({ queryKey: ["accounts", "role", "3"] });
     },
   });
 };
@@ -55,6 +57,8 @@ export const useUpdateAccount = () => {
     mutationFn: ({ id, data }) => accountService.updateAccount(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["accounts"] });
+      queryClient.invalidateQueries({ queryKey: ["accounts", "role", "2"] });
+      queryClient.invalidateQueries({ queryKey: ["accounts", "role", "3"] });
     },
   });
 };
@@ -72,6 +76,8 @@ export const useSoftDeleteAccount = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["accounts"] });
+      queryClient.invalidateQueries({ queryKey: ["accounts", "role", "2"] });
+      queryClient.invalidateQueries({ queryKey: ["accounts", "role", "3"] });
     },
   });
 };

@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { motion } from "framer-motion";
 import { Edit, Trash2 } from "lucide-react";
 import {
   Table,
@@ -27,19 +26,15 @@ const LegoCollectionTable: React.FC<Props> = ({
   onDelete,
 }) => {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="glass-card p-6 mb-8 rounded-md border border-white/20 bg-[#10123c]"
-    >
+    <div className="border-3 border-blue-500 rounded-2xl mt-3 overflow-x-auto shadow-2xl shadow-blue-500/20">
       <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="font-bold">STT</TableHead>
-            <TableHead className="font-bold">Tên bộ sưu tập</TableHead>
-            <TableHead className="font-bold">Mô tả</TableHead>
-            <TableHead className="font-bold">Ngày tạo</TableHead>
-            <TableHead className="font-bold">Thao tác</TableHead>
+        <TableHeader className="bg-blue-500">
+          <TableRow className="font-bold">
+            <TableHead className="w-20">STT</TableHead>
+            <TableHead className="w-60 truncate">Tên bộ sưu tập</TableHead>
+            <TableHead className="w-80 truncate">Mô tả</TableHead>
+            <TableHead className="w-60">Ngày tạo</TableHead>
+            <TableHead className="w-32">Hành đọng</TableHead>
           </TableRow>
         </TableHeader>
 
@@ -68,7 +63,7 @@ const LegoCollectionTable: React.FC<Props> = ({
           ))}
         </TableBody>
       </Table>
-    </motion.div>
+    </div>
   );
 };
 

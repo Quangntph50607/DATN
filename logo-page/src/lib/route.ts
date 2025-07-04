@@ -32,5 +32,16 @@ export const adminRoutes = [
   },
   { label: "Phiếu giảm giá", href: "/admin/phieugiam", icon: "ticket" },
   { label: "Quản lý người dùng", href: "/admin/nguoidung", icon: "users" },
+<<<<<<< HEAD
   { label: "Bán Hàng", href: "/admin/banhang", icon: "bar-chart-3" },
+=======
+  {
+    label: "Bán Hàng",
+    icon: "bar-chart-3",
+    children: [
+      { label: "POS - Bán hàng tại quầy", href: "/admin/banhang/order" },
+      { label: "Đơn hàng chờ", href: "/admin/banhang/pending" },
+    ],
+  },
+>>>>>>> 959bb71c003f55a9ebd637224587965b6aa7977f
 ];

@@ -5,9 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { PlusCircle, Palette, Layers } from "lucide-react";
-import { motion } from "framer-motion";
 import { DanhMuc } from "@/components/types/product.type";
 import { useToast } from "@/context/use-toast";
+import { Textarea } from "@/components/ui/textarea";
 
 interface LegoCategoryFormProps {
   onSubmit: (data: DanhMuc) => void;
@@ -59,15 +59,11 @@ export const LegoCategoryForm: React.FC<LegoCategoryFormProps> = ({
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="glass-card p-6 mb-8 rounded-md border border-white/20 bg-[#10123c]"
-    >
+    <div>
       <h2 className="text-xl font-bold text-white mb-4">
         {categoryToEdit ? "Chỉnh sửa danh mục LEGO" : "Thêm danh mục LEGO mới"}
       </h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-6 mt-2 w-full mx-auto ">
         <div>
           <Label
             htmlFor="tenDanhMuc"
@@ -90,13 +86,12 @@ export const LegoCategoryForm: React.FC<LegoCategoryFormProps> = ({
           >
             <Palette className="w-4 h-4 mr-2 text-primary" /> Mô tả
           </Label>
-          <textarea
+          <Textarea
             id="moTa"
             value={formData.moTa}
             onChange={handleChange}
             placeholder="Mô tả ngắn về danh mục..."
-            rows={3}
-            className="w-full bg-background/70 border border-white/30 placeholder:text-gray-500 rounded-md p-2 text-sm text-white"
+            className="w-full h-30   p-2 text-sm "
           />
         </div>
         <div className="flex justify-end gap-3">
@@ -111,6 +106,6 @@ export const LegoCategoryForm: React.FC<LegoCategoryFormProps> = ({
           </Button>
         </div>
       </form>
-    </motion.div>
+    </div>
   );
 };

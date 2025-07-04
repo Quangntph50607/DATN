@@ -18,10 +18,16 @@ interface Props {
   onDelete: (id: number) => void;
   onEdit: (data: KhuyenMaiDTO) => void;
 }
+<<<<<<< HEAD
 
 export default function KhuyenMaiTable({ khuyenMai, onDelete, onEdit }: Props) {
   return (
     <div className="border-3 border-blue-500 rounded-2xl mt-3 overflow-x-auto">
+=======
+export default function KhuyenMaiTable({ khuyenMai, onDelete, onEdit }: Props) {
+  return (
+    <div className="border-3 border-blue-500 rounded-2xl mt-3 overflow-x-auto shadow-2xl shadow-blue-500/20">
+>>>>>>> 959bb71c003f55a9ebd637224587965b6aa7977f
       <Table>
         <TableHeader className="bg-blue-500">
           <TableRow>

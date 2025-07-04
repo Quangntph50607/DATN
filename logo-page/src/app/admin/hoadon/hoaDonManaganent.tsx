@@ -2,15 +2,20 @@
 
 import React, { useEffect, useState } from "react";
 import { HoaDonService } from "@/services/hoaDonService";
-import { HoaDonDTO, TrangThaiHoaDon, PaymentMethods, HoaDonDetailDTO } from "@/components/types/hoaDon-types";
+import {
+    HoaDonDTO,
+    HoaDonDetailDTO,
+    PaymentMethods,
+    TrangThaiHoaDon,
+} from "@/components/types/hoaDon-types";
 import { useSanPham } from "@/hooks/useSanPham";
-import HoaDonFilter from "./hoaDonFilter";
+import { useAccounts } from "@/hooks/useAccount";
 import { toast } from "sonner";
+import HoaDonFilter from "./hoaDonFilter";
 import HoaDonList from "./hoaDonList";
 import HoaDonDetail from "./hoaDondetail";
-import { useAccounts } from "@/hooks/useAccount";
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 5;
 
 function isValidTrangThaiTransition(current: string, next: string): boolean {
     const currentKey = Object.keys(TrangThaiHoaDon).find(
@@ -40,22 +45,25 @@ function isValidTrangThaiTransition(current: string, next: string): boolean {
     }
 }
 
-function parseBackendDate(date: any): string {
-    if (!date) return "N/A";
+function parseBackendDateToDate(date: any): Date | null {
+    if (!date) return null;
     if (Array.isArray(date) && date.length >= 3) {
         const [year, month, day, hour = 0, minute = 0, second = 0, nano = 0] = date;
-        const parsedDate = new Date(year, month - 1, day, hour, minute, second, Math.floor(nano / 1e6));
-        return !isNaN(parsedDate.getTime()) ? parsedDate.toLocaleString("vi-VN") : "N/A";
+        return new Date(year, month - 1, day, hour, minute, second, Math.floor(nano / 1e6));
     }
     const d = new Date(date);
-    return !isNaN(d.getTime()) ? d.toLocaleString("vi-VN") : "N/A";
+    return isNaN(d.getTime()) ? null : d;
 }
 
 const mapStatusToKey = (status: string): keyof typeof TrangThaiHoaDon | undefined =>
-    Object.keys(TrangThaiHoaDon).find((key) => TrangThaiHoaDon[key as keyof typeof TrangThaiHoaDon] === status) as any;
+    Object.keys(TrangThaiHoaDon).find(
+        (key) => TrangThaiHoaDon[key as keyof typeof TrangThaiHoaDon] === status
+    ) as any;
 
 const mapPaymentToKey = (method: string): keyof typeof PaymentMethods | undefined =>
-    Object.keys(PaymentMethods).find((key) => PaymentMethods[key as keyof typeof PaymentMethods] === method) as any;
+    Object.keys(PaymentMethods).find(
+        (key) => PaymentMethods[key as keyof typeof PaymentMethods] === method
+    ) as any;
 
 const HoaDonManagement = () => {
     const [page, setPage] = useState(0);
@@ -64,11 +72,8 @@ const HoaDonManagement = () => {
     const [detail, setDetail] = useState<HoaDonDTO | null>(null);
     const [chiTietSanPham, setChiTietSanPham] = useState<HoaDonDetailDTO[]>([]);
 
-    // Sử dụng hook useSanPham để lấy danh sách sản phẩm
-    const { data: sanPhams = [], isLoading: loadingSanPhams, error: sanPhamError } = useSanPham();
-
-    // Sử dụng hook useAccounts để lấy danh sách người dùng
-    const { data: users = [], isLoading: loadingUsers, error: userError } = useAccounts();
+    const { data: sanPhams = [], error: sanPhamError } = useSanPham();
+    const { data: users = [], error: userError } = useAccounts();
 
     const [filters, setFilters] = useState({
         keyword: "",
@@ -76,21 +81,13 @@ const HoaDonManagement = () => {
         phuongThuc: "all" as keyof typeof PaymentMethods | "all",
         from: "",
         to: "",
+        loaiHD: "all",
     });
 
-    // Xử lý lỗi khi lấy sản phẩm
     useEffect(() => {
-        if (sanPhamError) {
-            toast.error("Lỗi khi tải danh sách sản phẩm");
-        }
-    }, [sanPhamError]);
-
-    // Xử lý lỗi khi lấy người dùng
-    useEffect(() => {
-        if (userError) {
-            toast.error("Lỗi khi tải danh sách người dùng");
-        }
-    }, [userError]);
+        if (sanPhamError) toast.error("Lỗi khi tải danh sách sản phẩm");
+        if (userError) toast.error("Lỗi khi tải danh sách người dùng");
+    }, [sanPhamError, userError]);
 
     const fetchData = async () => {
         try {
@@ -103,47 +100,46 @@ const HoaDonManagement = () => {
                 phuongThucThanhToan: mapPaymentToKey(hd.phuongThucThanhToan) || hd.phuongThucThanhToan,
             }));
 
-            // Tìm kiếm từ khóa
+            // Keyword search
             if (filters.keyword) {
                 const kw = filters.keyword.toLowerCase();
-                filtered = filtered.filter(
-                    (hd) => {
-                        const user = users.find((u) => u.id === hd.userId);
-                        return (
-                            (user?.ten?.toLowerCase().includes(kw)) ||
-                            (hd.maHD?.toLowerCase().includes(kw)) ||
-                            (user?.sdt?.includes(kw)) ||
-                            (hd.id + "").includes(kw)
-                        );
-                    }
-                );
+                filtered = filtered.filter((hd) => {
+                    const user = users.find((u) => u.id === hd.userId);
+                    return (
+                        (user?.ten?.toLowerCase().includes(kw)) ||
+                        (hd.maHD?.toLowerCase().includes(kw)) ||
+                        (user?.sdt?.includes(kw)) ||
+                        (hd.id + "").includes(kw)
+                    );
+                });
             }
 
-            // Lọc trạng thái
+            if (filters.loaiHD !== "all") {
+                filtered = filtered.filter((hd) => String(hd.loaiHD) === filters.loaiHD);
+            }
+
             if (filters.trangThai !== "all") {
                 const trangThaiValue = TrangThaiHoaDon[filters.trangThai];
                 filtered = filtered.filter((hd) => hd.trangThai === trangThaiValue);
             }
 
-            // Lọc phương thức thanh toán
             if (filters.phuongThuc !== "all") {
                 filtered = filtered.filter((hd) => hd.phuongThucThanhToan === filters.phuongThuc);
             }
 
-            // Lọc ngày
             if (filters.from) {
                 const fromDate = new Date(filters.from);
                 filtered = filtered.filter((hd) => {
-                    const d = parseBackendDate(hd.ngayTao);
-                    return d && new Date(d) >= fromDate;
+                    const d = parseBackendDateToDate(hd.ngayTao);
+                    return d && d >= fromDate;
                 });
             }
 
             if (filters.to) {
                 const toDate = new Date(filters.to);
                 filtered = filtered.filter((hd) => {
-                    const d = parseBackendDate(hd.ngayTao);
-                    return d && new Date(d) <= toDate;
+                    const d = parseBackendDateToDate(hd.ngayTao);
+                    return d && d <= toDate;
                 });
             }
 
@@ -164,12 +160,15 @@ const HoaDonManagement = () => {
             setOpen(true);
             const detail = await HoaDonService.getHoaDonById(id);
             const chiTiet = await HoaDonService.getChiTietSanPhamByHoaDonId(id);
+            const user = users.find((u) => u.id === detail.userId) || null;
+
             setDetail({
                 ...detail,
                 trangThai: mapStatusToKey(detail.trangThai)
                     ? TrangThaiHoaDon[mapStatusToKey(detail.trangThai)!]
                     : detail.trangThai,
                 phuongThucThanhToan: mapPaymentToKey(detail.phuongThucThanhToan) || detail.phuongThucThanhToan,
+                user,
             });
             setChiTietSanPham(chiTiet);
         } catch {
@@ -209,7 +208,7 @@ const HoaDonManagement = () => {
                 handleStatusChange={handleStatusChange}
                 PAGE_SIZE={PAGE_SIZE}
                 isValidTrangThaiTransition={isValidTrangThaiTransition}
-                users={users} // Truyền users vào HoaDonList
+
             />
 
             <HoaDonDetail
@@ -218,7 +217,7 @@ const HoaDonManagement = () => {
                 detail={detail}
                 chiTietSanPham={chiTietSanPham}
                 sanPhams={sanPhams}
-                users={users} // Truyền danh sách users vào HoaDonDetail
+                users={users}
                 loadingDetail={false}
             />
         </div>

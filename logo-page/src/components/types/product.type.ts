@@ -39,7 +39,12 @@ export interface SanPham {
   ngaySua?: number | string;
   khuyenMaiId?: number | null;
   trangThai: string;
+<<<<<<< HEAD
   idDanhMuc: number;
   idBoSuuTap: number;
+=======
+  danhMucId: number;
+  boSuuTapId: number;
+>>>>>>> 959bb71c003f55a9ebd637224587965b6aa7977f
   anhSps?: AnhSanPhamChiTiet[];
 }

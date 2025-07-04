@@ -19,10 +19,14 @@ interface Props {
   updateQuantity: (id: number, amount: number) => void;
   removeFromCart: (id: number) => void;
   customerName: string;
+  customerEmail: string;
+  customerPhone: string;
   onChangeName: (name: string) => void;
+  onChangeEmail: (email: string) => void;
+  onChangePhone: (phone: string) => void;
 }
 
-const Cart: React.FC<Props> = ({ cart, updateQuantity, removeFromCart, customerName, onChangeName }) => {
+const Cart: React.FC<Props> = ({ cart, updateQuantity, removeFromCart, customerName, customerEmail, customerPhone, onChangeName, onChangeEmail, onChangePhone }) => {
   const { data: accounts = [] } = useAccounts();
   const [openDialog, setOpenDialog] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -30,7 +34,7 @@ const Cart: React.FC<Props> = ({ cart, updateQuantity, removeFromCart, customerN
   const createUser = useCreateUser();
 
   const form = useForm<AccountFormData>({
-    resolver: zodResolver(accountSchema as any),
+    resolver: zodResolver(accountSchema),
     defaultValues: {
       ten: '',
       email: '',
@@ -80,7 +84,7 @@ const Cart: React.FC<Props> = ({ cart, updateQuantity, removeFromCart, customerN
                     });
                     onChangeName(res.ten);
                     setOpenDialog(false);
-                  } catch (e) {
+                  } catch {
                     alert('Thêm khách hàng thất bại!');
                   }
                 })}
@@ -161,26 +165,51 @@ const Cart: React.FC<Props> = ({ cart, updateQuantity, removeFromCart, customerN
             ref={inputRef}
             placeholder="Tên khách hàng (Gõ để tìm nhanh)"
             value={customerName}
-            onChange={(e) => onChangeName(e.target.value)}
+            onChange={(e) => {
+              onChangeName(e.target.value);
+            }}
             className="bg-background/70 border-white/20 text-white placeholder:text-gray-400"
             autoComplete="off"
             onFocus={() => setShowSuggestions(true)}
             onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
           />
           {showSuggestions && suggestions.length > 0 && (
-            <div className="absolute z-10 left-0 right-0 bg-slate-200/80 border border-input rounded-md shadow-xs mt-1 max-h-40 overflow-y-auto px-3 py-1 text-base focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]">
+            <div className="absolute z-10 left-0 right-0 bg-slate-200/80 border border-input rounded-md shadow-xs mt-1 max-h-40 overflow-y-auto px-3 py-1 text-base">
               {suggestions.map(acc => (
                 <div
                   key={acc.id}
                   className="px-2 py-2 hover:bg-primary/20 cursor-pointer text-gray-900 rounded"
-                  onMouseDown={() => { onChangeName(acc.ten || ''); setShowSuggestions(false); }}
+                  onMouseDown={() => {
+                    onChangeName(acc.ten || '');
+                    onChangeEmail(acc.email || '');
+                    onChangePhone(acc.sdt || '');
+                    setShowSuggestions(false);
+                  }}
                 >
-                  {acc.ten}
+                  <div className="font-medium">{acc.ten}</div>
+                  <div className="text-xs text-gray-600">
+                    {acc.email} {acc.sdt && <>• {acc.sdt}</>}
+                  </div>
                 </div>
               ))}
             </div>
           )}
         </div>
+      </div>
+      <div className="flex gap-2 mb-4  ml-9">
+        <Input
+          placeholder="Email khách hàng"
+          value={customerEmail}
+          onChange={(e) => onChangeEmail(e.target.value)}
+          className="bg-background/70 border-white/20 text-white placeholder:text-gray-400 flex-1 min-w-0"
+          style={{ marginLeft: 0 }}
+        />
+        <Input
+          placeholder="Số điện thoại"
+          value={customerPhone}
+          onChange={(e) => onChangePhone(e.target.value)}
+          className="bg-background/70 border-white/20 text-white placeholder:text-gray-400 w-48"
+        />
       </div>
       <ScrollArea className="flex-grow mb-4 pr-2 scrollable-area">
         {cart.length === 0 ? (
@@ -196,7 +225,16 @@ const Cart: React.FC<Props> = ({ cart, updateQuantity, removeFromCart, customerN
                   </div>
                   <div>
                     <h4 className="text-sm font-medium text-white line-clamp-1">{item.tenSanPham}</h4>
-                    <p className="text-xs text-gray-400">{formatCurrency(item.gia)}</p>
+                    <p className="text-xs text-gray-400">
+                      {item.giaKhuyenMai != null && item.giaKhuyenMai > 0 ? (
+                        <>
+                          {formatCurrency(item.giaKhuyenMai)}
+                          <span className="ml-1 line-through text-xs text-gray-500">{formatCurrency(item.gia)}</span>
+                        </>
+                      ) : (
+                        formatCurrency(item.gia)
+                      )}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
