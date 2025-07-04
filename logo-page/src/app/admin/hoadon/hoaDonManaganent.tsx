@@ -155,7 +155,10 @@ const HoaDonManagement = () => {
         fetchData();
     }, [page, filters, users]);
 
+
+
     const handleViewDetail = async (id: number) => {
+
         try {
             const detail = await HoaDonService.getHoaDonById(id);
             const chiTiet = await HoaDonService.getChiTietSanPhamByHoaDonId(id);
@@ -165,7 +168,7 @@ const HoaDonManagement = () => {
             console.log("Raw chiTietSanPham:", chiTiet);
 
             const enrichedChiTiet = chiTiet.map((ct: HoaDonDetailDTO) => {
-                const productId = ct.spId; // Sử dụng spId trực tiếp như số
+                const productId = ct.spId;
                 console.log(`Processing spId: ${productId}, type: ${typeof productId}`);
 
                 const matched = sanPhams.find((sp) => sp.id === productId);
@@ -207,6 +210,7 @@ const HoaDonManagement = () => {
             console.error("Error in handleViewDetail:", error);
             toast.error("Lỗi khi xem chi tiết");
         }
+        console.log(" cmmmmmmm  ", detail);
     };
 
     const handleStatusChange = async (id: number, current: string, next: string) => {

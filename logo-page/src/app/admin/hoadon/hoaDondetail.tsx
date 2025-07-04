@@ -16,6 +16,9 @@ import { DTOUser } from "@/components/types/account.type";
 import { SanPham } from "@/components/types/product.type";
 import { exportInvoiceToExcel, exportInvoiceToDocx, printInvoice } from "./invoiceUtils";
 import { useSanPham } from "@/hooks/useSanPham"; // Giả sử bạn đã định nghĩa hook này
+import { log } from "console";
+import { Tab } from "docx";
+import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 
 interface Props {
     open: boolean;
@@ -73,7 +76,7 @@ const format = (val?: number | null) => `${val?.toLocaleString("vi-VN") || "0"}�
 
 export default function HoaDonDetail({ open, onOpenChange, detail, loadingDetail, chiTietSanPham, sanPhams, users }: Props) {
     const user = getUserById(users, detail?.userId);
-
+    console.log("Chi tiết hóa đơn:", user);
     const enrichedChiTietSanPham = chiTietSanPham.map((ct) => {
         // Lấy productId từ spId
         const productId = typeof ct.spId === "object" ? ct.spId.id : ct.spId;
@@ -132,8 +135,8 @@ export default function HoaDonDetail({ open, onOpenChange, detail, loadingDetail
                                 <Info label="Tổng tiền" value={<span className="text-green-400 font-semibold">{format(detail?.tongTien)}</span>} />
                             </div>
                             <div className="space-y-2">
-                                <Info label="Khách hàng" value={user?.ten || "N/A"} />
-                                <Info label="SĐT" value={user?.sdt || "N/A"} />
+                                <Info label="Khách hàng" value={user?.ten || detail?.ten || "N/A"} />
+                                <Info label="SĐT" value={user?.sdt || detail?.sdt || "N/A"} />
                                 <Info label="Địa chỉ" value={detail?.diaChiGiaoHang || "N/A"} />
                                 <Info label="Mã VC" value={detail?.maVanChuyen || "N/A"} />
                             </div>
@@ -154,30 +157,31 @@ export default function HoaDonDetail({ open, onOpenChange, detail, loadingDetail
                         <Separator className="my-2" />
                         <h3 className="text-lg font-semibold mb-2">Chi tiết sản phẩm</h3>
                         <div className="overflow-auto border rounded-md">
-                            <table className="min-w-full table-auto text-sm">
+                            <Table className="min-w-full table-auto text-sm">
                                 <thead className="bg-muted text-left">
-                                    <tr>
-                                        <th className="p-2">STT</th>
-                                        <th className="p-2">Mã SP</th>
-                                        <th className="p-2">Tên SP</th>
-                                        <th className="p-2">SL</th>
-                                        <th className="p-2">Đơn giá</th>
-                                        <th className="p-2">Thành tiền</th>
-                                    </tr>
+                                    <TableRow className="w-full">
+                                        <TableCell className="p-2">STT</TableCell>
+                                        <TableCell className="p-2">Mã SP</TableCell>
+                                        <TableCell className="p-2">Tên SP</TableCell>
+                                        <TableCell className="p-2 text-center">SL</TableCell>
+                                        <TableCell className="p-2 text-right">Đơn giá</TableCell>
+                                        <TableCell className="p-2 text-right">Thành tiền</TableCell>
+                                    </TableRow>
                                 </thead>
-                                <tbody>
+                                <TableBody>
                                     {enrichedChiTietSanPham.map((item, idx) => (
-                                        <tr key={item.id || idx} className="border-t">
-                                            <td className="p-2">{idx + 1}</td>
-                                            <td className="p-2">{item.spId.maSanPham}</td>
-                                            <td className="p-2">{item.spId.tenSanPham}</td>
-                                            <td className="p-2 text-center">{item.soLuong}</td>
-                                            <td className="p-2 text-right">{format(item.gia)}</td>
-                                            <td className="p-2 text-right">{format(item.tongTien)}</td>
-                                        </tr>
+                                        <TableRow key={item.id || idx} className="border-t">
+                                            <TableCell className="p-2">{idx + 1}</TableCell>
+                                            <TableCell className="p-2">{item.spId.maSanPham}</TableCell>
+                                            <TableCell className="p-2">{item.spId.tenSanPham}</TableCell>
+                                            <TableCell className="p-2 text-center">{item.soLuong}</TableCell>
+                                            <TableCell className="p-2 text-right">{format(item.gia)}</TableCell>
+                                            <TableCell className="p-2 text-right">{format(item.tongTien)}</TableCell>
+
+                                        </TableRow>
                                     ))}
-                                </tbody>
-                            </table>
+                                </TableBody>
+                            </Table>
                         </div>
                     </ScrollArea>
                 )}
