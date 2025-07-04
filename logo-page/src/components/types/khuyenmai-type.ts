@@ -1,3 +1,5 @@
+import { AnhSanPhamChiTiet } from "./product.type";
+
 export interface KhuyenMaiDTO {
   id: number;
   maKhuyenMai?: string;
@@ -29,6 +31,7 @@ export interface KhuyenMaiTheoSanPham {
   idBoSuuTap: number | null;
   trangThai: string;
   trangThaiKM: string;
+  anhUrls: AnhSanPhamChiTiet[];
   giaKhuyenMai: number | null;
   phanTramKhuyenMai: number | null;
 }

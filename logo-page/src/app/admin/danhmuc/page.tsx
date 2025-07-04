@@ -15,6 +15,7 @@ import { LegoCategoryForm } from "./LegoCategoryForm";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
+import { PlusCircle } from "lucide-react";
 
 export default function LegoCategoryPage() {
   const { data: categories = [], isLoading } = useDanhMuc();

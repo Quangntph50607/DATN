@@ -12,6 +12,7 @@ import {
 import { Edit, Trash2 } from "lucide-react";
 import { DanhMuc } from "@/components/types/product.type";
 import { Button } from "@/components/ui/button";
+import { motion } from "framer-motion";
 
 interface LegoCategoryTableProps {
   categories: DanhMuc[];
@@ -71,7 +72,7 @@ const LegoCategoryTable: React.FC<LegoCategoryTableProps> = ({
           ))}
         </TableBody>
       </Table>
-    </div>
+    </motion.div>
   );
 };
 

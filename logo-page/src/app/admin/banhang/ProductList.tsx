@@ -6,16 +6,37 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { motion } from 'framer-motion';
 import { Search } from 'lucide-react';
-import { SanPham } from '@/components/types/product.type';
+import { KhuyenMaiTheoSanPham } from '@/components/types/khuyenmai-type';
+import Image from 'next/image';
 
 interface Props {
-  products: SanPham[];
+  products: KhuyenMaiTheoSanPham[];
   searchTerm: string;
   onSearch: (term: string) => void;
-  onAddToCart: (product: SanPham) => void;
+  onAddToCart: (product: KhuyenMaiTheoSanPham) => void;
 }
 
 const ProductList: React.FC<Props> = ({ products, searchTerm, onSearch, onAddToCart }) => {
+  console.log('products', products);
+
+  const getValidImageName = (filenameOrObj: string | { url: string }) => {
+    let filename = '';
+    if (typeof filenameOrObj === 'string') {
+      filename = filenameOrObj;
+    } else if (filenameOrObj && typeof filenameOrObj === 'object' && 'url' in filenameOrObj) {
+      filename = filenameOrObj.url;
+    }
+    filename = filename.replace(/^anh_/, '');
+
+    const lastUnderscore = filename.lastIndexOf('_');
+    if (lastUnderscore !== -1) {
+      filename = filename.substring(lastUnderscore + 1);
+    }
+
+    filename = filename.replace(/(.jpg)+$/, '.jpg');
+    return filename;
+  };
+
   return (
     <div className="w-3/5 flex flex-col">
       <div className="relative mb-6">
@@ -29,14 +50,24 @@ const ProductList: React.FC<Props> = ({ products, searchTerm, onSearch, onAddToC
       </div>
       <ScrollArea className="flex-grow pr-4">
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {products.map((product: SanPham) => {
-            const image = product.anhDaiDien || (product.anhSps && product.anhSps.length > 0 ? product.anhSps[0].url : '/no-image.png');
+          {products.map((product: KhuyenMaiTheoSanPham) => {
+            const image = product.anhUrls && product.anhUrls.length > 0
+              ? `/images/${getValidImageName(product.anhUrls[0])}`
+              : '/no-image.png';
+            console.log('image path:', image);
             return (
               <motion.div key={product.id} whileHover={{ y: -5 }} transition={{ duration: 0.2 }}>
                 <Card onClick={() => onAddToCart(product)} className="glass-card cursor-pointer hover:border-primary/50 transition-all">
                   <CardContent className="p-3 flex flex-col items-center text-center">
-                    <div className="w-24 h-24 rounded-md overflow-hidden mb-2 bg-white/10">
-                      <img src={image} alt={product.tenSanPham} className="w-full h-full object-cover" />
+                    <div className="w-24 h-24 rounded-md overflow-hidden mb-2 bg-white/10 relative">
+                      <Image
+                        src={image}
+                        alt={product.tenSanPham}
+                        width={96}
+                        height={96}
+                        className="w-full h-full object-cover"
+                        unoptimized
+                      />
                     </div>
                     <h3 className="text-sm font-semibold text-white line-clamp-2">{product.tenSanPham}</h3>
                     <p className="text-xs text-primary font-bold">

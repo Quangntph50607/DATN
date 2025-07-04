@@ -13,6 +13,7 @@ import {
 import { BoSuuTap } from "@/components/types/product.type";
 import { formatDateFlexible } from "../khuyenmai/formatDateFlexible";
 import { Button } from "@/components/ui/button";
+import { motion } from "framer-motion";
 
 interface Props {
   collections: BoSuuTap[];
@@ -67,7 +68,7 @@ const LegoCollectionTable: React.FC<Props> = ({
           ))}
         </TableBody>
       </Table>
-    </div>
+    </motion.div>
   );
 };
 

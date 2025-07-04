@@ -12,7 +12,7 @@ import PendingOrders from './PendingOrders';
 import { CartItem, PendingOrder } from '@/components/types/order.type';
 import { v4 as uuidv4 } from 'uuid';
 import { useListKhuyenMaiTheoSanPham } from '@/hooks/useKhuyenmai';
-import { SanPham } from '@/components/types/product.type';
+import { KhuyenMaiTheoSanPham } from '@/components/types/khuyenmai-type';
 
 const POSPage = () => {
   const { data: products = [] } = useListKhuyenMaiTheoSanPham();
@@ -27,13 +27,32 @@ const POSPage = () => {
   const [cashGiven, setCashGiven] = useState<number | ''>('');
 
   const filteredProducts = useMemo(
-    () => (products as SanPham[]).filter((p) => p.tenSanPham.toLowerCase().includes(searchTerm.toLowerCase())),
+    () => (products as KhuyenMaiTheoSanPham[]).filter((p) => p.tenSanPham.toLowerCase().includes(searchTerm.toLowerCase())),
     [products, searchTerm]
   );
 
-  const addToCart = (product: SanPham) => {
+  const addToCart = (product: KhuyenMaiTheoSanPham) => {
     const existingItem = cart.find((item) => item.id === product.id);
-    const firstImage = product.anhSps && product.anhSps.length > 0 ? product.anhSps[0].url : product.anhDaiDien || '/no-image.png';
+    const firstImage = product.anhUrls && product.anhUrls.length > 0 ? product.anhUrls[0].url : '/no-image.png';
+    const productForCart = {
+      id: product.id,
+      tenSanPham: product.tenSanPham,
+      maSanPham: product.maSanPham,
+      doTuoi: product.doTuoi === null ? undefined : product.doTuoi,
+      moTa: product.moTa === null ? undefined : product.moTa,
+      gia: product.gia,
+      giaKhuyenMai: product.giaKhuyenMai,
+      soLuongManhGhep: product.soLuongManhGhep === null ? undefined : product.soLuongManhGhep,
+      soLuongTon: product.soLuongTon,
+      anhDaiDien: firstImage,
+      soLuongVote: product.soLuongVote,
+      danhGiaTrungBinh: product.danhGiaTrungBinh,
+      trangThai: product.trangThai,
+      idDanhMuc: product.idDanhMuc === null ? 0 : product.idDanhMuc,
+      idBoSuuTap: product.idBoSuuTap === null ? 0 : product.idBoSuuTap,
+      anhSps: product.anhUrls,
+      quantity: 1,
+    };
     if (existingItem) {
       if (existingItem.quantity < (product.soLuongTon ?? 0)) {
         setCart(cart.map((item) => item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item));
@@ -43,11 +62,7 @@ const POSPage = () => {
     } else {
       setCart([
         ...cart,
-        {
-          ...product,
-          quantity: 1,
-          anhDaiDien: firstImage,
-        },
+        productForCart as CartItem,
       ]);
     }
   };
