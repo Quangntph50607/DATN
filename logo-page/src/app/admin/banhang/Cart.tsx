@@ -34,7 +34,7 @@ const Cart: React.FC<Props> = ({ cart, updateQuantity, removeFromCart, customerN
   const createUser = useCreateUser();
 
   const form = useForm<AccountFormData>({
-    resolver: zodResolver(accountSchema as any),
+    resolver: zodResolver(accountSchema),
     defaultValues: {
       ten: '',
       email: '',
@@ -84,7 +84,7 @@ const Cart: React.FC<Props> = ({ cart, updateQuantity, removeFromCart, customerN
                     });
                     onChangeName(res.ten);
                     setOpenDialog(false);
-                  } catch (e) {
+                  } catch {
                     alert('Thêm khách hàng thất bại!');
                   }
                 })}
