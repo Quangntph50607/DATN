@@ -23,8 +23,7 @@ export default function SanPhamList({ ps }: SanPhamListProps) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 p-4">
       {ps.map((p) => {
-        const anhChinh = p.anhUrls.find((anh) => anh.anhChinh === true);
-        console.log("Ảnh chính URL:", anhChinh?.url);
+        const anhChinh = p.anhUrls;
 
         return (
           <Card key={p.id} className="overflow-hidden shadow-md rounded-2xl">
@@ -32,7 +31,7 @@ export default function SanPhamList({ ps }: SanPhamListProps) {
               <div className="relative w-full h-48 bg-gray-100">
                 {anhChinh ? (
                   <Image
-                    src={anhChinh.url}
+                    src={anhChinh}
                     alt={p.tenSanPham}
                     width={200}
                     height={200}
