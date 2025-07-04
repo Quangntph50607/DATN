@@ -25,11 +25,10 @@ export interface SanPham {
   id: number;
   tenSanPham: string;
   maSanPham?: string;
-  doTuoi?: number;
+  doTuoi: number;
   moTa?: string;
   gia: number;
   giaKhuyenMai?: number | null;
-  soLuong?: number; //
   soLuongManhGhep?: number;
   soLuongTon: number;
   anhDaiDien?: string | null;
