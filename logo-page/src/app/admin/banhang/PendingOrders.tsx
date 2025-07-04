@@ -47,6 +47,8 @@ const PendingOrders: React.FC<PendingOrdersProps> = ({ orders, onLoad, onDelete 
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, x: -20 }}
                                         className="flex items-center justify-between p-3 bg-white/10 hover:bg-white/20 rounded-lg transition-colors border border-white/10"
+                                        onClick={() => onLoad(order)}
+                                        style={{ cursor: 'pointer' }}
                                     >
                                         <div>
                                             <p className="font-semibold text-sm text-white">{order.id}</p>
@@ -58,14 +60,17 @@ const PendingOrders: React.FC<PendingOrdersProps> = ({ orders, onLoad, onDelete 
                                             )}
                                         </div>
                                         <div className="flex gap-2">
-                                            <Button size="sm" variant="outline" onClick={() => onLoad(order)} className="border-primary text-primary">
+                                            <Button size="sm" variant="outline" className="border-primary text-primary">
                                                 <Upload className="w-3 h-3 mr-2" /> Tải lại
                                             </Button>
                                             <Button
                                                 size="icon"
                                                 variant="ghost"
                                                 className="h-8 w-8 text-red-400 hover:bg-red-200"
-                                                onClick={() => onDelete(order.id)}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    onDelete(order.id);
+                                                }}
                                             >
                                                 <Trash2 className="w-4 h-4" />
                                             </Button>

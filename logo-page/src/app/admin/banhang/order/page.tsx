@@ -66,8 +66,12 @@ const OrderPage = () => {
                     ...product,
                     quantity: 1,
                     anhDaiDien: firstImage,
-                    doTuoi: product.doTuoi ?? undefined,
-                } as CartItem,
+                    danhMucId: typeof product['idDanhMuc'] === 'number' ? product['idDanhMuc'] : 0,
+                    boSuuTapId: typeof product['idBoSuuTap'] === 'number' ? product['idBoSuuTap'] : 0,
+                    doTuoi: product.doTuoi === null ? undefined : product.doTuoi,
+                    moTa: product.moTa === null ? undefined : product.moTa,
+                    soLuongManhGhep: product.soLuongManhGhep === null ? undefined : product.soLuongManhGhep,
+                },
             ]);
         }
     };
@@ -94,25 +98,6 @@ const OrderPage = () => {
     const subtotal = useMemo(() => cart.reduce((sum, item) => sum + item.gia * item.quantity, 0), [cart]);
     const discountAmount = useMemo(() => (subtotal * discount) / 100, [subtotal, discount]);
     const total = useMemo(() => subtotal - discountAmount, [subtotal, discountAmount]);
-
-    // Khi mount, nếu có pending-order-to-load thì load vào giỏ
-    useEffect(() => {
-        if (typeof window !== 'undefined') {
-            const pendingOrderStr = localStorage.getItem('pending-order-to-load');
-            if (pendingOrderStr) {
-                try {
-                    const order = JSON.parse(pendingOrderStr);
-                    setCart(order.items || []);
-                    setCustomerName(order.customerName || '');
-                    setCustomerEmail(order.customerEmail || '');
-                    setCustomerPhone(order.customerPhone || '');
-                    setDiscount(order.discount || 0);
-                    // Lưu lại vào localStorage để có thể restore nếu reload trang POS (nếu muốn)
-                    localStorage.setItem('pending-order-to-load', pendingOrderStr);
-                } catch { }
-            }
-        }
-    }, []);
 
     const handleSavePendingOrder = () => {
         if (cart.length === 0) {
@@ -141,6 +126,23 @@ const OrderPage = () => {
         toast.success('Đã lưu hóa đơn chờ!');
         router.push('/admin/banhang/pending');
     };
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const pendingOrderStr = localStorage.getItem('pending-order-to-load');
+            if (pendingOrderStr) {
+                try {
+                    const order = JSON.parse(pendingOrderStr);
+                    setCart(order.items || []);
+                    setCustomerName(order.customerName || '');
+                    setCustomerEmail(order.customerEmail || '');
+                    setCustomerPhone(order.customerPhone || '');
+                    setDiscount(order.discount || 0);
+                    localStorage.removeItem('pending-order-to-load'); // Xóa sau khi load
+                } catch { }
+            }
+        }
+    }, []);
 
     return (
         <Card className="p-4 bg-gray-800 shadow-md w-full max-w-full min-h-screen">

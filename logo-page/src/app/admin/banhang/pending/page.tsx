@@ -16,12 +16,9 @@ const PendingOrdersPage = () => {
     }, []);
 
     const handleLoadPendingOrder = (order: PendingOrder) => {
-        if (typeof window !== 'undefined') {
-            localStorage.setItem('pending-order-to-load', JSON.stringify(order));
-            localStorage.removeItem('pending-order-paid');
-            setPendingOrders(pendingOrders.filter((o: PendingOrder) => o.id !== order.id));
-            router.push('/admin/banhang/order');
-        }
+        localStorage.setItem('pending-order-to-load', JSON.stringify(order));
+        setPendingOrders(pendingOrders.filter((o: PendingOrder) => o.id !== order.id));
+        router.push('/admin/banhang/order');
     };
 
     const handleDeletePendingOrder = (orderId: string) => {

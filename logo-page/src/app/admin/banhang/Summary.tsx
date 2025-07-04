@@ -73,7 +73,7 @@ const Summary: React.FC<Props> = ({
   const change = paymentMethod === 'cash' && cashGiven !== '' ? Number(cashGiven) - total : 0;
   const [open, setOpen] = React.useState(false);
 
-  
+
 
   return (
     <>

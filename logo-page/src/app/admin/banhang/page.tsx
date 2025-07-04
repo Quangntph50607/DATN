@@ -14,6 +14,22 @@ import { v4 as uuidv4 } from 'uuid';
 import { useListKhuyenMaiTheoSanPham } from '@/hooks/useKhuyenmai';
 import { KhuyenMaiTheoSanPham } from '@/components/types/khuyenmai-type';
 
+const getValidImageName = (filenameOrObj: string | { url: string }) => {
+  let filename = '';
+  if (typeof filenameOrObj === 'string') {
+      filename = filenameOrObj;
+  } else if (filenameOrObj && typeof filenameOrObj === 'object' && 'url' in filenameOrObj) {
+      filename = filenameOrObj.url;
+  }
+  filename = filename.replace(/^anh_/, '');
+  const lastUnderscore = filename.lastIndexOf('_');
+  if (lastUnderscore !== -1) {
+      filename = filename.substring(lastUnderscore + 1);
+  }
+  filename = filename.replace(/(.jpg)+$/, '.jpg');
+  return filename;
+};
+
 const POSPage = () => {
   const { data: products = [] } = useListKhuyenMaiTheoSanPham();
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -33,26 +49,9 @@ const POSPage = () => {
 
   const addToCart = (product: KhuyenMaiTheoSanPham) => {
     const existingItem = cart.find((item) => item.id === product.id);
-    const firstImage = product.anhUrls && product.anhUrls.length > 0 ? product.anhUrls[0].url : '/no-image.png';
-    const productForCart = {
-      id: product.id,
-      tenSanPham: product.tenSanPham,
-      maSanPham: product.maSanPham,
-      doTuoi: product.doTuoi === null ? undefined : product.doTuoi,
-      moTa: product.moTa === null ? undefined : product.moTa,
-      gia: product.gia,
-      giaKhuyenMai: product.giaKhuyenMai,
-      soLuongManhGhep: product.soLuongManhGhep === null ? undefined : product.soLuongManhGhep,
-      soLuongTon: product.soLuongTon,
-      anhDaiDien: firstImage,
-      soLuongVote: product.soLuongVote,
-      danhGiaTrungBinh: product.danhGiaTrungBinh,
-      trangThai: product.trangThai,
-      idDanhMuc: product.idDanhMuc === null ? 0 : product.idDanhMuc,
-      idBoSuuTap: product.idBoSuuTap === null ? 0 : product.idBoSuuTap,
-      anhSps: product.anhUrls,
-      quantity: 1,
-    };
+    const firstImage = product.anhUrls && product.anhUrls.length > 0
+      ? `/images/${getValidImageName(product.anhUrls[0])}`
+      : '/no-image.png';
     if (existingItem) {
       if (existingItem.quantity < (product.soLuongTon ?? 0)) {
         setCart(cart.map((item) => item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item));
@@ -62,7 +61,16 @@ const POSPage = () => {
     } else {
       setCart([
         ...cart,
-        productForCart as CartItem,
+        {
+          ...product,
+          quantity: 1,
+          anhDaiDien: firstImage,
+          danhMucId: typeof product['idDanhMuc'] === 'number' ? product['idDanhMuc'] : 0,
+          boSuuTapId: typeof product['idBoSuuTap'] === 'number' ? product['idBoSuuTap'] : 0,
+          doTuoi: product.doTuoi === null ? undefined : product.doTuoi,
+          moTa: product.moTa === null ? undefined : product.moTa,
+          soLuongManhGhep: product.soLuongManhGhep === null ? undefined : product.soLuongManhGhep,
+        },
       ]);
     }
   };
