@@ -99,7 +99,7 @@ function HoaDonList({
             </div>
 
             {/* Bảng hóa đơn */}
-            <div className="rounded-2xl shadow-xl overflow-x-auto bg-[#181e29] border border-blue-400">
+            <div className="border-3 border-blue-500 rounded-2xl mt-3 overflow-x-auto">
                 <Table>
                     <TableHeader>
                         <TableRow className="bg-[#232b3b]">
@@ -107,7 +107,7 @@ function HoaDonList({
                                 "STT", "Mã HĐ", "Khách hàng", "Tổng tiền", "Ngày tạo",
                                 "Trạng thái", "Thanh toán", "Loại HĐ", "Xem"
                             ].map((header, idx) => (
-                                <TableHead key={idx} className="text-white text-center text-sm font-semibold bg-[#181e29]">
+                                <TableHead key={idx} className="text-white text-center text-sm font-semibold bg-blue-500">
                                     {header}
                                 </TableHead>
                             ))}
@@ -202,7 +202,7 @@ function HoaDonList({
             </div>
 
             {/* Phân trang */}
-            <div className="flex justify-center items-center mt-4 bg-[#181e29] p-2 rounded-lg ">
+            <div className="flex justify-center items-center mt-4 p-2 rounded-lg ">
                 <Button
                     variant="outline"
                     className="text-white border-blue-400 bg-[#232b3b] hover:bg-[#2c3550] rounded-lg px-4 py-2"

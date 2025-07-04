@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import HoaDonFilter from "./hoaDonFilter";
 import HoaDonList from "./hoaDonList";
 import HoaDonDetail from "./hoaDondetail";
+import { Card } from "@/components/ui/card";
 
 const PAGE_SIZE = 5;
 
@@ -39,7 +40,7 @@ function isValidTrangThaiTransition(current: string, next: string): boolean {
         case "DELIVERED":
             return nextKey === "COMPLETED";
         case "FAILED":
-            return nextKey === "CANCELLED" || nextKey === "PENDING";
+            return nextKey === "PENDING" || nextKey === "CANCELLED";
         default:
             return false;
     }
@@ -72,8 +73,8 @@ const HoaDonManagement = () => {
     const [detail, setDetail] = useState<HoaDonDTO | null>(null);
     const [chiTietSanPham, setChiTietSanPham] = useState<HoaDonDetailDTO[]>([]);
 
-    const { data: sanPhams = [], error: sanPhamError } = useSanPham();
-    const { data: users = [], error: userError } = useAccounts();
+    const { data: sanPhams = [], error: sanPhamError, isLoading: loadingSanPhams } = useSanPham();
+    const { data: users = [], error: userError, isLoading: loadingUsers } = useAccounts();
 
     const [filters, setFilters] = useState({
         keyword: "",
@@ -100,15 +101,14 @@ const HoaDonManagement = () => {
                 phuongThucThanhToan: mapPaymentToKey(hd.phuongThucThanhToan) || hd.phuongThucThanhToan,
             }));
 
-            // Keyword search
             if (filters.keyword) {
                 const kw = filters.keyword.toLowerCase();
                 filtered = filtered.filter((hd) => {
                     const user = users.find((u) => u.id === hd.userId);
                     return (
-                        (user?.ten?.toLowerCase().includes(kw)) ||
-                        (hd.maHD?.toLowerCase().includes(kw)) ||
-                        (user?.sdt?.includes(kw)) ||
+                        user?.ten?.toLowerCase().includes(kw) ||
+                        hd.maHD?.toLowerCase().includes(kw) ||
+                        user?.sdt?.includes(kw) ||
                         (hd.id + "").includes(kw)
                     );
                 });
@@ -157,10 +157,41 @@ const HoaDonManagement = () => {
 
     const handleViewDetail = async (id: number) => {
         try {
-            setOpen(true);
             const detail = await HoaDonService.getHoaDonById(id);
             const chiTiet = await HoaDonService.getChiTietSanPhamByHoaDonId(id);
             const user = users.find((u) => u.id === detail.userId) || null;
+
+            // Log dữ liệu thô để kiểm tra
+            console.log("Raw chiTietSanPham:", chiTiet);
+
+            const enrichedChiTiet = chiTiet.map((ct: HoaDonDetailDTO) => {
+                const productId = ct.spId; // Sử dụng spId trực tiếp như số
+                console.log(`Processing spId: ${productId}, type: ${typeof productId}`);
+
+                const matched = sanPhams.find((sp) => sp.id === productId);
+                if (!matched) {
+                    console.warn(`Không tìm thấy sản phẩm cho spId: ${productId}`);
+                    return {
+                        ...ct,
+                        spId: {
+                            id: productId,
+                            maSanPham: "N/A",
+                            tenSanPham: "N/A",
+                        },
+                    };
+                }
+
+                return {
+                    ...ct,
+                    spId: {
+                        id: productId,
+                        maSanPham: matched.maSanPham ?? "N/A",
+                        tenSanPham: matched.tenSanPham ?? "N/A",
+                    },
+                };
+            });
+
+            console.log("Enriched chiTietSanPham:", enrichedChiTiet);
 
             setDetail({
                 ...detail,
@@ -170,8 +201,10 @@ const HoaDonManagement = () => {
                 phuongThucThanhToan: mapPaymentToKey(detail.phuongThucThanhToan) || detail.phuongThucThanhToan,
                 user,
             });
-            setChiTietSanPham(chiTiet);
-        } catch {
+            setChiTietSanPham(enrichedChiTiet);
+            setOpen(true);
+        } catch (error) {
+            console.error("Error in handleViewDetail:", error);
             toast.error("Lỗi khi xem chi tiết");
         }
     };
@@ -192,35 +225,43 @@ const HoaDonManagement = () => {
 
     return (
         <div className="space-y-6">
-            <HoaDonFilter
-                filters={filters}
-                setFilters={setFilters}
-                fetchData={fetchData}
-                setPage={setPage}
-                hoaDons={data?.content || []}
-            />
+            {loadingSanPhams || loadingUsers ? (
+                <div className="text-center py-16 text-gray-300">Đang tải...</div>
+            ) : (
+                <>
+                    <Card className="p-4 bg-gray-800 shadow-md max-h-screen w-full h-full">
+                        <HoaDonFilter
+                            filters={filters}
+                            setFilters={setFilters}
+                            fetchData={fetchData}
+                            setPage={setPage}
+                            hoaDons={data?.content || []}
+                        />
 
-            <HoaDonList
-                data={data}
-                page={page}
-                setPage={setPage}
-                handleViewDetail={handleViewDetail}
-                handleStatusChange={handleStatusChange}
-                PAGE_SIZE={PAGE_SIZE}
-                isValidTrangThaiTransition={isValidTrangThaiTransition}
+                        <HoaDonList
+                            data={data}
+                            page={page}
+                            setPage={setPage}
+                            handleViewDetail={handleViewDetail}
+                            handleStatusChange={handleStatusChange}
+                            PAGE_SIZE={PAGE_SIZE}
+                            isValidTrangThaiTransition={isValidTrangThaiTransition}
+                        />
 
-            />
-
-            <HoaDonDetail
-                open={open}
-                onClose={() => setOpen(false)}
-                detail={detail}
-                chiTietSanPham={chiTietSanPham}
-                sanPhams={sanPhams}
-                users={users}
-                loadingDetail={false}
-            />
+                        <HoaDonDetail
+                            open={open}
+                            onOpenChange={setOpen}
+                            detail={detail}
+                            chiTietSanPham={chiTietSanPham}
+                            sanPhams={sanPhams}
+                            users={users}
+                            loadingDetail={false}
+                        />
+                    </Card>
+                </>
+            )}
         </div>
+
     );
 };
 
