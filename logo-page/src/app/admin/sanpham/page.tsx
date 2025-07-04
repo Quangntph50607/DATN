@@ -50,9 +50,9 @@ export default function SanPhamPage() {
       sp.maSanPham?.toLowerCase().includes(lowerKeyword);
 
     const matchDanhMuc =
-      selectedDanhMuc === null || sp.idDanhMuc === selectedDanhMuc;
+      selectedDanhMuc === null || sp.danhMucId === selectedDanhMuc;
     const matchBoSuuTap =
-      selectedBoSuuTap === null || sp.idBoSuuTap === selectedBoSuuTap;
+      selectedBoSuuTap === null || sp.boSuuTapId === selectedBoSuuTap;
 
     return matchKeyword && matchDanhMuc && matchBoSuuTap;
   });
@@ -97,6 +97,7 @@ export default function SanPhamPage() {
     setEditSanPham(null);
     setFormKey((prev) => prev + 1);
     refetch();
+    setIsModalOpen(false);
   };
 
   return (
@@ -119,6 +120,7 @@ export default function SanPhamPage() {
           setIsModalOpen(open);
         }}
         title={editSanPham ? "Chỉnh sửa sản phẩm" : "Thêm sản phẩm"}
+        className="max-w-5xl"
       >
         <SanPhamForm
           key={formKey}

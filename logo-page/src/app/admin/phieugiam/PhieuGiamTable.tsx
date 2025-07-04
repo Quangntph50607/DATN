@@ -22,10 +22,10 @@ interface Props {
 const formatVND = (value?: number) =>
   value != null
     ? new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-      maximumFractionDigits: 0,
-    }).format(value)
+        style: "currency",
+        currency: "VND",
+        maximumFractionDigits: 0,
+      }).format(value)
     : "-";
 
 const formatTrangThai = (status?: string) => {
@@ -51,7 +51,7 @@ export default function PhieuGiamTable({
   onEdit,
 }: Props) {
   return (
-    <div className="border-3 border-blue-500 rounded-2xl mt-3 overflow-x-auto">
+    <div className="border-3 border-blue-500 rounded-2xl mt-3 overflow-x-auto shadow-2xl shadow-blue-500/20">
       <Table>
         <TableHeader className="bg-blue-500">
           <TableRow>

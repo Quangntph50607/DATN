@@ -31,8 +31,8 @@ import { Switch } from "@/components/ui/switch";
 interface Props {
   onSubmit: (data: ProductData, id?: number) => void;
   edittingSanPham?: SanPham | null;
-  onSucces?: () => void;
   setEditing: (data: SanPham | null) => void;
+  onSucces?: () => void;
 }
 
 export default function SanPhamForm({
@@ -61,22 +61,20 @@ export default function SanPhamForm({
     useBoSuutap();
 
   useEffect(() => {
-    if (edittingSanPham) {
+    if (edittingSanPham && danhMucList.length > 0 && BoSuuTapList.length > 0) {
       form.reset({
         tenSanPham: edittingSanPham.tenSanPham,
         moTa: edittingSanPham.moTa ?? "",
-        danhMucId: edittingSanPham.idDanhMuc,
-        boSuuTapId: edittingSanPham.idBoSuuTap,
+        danhMucId: edittingSanPham.danhMucId,
+        boSuuTapId: edittingSanPham.boSuuTapId,
         soLuongTon: edittingSanPham.soLuongTon,
         gia: edittingSanPham.gia,
         doTuoi: edittingSanPham.doTuoi,
         soLuongManhGhep: edittingSanPham.soLuongManhGhep,
         trangThai: edittingSanPham.trangThai,
       });
-    } else {
-      form.reset();
     }
-  }, [edittingSanPham, form]);
+  }, [edittingSanPham, danhMucList, BoSuuTapList, form]);
 
   useEffect(() => {
     const subscription = form.watch((values) => {
@@ -150,7 +148,10 @@ export default function SanPhamForm({
                       disabled={isLoadingDanhMuc}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Chọn danh mục" />
+                        <SelectValue placeholder="Chọn danh mục">
+                          {danhMucList.find((dm) => dm.id === field.value)
+                            ?.tenDanhMuc ?? ""}
+                        </SelectValue>
                       </SelectTrigger>
                       <SelectContent>
                         {danhMucList.map((dm) => (
@@ -311,17 +312,17 @@ export default function SanPhamForm({
           <Switch />
         </div>
 
-        <div className="flex gap-2 p-4">
+        <div className="flex gap-2 pt-4">
           <Button type="submit">
-            {edittingSanPham ? "Cập nhật sản phẩm" : "Thêm sản phẩm"}
+            {edittingSanPham ? "Cập nhật" : "Thêm mới"}
           </Button>
           <Button
             type="button"
             variant="outline"
             onClick={() => {
-              onSucces?.();
-              form.reset();
               setEditing(null);
+              form.reset();
+              onSucces?.();
             }}
           >
             Hủy bỏ

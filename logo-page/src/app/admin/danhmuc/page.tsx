@@ -14,8 +14,13 @@ import {
 import { LegoCategoryForm } from "./LegoCategoryForm";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
+<<<<<<< HEAD
 import { PlusCircle } from "lucide-react";
+=======
+import { PlusIcon } from "lucide-react";
+>>>>>>> 959bb71c003f55a9ebd637224587965b6aa7977f
 
 export default function LegoCategoryPage() {
   const { data: categories = [], isLoading } = useDanhMuc();
@@ -88,38 +93,41 @@ export default function LegoCategoryPage() {
   );
 
   return (
-    <Card className="p-4 bg-gray-800 shadow-md w-full max-w-full min-h-screen">
-      <ToastProvider>
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-2 text-center">
-          QUẢN LÝ DANH MỤC
-        </h1>
-        <div className="min-h-screen py-10 space-y-10 px-6">
-          {/* Nút thêm danh mục */}
-          <div className="flex justify-between items-center mb-4">
-            <Button
-              className="ml-auto shadow-lg flex items-center"
-              onClick={handleOpenForm}
-            >
-              <PlusCircle className="mr-2 h-5 w-5" />
-              Thêm danh mục
-            </Button>
-          </div>
-
+    <ToastProvider>
+      <Card className="p-4 bg-gray-800 shadow-md max-h-screen w-full h-full">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center mb-8"
+        >
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent ">
+            Quản Lý Danh Mục
+          </h1>
+        </motion.div>
+        {/* Nút thêm danh mục */}
+        <div className="items-center flex gap-4 ">
           <LegoCategorySearch
             searchTerm={searchTerm}
             setSearchTerm={setSearchTerm}
           />
+          <Button className=" shadow-lg bg-purple-400" onClick={handleOpenForm}>
+            <PlusIcon />
+            Thêm danh mục
+          </Button>
+        </div>
 
-          {isLoading ? (
-            <p className="text-white">Đang tải danh mục...</p>
-          ) : (
+        {isLoading ? (
+          <p className="text-white">Đang tải danh mục...</p>
+        ) : (
+          <>
+            <h2 className="text-lg font-bold">Danh sách danh mục</h2>
             <LegoCategoryTable
-              categories={filteredCategories}
+              categories={paginatedData}
               onEdit={handleEdit}
               onDelete={handleDelete}
             />
-          )}
-        </div>
+          </>
+        )}
 
         {/* Form popup */}
         {showForm && (
@@ -146,7 +154,26 @@ export default function LegoCategoryPage() {
             </div>
           </div>
         )}
-      </ToastProvider>
-    </Card>
+        <div className="flex flex-wrap gap-2 justify-center items-center">
+          <Button
+            variant="outline"
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage((prev) => prev - 1)}
+          >
+            Trang trước
+          </Button>
+          <span className="text-sm font-medium">
+            Trang {currentPage} / {totalPages}
+          </span>
+          <Button
+            variant="outline"
+            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage((prev) => prev + 1)}
+          >
+            Trang sau
+          </Button>
+        </div>
+      </Card>
+    </ToastProvider>
   );
 }

@@ -19,19 +19,22 @@ import { khuyenMaiSchema, KhuyenMaiData } from "@/lib/khuyenmaischema";
 import { useAddKhuyenMai, useEditKhuyenMai } from "@/hooks/useKhuyenmai";
 import { KhuyenMaiDTO } from "@/components/types/khuyenmai-type";
 import { useEffect } from "react";
-import { motion } from "framer-motion";
 
 interface Props {
   editing: KhuyenMaiDTO | null;
   setEditing: (data: KhuyenMaiDTO | null) => void;
   onSucess?: () => void;
 }
-export default function KhuyenMaiForm({ editing, setEditing, onSucess }: Props) {
+export default function KhuyenMaiForm({
+  editing,
+  setEditing,
+  onSucess,
+}: Props) {
   const form = useForm<KhuyenMaiData>({
     resolver: zodResolver(khuyenMaiSchema),
     defaultValues: {
       tenKhuyenMai: "",
-      phanTramKhuyenMai: 10,
+      phanTramKhuyenMai: undefined,
       ngayBatDau: new Date(),
       ngayKetThuc: new Date(),
     },
@@ -104,15 +107,8 @@ export default function KhuyenMaiForm({ editing, setEditing, onSucess }: Props) 
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.3, ease: "easeOut" }}
-      className="glass-card p-6 mb-8 rounded-md border border-white/20 bg-[#10123c] shadow-2xl shadow-blue-500/20 backdrop-blur-sm"
-    >
+    <div className="w-full mx-auto">
       <Form {...form}>
-        <p className="text-2xl font-bold">Khuyến mãi</p>
         <form className="space-y-6 mt-2" onSubmit={form.handleSubmit(onSubmit)}>
           {/* Tên khuyến mãi */}
           <FormField
@@ -187,30 +183,22 @@ export default function KhuyenMaiForm({ editing, setEditing, onSucess }: Props) 
           </div>
 
           {/* Submit */}
-          <div className="flex gap-2">
-            <Button type="submit">
-              {editing ? "Sửa khuyến mãi" : "Thêm khuyến mãi"}
+          <div className="flex gap-2 pt-4">
+            <Button type="submit">{editing ? "Cập nhật" : "Thêm mới"}</Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setEditing(null);
+                form.reset();
+                onSucess?.();
+              }}
+            >
+              Hủy bỏ
             </Button>
-            {editing && (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  setEditing(null);
-                  form.reset({
-                    tenKhuyenMai: "",
-                    phanTramKhuyenMai: 10,
-                    ngayBatDau: new Date(),
-                    ngayKetThuc: new Date(),
-                  });
-                }}
-              >
-                Hủy chỉnh sửa
-              </Button>
-            )}
           </div>
         </form>
       </Form>
-    </motion.div>
+    </div>
   );
 }
