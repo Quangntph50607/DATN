@@ -68,9 +68,9 @@ const OrderPage = () => {
                     anhDaiDien: firstImage,
                     danhMucId: typeof product['danhMucId'] === 'number' ? product['danhMucId'] : 0,
                     boSuuTapId: typeof product['boSuuTapId'] === 'number' ? product['boSuuTapId'] : 0,
-                    doTuoi: product.doTuoi === null ? undefined : product.doTuoi,
-                    moTa: product.moTa === null ? undefined : product.moTa,
-                    soLuongManhGhep: product.soLuongManhGhep === null ? undefined : product.soLuongManhGhep,
+                    doTuoi: typeof product.doTuoi === 'number' ? product.doTuoi : 0,
+                    moTa: typeof product.moTa === 'string' ? product.moTa : '',
+                    soLuongManhGhep: typeof product.soLuongManhGhep === 'number' ? product.soLuongManhGhep : 0,
                 },
             ]);
         }

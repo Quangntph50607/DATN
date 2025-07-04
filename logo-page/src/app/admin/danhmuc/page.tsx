@@ -16,11 +16,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
-<<<<<<< HEAD
-import { PlusCircle } from "lucide-react";
-=======
 import { PlusIcon } from "lucide-react";
->>>>>>> 959bb71c003f55a9ebd637224587965b6aa7977f
 
 export default function LegoCategoryPage() {
   const { data: categories = [], isLoading } = useDanhMuc();
