@@ -1,3 +1,5 @@
+import { SanPham } from "./product.type";
+
 export interface HoaDonDTO {
   id: number;
   maHD: string;
@@ -38,7 +40,7 @@ export enum PaymentMethods {
 export interface HoaDonDetailDTO {
   id: number;
   hdId: number;
-  spId: number;
+  spId: SanPham;
   soLuong: number;
   gia: number;
   tongTien: number;

@@ -94,7 +94,7 @@ export default function LegoCategoryPage() {
 
   return (
     <ToastProvider>
-      <Card className="p-4 bg-gray-800 shadow-md max-h-screen w-full h-full">
+      <Card className="p-4 bg-gray-800 shadow-md  w-full h-full">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}

@@ -50,7 +50,6 @@ function OrderFilter({
 
   const paymentMethods = Object.entries(PaymentMethods).map(([_, label]) => ({
     value: label,
-    label,
   }));
 
   return (
@@ -61,7 +60,7 @@ function OrderFilter({
         value={search}
         onChange={(e) => {
           setSearch(e.target.value);
-          setPage(0); // Reset về trang đầu
+          setPage(0);
         }}
       />
 
@@ -69,7 +68,7 @@ function OrderFilter({
         value={filterStatus}
         onValueChange={(v) => {
           setFilterStatus(v);
-          setPage(0); // Reset về trang đầu
+          setPage(0);
         }}
       >
         <SelectTrigger className="w-48 bg-[#232b3b] border border-blue-500 text-white rounded-lg">
@@ -95,7 +94,7 @@ function OrderFilter({
         value={filterPayment}
         onValueChange={(v) => {
           setFilterPayment(v);
-          setPage(0); // Reset về trang đầu
+          setPage(0);
         }}
       >
         <SelectTrigger className="w-48 bg-[#232b3b] border border-blue-500 text-white rounded-lg">

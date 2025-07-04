@@ -1,4 +1,3 @@
-import { AnhSanPhamChiTiet } from "./product.type";
 
 export interface KhuyenMaiDTO {
   id: number;
@@ -20,18 +19,18 @@ export interface KhuyenMaiTheoSanPham {
   id: number;
   tenSanPham: string;
   maSanPham: string;
-  doTuoi: number | null;
+  doTuoi: number;
   moTa: string | null;
   gia: number;
   soLuongManhGhep: number | null;
   soLuongTon: number;
   soLuongVote: number;
   danhGiaTrungBinh: number;
-  idDanhMuc: number | null;
-  idBoSuuTap: number | null;
+  danhMucId: number | null;
+  boSuuTapId: number | null;
   trangThai: string;
   trangThaiKM: string;
-  anhUrls: AnhSanPhamChiTiet[];
+  anhUrls: string;
   giaKhuyenMai: number | null;
   phanTramKhuyenMai: number | null;
 }

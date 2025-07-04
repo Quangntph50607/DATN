@@ -1,83 +1,59 @@
 "use client";
-import { useSanPham } from "@/hooks/useSanPham";
 import { useDanhMuc } from "@/hooks/useDanhMuc";
 import React, { useState } from "react";
 import SanPhamList from "@/components/layout/(components)/(main)/SanPhamList";
 import Header from "@/components/layout/(components)/(pages)/Header";
 import Footer from "@/components/layout/(components)/(pages)/Footer";
-import { ChevronDown, Filter } from "lucide-react";
-import { Input } from "@/components/ui/input";
 import { useSearchStore } from "@/context/useSearch.store";
 import { Button } from "@/components/ui/button";
 import { useBoSuutap } from "@/hooks/useBoSutap";
+import { useListKhuyenMaiTheoSanPham } from "@/hooks/useKhuyenmai";
+import SidebarFilter, { getGia, getTuoi } from "./[id]/SidebarFilter";
 
-// Định nghĩa khoảng độ tuổi
-const ageRanges = [
-  { label: "0-12 tháng", min: 0, max: 1 },
-  { label: "1-3 tuổi", min: 1, max: 3 },
-  { label: "3-6 tuổi", min: 3, max: 6 },
-  { label: "6-12 tuổi", min: 6, max: 12 },
-  { label: "12 tuổi trở lên", min: 12, max: Infinity },
-];
-
-const priceRanges = [
-  { label: "Dưới 500k", min: 0, max: 500000 },
-  { label: "500k - 1M", min: 500000, max: 1000000 },
-  { label: "1M - 2M", min: 1000000, max: 2000000 },
-  { label: "Trên 2M", min: 2000000, max: Infinity },
-];
 export default function AllProductsPage() {
-  const { data: products = [] } = useSanPham();
+  const { data: sanPhamTheoKhuyenMai = [] } = useListKhuyenMaiTheoSanPham();
   const { data: categories = [] } = useDanhMuc();
   const { data: bosuutaps = [] } = useBoSuutap();
-  const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
-  const [selectedAgeRange, setSelectedAgeRange] = useState<string | null>(null);
-  const [selectedGia, setSelectedGia] = useState<string | null>(null);
   const [selectedBoSuuTap, setSelectedBoSutap] = useState<number | null>(null);
-  const [isCategoryOpen, setIsCategoryOpen] = useState(true);
-  const [isAgeOpen, setIsAgeOpen] = useState(true);
-  const [isBoSuuTapOpen, setIsBoSuuTapOpen] = useState(true);
-  const [isGiaOpen, setIsGiaOpen] = useState(true);
+  const [selectedDanhMuc, setSelectedDanhMuc] = useState<number | null>(null);
+  const [selectedGia, setSelectedGia] = useState<string | null>(null);
+  const [selectedTuoi, setSelectedTuoi] = useState<string | null>(null);
+
   const { keyword, setKeyword } = useSearchStore();
   const [currentPage, setCurrentPage] = useState(1);
-  const productPerPage = 16;
-
   // Lọc sản phẩm
-  const filteredProducts = products.filter((sp) => {
+  const filteredProducts = sanPhamTheoKhuyenMai.filter((sp) => {
     // Lọc theo danh mục
-    const categoryMatch = selectedCategory
-      ? sp.danhMucId === selectedCategory
+    const categoryMatch = selectedDanhMuc
+      ? sp.danhMucId === selectedDanhMuc
       : true;
 
-    // Lọc theo độ tuổi
-    let ageMatch = true;
-    if (selectedAgeRange) {
-      const range = ageRanges.find((r) => r.label === selectedAgeRange);
-      if (range) {
-        const minAge = range.min;
-        const maxAge = range.max;
-        ageMatch =
-          sp.doTuoi >= minAge && (maxAge === Infinity || sp.doTuoi <= maxAge);
-      }
-    }
-
-    // Lọc theo giá
-    let priceMatch = true;
-    if (selectedGia) {
-      const range = priceRanges.find((r) => r.label === selectedGia);
-      if (range) {
-        const minPrice = range.min;
-        const maxPrice = range.max;
-        const productPrice = sp.giaKhuyenMai ?? sp.gia ?? 0;
-        priceMatch =
-          productPrice >= minPrice &&
-          (maxPrice === Infinity || productPrice <= maxPrice);
-      }
-    }
     // Lọc theo bộ sưu tập
     const collectionMatch = selectedBoSuuTap
       ? sp.boSuuTapId === selectedBoSuuTap
       : true;
+
+    // Lọc theo độ tuổi
+    let tuoiMatch = true;
+    if (selectedTuoi) {
+      const range = getTuoi.find((r) => r.label === selectedTuoi);
+      if (range) {
+        tuoiMatch =
+          sp.doTuoi >= range.min &&
+          (range.max === Infinity || sp.doTuoi <= range.max);
+      }
+    }
+    // Lọc theo giá
+    let giaMatch = true;
+    if (selectedGia) {
+      const range = getGia.find((r) => r.label === selectedGia);
+      if (range) {
+        const giaThucTe = sp.giaKhuyenMai ?? sp.gia ?? 0;
+        giaMatch =
+          giaThucTe >= range.min &&
+          (range.max === Infinity || giaThucTe <= range.max);
+      }
+    }
 
     // Lọc theo tìm kiếm
     const searchMatch = keyword
@@ -85,21 +61,17 @@ export default function AllProductsPage() {
       : true;
 
     return (
-      categoryMatch && ageMatch && collectionMatch && searchMatch && priceMatch
+      categoryMatch && collectionMatch && tuoiMatch && giaMatch && searchMatch
     );
   });
   // Phân trang
-  const totalPage = Math.ceil(filteredProducts.length / productPerPage);
+  const itemPerPage = 10;
+  const totalPage = Math.ceil(filteredProducts.length / itemPerPage);
   const paginatedProdcuts = filteredProducts.slice(
-    (currentPage - 1) * productPerPage,
-    currentPage * productPerPage
+    (currentPage - 1) * itemPerPage,
+    currentPage * itemPerPage
   );
-  // Xử lý thay đổi trang
-  const handlePageChange = (page: number) => {
-    if (page > 0 && page <= totalPage) {
-      setCurrentPage(page);
-    }
-  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
@@ -109,232 +81,40 @@ export default function AllProductsPage() {
           <p className="text-gray-600">Khám phá bộ sưu tập của chúng tôi</p>
         </div>
         <div className="flex flex-col lg:flex-row gap-8 px-4">
-          {/* Sidebar Filter */}
-          <div className="lg:w-1/4">
-            <div className="bg-yellow-400 p-6 rounded-xl shadow-md border border-gray-200 sticky top-4">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold flex items-center gap-2">
-                  <Filter className="w-5 h-5" />
-                  BỘ LỌC
-                </h2>
-                <button
-                  onClick={() => {
-                    setSelectedCategory(null);
-                    setSelectedAgeRange(null);
-                    setSelectedBoSutap(null);
-                    setKeyword("");
-                  }}
-                  className="text-sm text-black hover:underline"
-                >
-                  Xóa lọc
-                </button>
-              </div>
-
-              {/* Danh mục */}
-              <div className="mb-6">
-                <h3
-                  className="font-medium text-gray-900 mb-2 flex items-center justify-between cursor-pointer"
-                  onClick={() => setIsCategoryOpen(!isCategoryOpen)}
-                >
-                  <span>DANH MỤC</span>
-                  <ChevronDown
-                    className={`w-6 h-6 transition-transform ${
-                      isCategoryOpen ? "rotate-0" : "rotate-180"
-                    }`}
-                  />
-                </h3>
-                {isCategoryOpen && (
-                  <ul className="space-y-2 max-h-48 overflow-y-auto">
-                    <li>
-                      <button
-                        onClick={() => {
-                          setSelectedCategory(null);
-                        }}
-                        className={`w-full text-left px-3 py-2 rounded-md transition-colors ${
-                          !selectedCategory
-                            ? "bg-blue-100 text-blue-600 font-medium"
-                            : "hover:bg-gray-100"
-                        }`}
-                      >
-                        Tất cả sản phẩm
-                      </button>
-                    </li>
-                    {categories.map((cate) => (
-                      <li key={cate.id}>
-                        <button
-                          onClick={() => {
-                            setSelectedCategory(cate.id);
-                          }}
-                          className={`w-full text-left px-3 py-2 rounded-md transition-colors ${
-                            selectedCategory === cate.id
-                              ? "bg-blue-100 text-blue-600 font-medium"
-                              : "hover:bg-gray-100"
-                          }`}
-                        >
-                          {cate.tenDanhMuc}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-
-              {/* Độ tuổi */}
-              <div className="mb-6">
-                <h3
-                  className="font-medium text-gray-900 mb-2 flex items-center justify-between cursor-pointer"
-                  onClick={() => setIsAgeOpen(!isAgeOpen)}
-                >
-                  <span>ĐỘ TUỔI</span>
-                  <ChevronDown
-                    className={`w-6 h-6 transition-transform ${
-                      isAgeOpen ? "rotate-0" : "rotate-180"
-                    }`}
-                  />
-                </h3>
-                {isAgeOpen && (
-                  <div className="space-y-2 max-h-48 overflow-y-auto">
-                    {ageRanges.map((range) => (
-                      <div
-                        key={range.label}
-                        className="flex items-center gap-2"
-                      >
-                        <Input
-                          type="checkbox"
-                          className="w-6 h-6"
-                          checked={selectedAgeRange === range.label}
-                          onChange={() => {
-                            setSelectedAgeRange(
-                              selectedAgeRange === range.label
-                                ? null
-                                : range.label
-                            );
-                          }}
-                        />
-                        <span>{range.label}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-              {/* Bộ lọc giá */}
-              <div className="mb-6">
-                <h3
-                  className="font-medium text-gray-900 mb-2 flex items-center justify-between cursor-pointer"
-                  onClick={() => setIsGiaOpen(!isGiaOpen)}
-                >
-                  <span>KHOẢNG GIÁ</span>
-                  <ChevronDown
-                    className={`w-6 h-6 transition-transform ${
-                      isGiaOpen ? "rotate-0" : "rotate-180"
-                    }`}
-                  />
-                </h3>
-                {isGiaOpen && (
-                  <div className="space-y-2 max-h-48 overflow-y-auto">
-                    {priceRanges.map((range) => (
-                      <div
-                        key={range.label}
-                        className="flex items-center gap-2"
-                      >
-                        <Input
-                          type="checkbox"
-                          className="w-6 h-6"
-                          checked={selectedGia === range.label}
-                          onChange={() => {
-                            setSelectedGia(
-                              selectedGia === range.label ? null : range.label
-                            );
-                          }}
-                        />
-                        <span>{range.label}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Bộ sưu tập */}
-              <div className="mb-6">
-                <h3
-                  className="font-medium text-gray-900 mb-2 flex items-center justify-between cursor-pointer"
-                  onClick={() => setIsBoSuuTapOpen(!isBoSuuTapOpen)}
-                >
-                  <span>BỘ SƯU TẬP</span>
-                  <ChevronDown
-                    className={`w-6 h-6 transition-transform ${
-                      isBoSuuTapOpen ? "rotate-0" : "rotate-180"
-                    }`}
-                  />
-                </h3>
-                {isBoSuuTapOpen && (
-                  <ul className="space-y-2 max-h-48 overflow-y-auto">
-                    <li>
-                      <button
-                        onClick={() => {
-                          setSelectedBoSutap(null);
-                          setIsBoSuuTapOpen(false);
-                        }}
-                        className={`w-full text-left px-3 py-2 rounded-md transition-colors ${
-                          !selectedBoSuuTap
-                            ? "bg-blue-100 text-blue-600 font-medium"
-                            : "hover:bg-gray-100"
-                        }`}
-                      >
-                        Tất cả bộ sưu tập
-                      </button>
-                    </li>
-                    {bosuutaps.map((bst) => (
-                      <li key={bst.id}>
-                        <button
-                          onClick={() => {
-                            setSelectedBoSutap(bst.id);
-                            setIsBoSuuTapOpen(false);
-                          }}
-                          className={`w-full text-left px-3 py-2 rounded-md transition-colors ${
-                            selectedBoSuuTap === bst.id
-                              ? "bg-blue-100 text-blue-600 font-medium"
-                              : "hover:bg-gray-100"
-                          }`}
-                        >
-                          {bst.tenBoSuuTap}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            </div>
+          <div className="lg:w-1/4 w-full">
+            {/* Sidebar Filter */}
+            <SidebarFilter
+              selectedBoSuuTap={selectedBoSuuTap}
+              selectedDanhMuc={selectedDanhMuc}
+              selectedGia={selectedGia}
+              selectedTuoi={selectedTuoi}
+              setSelectedBoSutap={setSelectedBoSutap}
+              setSelectedDanhMuc={setSelectedDanhMuc}
+              setSelectedGia={setSelectedGia}
+              setSelectedTuoi={setSelectedTuoi}
+            />
           </div>
-
           <div className="lg:w-3/4">
             {/* Filter Info */}
-            {(selectedCategory || selectedAgeRange || selectedBoSuuTap) && (
+            {(selectedDanhMuc ||
+              selectedTuoi ||
+              selectedBoSuuTap ||
+              selectedGia) && (
               <div className="mb-6 bg-blue-50 px-4 py-3 rounded-lg flex items-center flex-wrap gap-2">
-                {selectedCategory && (
+                {selectedDanhMuc && (
                   <span className="text-blue-800">
-                    Danh mục:{" "}
+                    Danh mục:
                     <strong>
                       {
-                        categories.find((c) => c.id === selectedCategory)
+                        categories.find((c) => c.id === selectedDanhMuc)
                           ?.tenDanhMuc
                       }
                     </strong>
                   </span>
                 )}
-                {selectedAgeRange && (
-                  <span className="text-blue-800">
-                    Độ tuổi: <strong>{selectedAgeRange}</strong>
-                  </span>
-                )}
-                {selectedGia && (
-                  <span className="text-blue-800">
-                    Giá: <strong>{selectedGia}</strong>
-                  </span>
-                )}
                 {selectedBoSuuTap && (
                   <span className="text-blue-800">
-                    Bộ sưu tập:{" "}
+                    Bộ sưu tập:
                     <strong>
                       {
                         bosuutaps.find((bst) => bst.id === selectedBoSuuTap)
@@ -343,17 +123,30 @@ export default function AllProductsPage() {
                     </strong>
                   </span>
                 )}
-                <button
+                {selectedTuoi && (
+                  <span className="text-blue-800">
+                    Độ tuổi: <strong>{selectedTuoi}</strong>
+                  </span>
+                )}
+                {selectedGia && (
+                  <span className="text-blue-800">
+                    Giá: <strong>{selectedGia}</strong>
+                  </span>
+                )}
+
+                <Button
                   onClick={() => {
-                    setSelectedCategory(null);
-                    setSelectedAgeRange(null);
+                    setSelectedDanhMuc(null);
                     setSelectedBoSutap(null);
+                    setSelectedGia(null);
+                    setSelectedTuoi(null);
                     setKeyword("");
                   }}
                   className="ml-auto text-sm text-blue-600 hover:underline"
+                  variant="link"
                 >
                   [Xóa tất cả]
-                </button>
+                </Button>
               </div>
             )}
 
@@ -364,42 +157,31 @@ export default function AllProductsPage() {
               </div>
             ) : (
               <>
-                <SanPhamList products={paginatedProdcuts} />
-                {/* Pagination */}
-                <div className="flex justify-center gap-2 mt-4">
-                  <Button
-                    onClick={() => handlePageChange(currentPage - 1)}
-                    disabled={currentPage === 1}
-                    className="bg-gray-200 hover:bg-gray-300"
-                  >
-                    Previous
-                  </Button>
-                  {Array.from({ length: totalPage }, (_, i) => i + 1).map(
-                    (page) => (
-                      <Button
-                        key={page}
-                        onClick={() => handlePageChange(page)}
-                        className={`${
-                          currentPage === page
-                            ? "bg-blue-500 text-white"
-                            : "bg-gray-200 hover:bg-gray-300"
-                        }`}
-                      >
-                        {page}
-                      </Button>
-                    )
-                  )}
-                  <Button
-                    onClick={() => handlePageChange(currentPage + 1)}
-                    disabled={currentPage === totalPage}
-                    className="bg-gray-200 hover:bg-gray-300"
-                  >
-                    Next
-                  </Button>
-                </div>
+                <h2 className="text-2xl font-medium">Danh sách sản phẩm</h2>
+                <SanPhamList ps={paginatedProdcuts} />
               </>
             )}
           </div>
+        </div>
+        {/* Pagination */}
+        <div className="flex gap-2 mt-6 mb-5 items-center justify-center">
+          <Button
+            disabled={currentPage === 1}
+            variant="secondary"
+            onClick={() => setCurrentPage((prev) => prev - 1)}
+          >
+            Trang trước
+          </Button>
+          <span className="font-medium">
+            Trang {currentPage} / {totalPage}
+          </span>
+          <Button
+            disabled={currentPage === totalPage}
+            variant="secondary"
+            onClick={() => setCurrentPage((prev) => prev + 1)}
+          >
+            Trang sau
+          </Button>
         </div>
       </main>
       <Footer />
