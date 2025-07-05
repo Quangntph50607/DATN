@@ -1,25 +1,7 @@
+import { DTOUser, DTOUserWithId } from "./account.type";
+import { PhieuGiamGia } from "./phieugiam.type";
 import { SanPham } from "./product.type";
 
-export interface HoaDonDTO {
-  id: number;
-  maHD: string;
-  loaiHD: number;
-  tamTinh: number;
-  tongTien: number;
-  soTienGiam: number;
-  diaChiGiaoHang: string;
-  maVanChuyen: string;
-  ngayGiao: Date;
-  ngayTao: number | Date | string;
-  trangThai: keyof typeof TrangThaiHoaDon | string;
-  phuongThucThanhToan: keyof typeof PaymentMethods | null;
-  userId: number;
-  ten: string;
-  sdt: string;
-  nvName: string;
-  pggid?: number;
-  maPGG?: string;
-}
 export enum TrangThaiHoaDon {
   PENDING = "Đang xử lý",
   PROCESSING = "Đã xác nhận",
@@ -37,7 +19,28 @@ export enum PaymentMethods {
   CASH_ON_DELIVERY = "COD",
 }
 
-export interface HoaDonDetailDTO {
+export interface HoaDonDTO {
+  id: number;
+  maHD: string;
+  loaiHD: number;
+  tamTinh: number;
+  tongTien: number;
+  soTienGiam: number;
+  diaChiGiaoHang: string;
+  maVanChuyen: string;
+  ngayGiao: string | null;
+  ngayTao: string;
+  trangThai: TrangThaiHoaDon | string;
+  phuongThucThanhToan: keyof typeof PaymentMethods | null;
+  sdt: string;
+  user: DTOUser;
+  ten: string;
+  nvId?: DTOUserWithId;
+  nvName?: string;
+  phieuGiamGia?: PhieuGiamGia;
+}
+
+export interface HoaDonChiTietDTO {
   id: number;
   hdId: number;
   spId: SanPham;

@@ -1,12 +1,11 @@
+"use client";
+import React from "react";
+import HoaDonManagement from "./HoaDonManagement";
 
-import HoaDonManagement from "./hoaDonManaganent";
-
-export default function SanPhamPage() {
+export default function Page() {
   return (
-    <div>
-
+    <>
       <HoaDonManagement />
-
-    </div>
-  )
+    </>
+  );
 }
