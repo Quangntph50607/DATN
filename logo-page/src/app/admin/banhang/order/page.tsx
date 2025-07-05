@@ -7,7 +7,7 @@ import ProductList from '../ProductList';
 import Cart from '../Cart';
 import { toast } from 'sonner';
 import Summary from '../Summary';
-import { CartItem, PendingOrder } from '@/components/types/order.type';
+import { CartItem } from '@/components/types/order.type';
 import { v4 as uuidv4 } from 'uuid';
 import { useListKhuyenMaiTheoSanPham } from '@/hooks/useKhuyenmai';
 import { KhuyenMaiTheoSanPham } from '@/components/types/khuyenmai-type';
@@ -45,7 +45,6 @@ const OrderPage = () => {
     const [paymentMethod, setPaymentMethod] = useState<'' | 'cash' | 'transfer'>('');
     const [cashGiven, setCashGiven] = useState<number | ''>('');
     const router = useRouter();
-    const paidRef = useRef(false);
     const [selectedVoucher, setSelectedVoucher] = useState<PhieuGiamGia | null>(null);
     const [hydrated, setHydrated] = useState(false);
 
@@ -193,11 +192,13 @@ const OrderPage = () => {
 
             // Navigate to orders list
             router.push('/admin/hoadon');
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Lỗi tạo hóa đơn:', error);
-            console.error('Error message:', error.message);
-            console.error('Error stack:', error.stack);
-            toast.error(`Có lỗi xảy ra khi tạo hóa đơn: ${error.message}`);
+            let message = 'Có lỗi xảy ra khi tạo hóa đơn';
+            if (error instanceof Error) {
+                message = error.message;
+            }
+            toast.error(message);
         }
     };
 

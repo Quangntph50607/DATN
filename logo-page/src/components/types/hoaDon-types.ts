@@ -1,3 +1,5 @@
+import { DTOUser, DTOUserWithId } from "./account.type";
+import { PhieuGiamGia } from "./phieugiam.type";
 import { SanPham } from "./product.type";
 
 export interface CartItemDTO {
@@ -53,7 +55,28 @@ export enum PaymentMethods {
   CASH_ON_DELIVERY = "COD",
 }
 
-export interface HoaDonDetailDTO {
+export interface HoaDonDTO {
+  id: number;
+  maHD: string;
+  loaiHD: number;
+  tamTinh: number;
+  tongTien: number;
+  soTienGiam: number;
+  diaChiGiaoHang: string;
+  maVanChuyen: string;
+  ngayGiao: string | null;
+  ngayTao: string;
+  trangThai: TrangThaiHoaDon | string;
+  phuongThucThanhToan: keyof typeof PaymentMethods | null;
+  sdt: string;
+  user: DTOUser;
+  ten: string;
+  nvId?: DTOUserWithId;
+  nvName?: string;
+  phieuGiamGia?: PhieuGiamGia;
+}
+
+export interface HoaDonChiTietDTO {
   id: number;
   hdId: number;
   spId: SanPham;

@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { BellIcon, SearchIcon, UserIcon } from "lucide-react";
+import { BellIcon, UserIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useUserStore } from "@/context/authStore.store";
 import { useRouter } from "next/navigation";

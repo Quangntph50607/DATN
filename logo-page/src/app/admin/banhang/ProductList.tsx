@@ -14,8 +14,8 @@ interface Props {
   searchTerm: string;
   onSearch: (term: string) => void;
   onAddToCart: (product: KhuyenMaiTheoSanPham) => void;
-  cart: any[];
-  pendingOrders: any[];
+  cart: { id: number; quantity: number }[];
+  pendingOrders: { items: { id: number; quantity: number }[] }[];
 }
 
 const ProductList: React.FC<Props> = ({ products, searchTerm, onSearch, onAddToCart, cart, pendingOrders }) => {

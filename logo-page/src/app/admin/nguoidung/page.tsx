@@ -27,7 +27,6 @@ import AccountTable from "./AccountTable";
 import AccountForm from "./AccountForm";
 import {
   useAccounts,
-  useAccountsByRole,
   useCreateUser,
   useUpdateAccount,
   useSoftDeleteAccount,
@@ -44,7 +43,6 @@ function UserManagementContent() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState<DTOUser | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [formKey, setFormKey] = useState(0);
 
   const { data: allAccounts = [] } = useAccounts();
   const { data: roles = [] } = useRoles();
