@@ -14,9 +14,11 @@ interface Props {
   searchTerm: string;
   onSearch: (term: string) => void;
   onAddToCart: (product: KhuyenMaiTheoSanPham) => void;
+  cart: any[];
+  pendingOrders: any[];
 }
 
-const ProductList: React.FC<Props> = ({ products, searchTerm, onSearch, onAddToCart }) => {
+const ProductList: React.FC<Props> = ({ products, searchTerm, onSearch, onAddToCart, cart, pendingOrders }) => {
   console.log('products', products);
 
   const getValidImageName = (filenameOrObj: string | { url: string }) => {
@@ -36,6 +38,22 @@ const ProductList: React.FC<Props> = ({ products, searchTerm, onSearch, onAddToC
     filename = filename.replace(/(.jpg)+$/, '.jpg');
     return filename;
   };
+
+  function getAvailableStock(
+    productId: number,
+    products: KhuyenMaiTheoSanPham[],
+    cart: { id: number; quantity: number }[],
+    pendingOrders: { items: { id: number; quantity: number }[] }[]
+  ): number {
+    const inCart = cart.find((item) => item.id === productId)?.quantity || 0;
+    const inPending = pendingOrders
+      .flatMap((order) => order.items)
+      .filter((item) => item.id === productId)
+      .reduce((sum, item) => sum + item.quantity, 0);
+
+    const product = products.find((p) => p.id === productId);
+    return (product?.soLuongTon || 0) - inCart - inPending;
+  }
 
   return (
     <div className="w-3/5 flex flex-col">
@@ -82,7 +100,7 @@ const ProductList: React.FC<Props> = ({ products, searchTerm, onSearch, onAddToC
                         new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(product.gia)
                       )}
                     </p>
-                    <p className={`text-xs ${product.soLuongTon > 0 ? 'text-gray-400' : 'text-red-400'}`}>Kho: {product.soLuongTon}</p>
+                    <p className={`text-xs ${product.soLuongTon > 0 ? 'text-gray-400' : 'text-red-400'}`}>Kho: {getAvailableStock(product.id, products, cart, pendingOrders)}</p>
                   </CardContent>
                 </Card>
               </motion.div>

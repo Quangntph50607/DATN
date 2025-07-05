@@ -1,5 +1,21 @@
 import { SanPham } from "./product.type";
 
+export interface CartItemDTO {
+  idSanPham: number;
+  soLuong: number;
+}
+
+export interface CreateHoaDonDTO {
+  userId?: number;
+  loaiHD: number;
+  sdt: string;
+  diaChiGiaoHang: string;
+  phuongThucThanhToan: keyof typeof PaymentMethods;
+  cartItems: CartItemDTO[];
+  idPhieuGiam?: number;
+  nvId?: number;
+}
+
 export interface HoaDonDTO {
   id: number;
   maHD: string;

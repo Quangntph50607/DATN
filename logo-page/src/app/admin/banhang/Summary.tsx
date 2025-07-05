@@ -26,19 +26,18 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { BadgePercent } from 'lucide-react';
 import Image from 'next/image';
 import { CartItem } from '@/components/types/order.type';
+import { PhieuGiamGia } from '@/components/types/phieugiam.type';
 
 interface Props {
   customerName: string;
   customerEmail: string;
   customerPhone: string;
-  discount: number;
   subtotal: number;
   discountAmount: number;
   total: number;
   onChangeName: (name: string) => void;
   onChangeEmail: (email: string) => void;
   onChangePhone: (phone: string) => void;
-  onChangeDiscount: (value: number) => void;
   onCheckout: () => void;
   isCheckoutDisabled: boolean;
   onSavePending: () => void;
@@ -47,14 +46,20 @@ interface Props {
   cashGiven: number | '';
   setCashGiven: (v: number | '') => void;
   cart: CartItem[];
+  selectedVoucher: PhieuGiamGia | null;
+  setSelectedVoucher: (v: PhieuGiamGia | null) => void;
 }
 
 const Summary: React.FC<Props> = ({
-  discount,
+  customerName,
+  customerEmail,
+  customerPhone,
   subtotal,
   discountAmount,
   total,
-  onChangeDiscount,
+  onChangeName,
+  onChangeEmail,
+  onChangePhone,
   onCheckout,
   isCheckoutDisabled,
   onSavePending,
@@ -62,10 +67,9 @@ const Summary: React.FC<Props> = ({
   setPaymentMethod,
   cashGiven,
   setCashGiven,
-  customerName,
-  customerEmail,
-  customerPhone,
   cart,
+  selectedVoucher,
+  setSelectedVoucher,
 }) => {
   const { data: phieuGiamGias = [] } = useGetPhieuGiam();
   const formatCurrency = (amount: number) =>
@@ -139,7 +143,7 @@ const Summary: React.FC<Props> = ({
                 <span className="text-muted-foreground">Tạm tính</span>
                 <span className="font-medium">{formatCurrency(subtotal)}</span>
               </div>
-              {discount > 0 && (
+              {discountAmount > 0 && (
                 <div className="flex justify-between text-green-600">
                   <span className="flex items-center">
                     <BadgePercent className="w-4 h-4 mr-1" />
@@ -194,22 +198,34 @@ const Summary: React.FC<Props> = ({
         </div>
         <div className="flex items-center mb-2 justify-between">
           <label htmlFor="discount-select" className="text-gray-300 text-sm min-w-[110px]">Phiếu giảm giá:</label>
-          <Select value={String(discount)} onValueChange={val => onChangeDiscount(Number(val))}>
+          <Select
+            value={selectedVoucher ? String(selectedVoucher.id) : "0"}
+            onValueChange={val => {
+              if (val === "0") {
+                setSelectedVoucher(null);
+              } else {
+                const voucher = phieuGiamGias.find(opt => String(opt.id) === val);
+                setSelectedVoucher(voucher || null);
+              }
+            }}
+          >
             <SelectTrigger className="h-9 text-sm bg-background/70 border border-white/30 text-white rounded-xl px-3 py-1 focus:outline-none focus:ring-2 focus:ring-primary/60 shadow-sm hover:border-primary/60 text-right">
               <SelectValue placeholder="Chọn phiếu giảm giá" />
             </SelectTrigger>
             <SelectContent className="rounded-xl border-2 border-primary/60 shadow-lg bg-[#23272f] text-white">
               <SelectItem value={"0"} className="rounded-xl">Không áp dụng</SelectItem>
-              {phieuGiamGias.map(opt => (
-                <SelectItem key={opt.id} value={String(opt.giaTriGiam)} className="rounded-xl">
-                  {opt.maPhieu ? `${opt.maPhieu} - ` : ''}
-                  {opt.loaiPhieuGiam === 'Theo %' ? `${opt.giaTriGiam}%` : formatCurrency(opt.giaTriGiam)}
-                </SelectItem>
-              ))}
+              {phieuGiamGias
+                .filter(opt => subtotal >= opt.giaTriToiThieu)
+                .map(opt => (
+                  <SelectItem key={opt.id} value={String(opt.id)} className="rounded-xl">
+                    {opt.maPhieu ? `${opt.maPhieu} - ` : ''}
+                    {opt.loaiPhieuGiam === 'Theo %' ? `${opt.giaTriGiam}%` : formatCurrency(opt.giaTriGiam)}
+                  </SelectItem>
+                ))}
             </SelectContent>
           </Select>
         </div>
-        {discount > 0 && (
+        {discountAmount > 0 && (
           <div className="flex justify-between text-red-400">
             <span>Tiền giảm giá:</span>
             <span className="font-medium">-{formatCurrency(discountAmount)}</span>

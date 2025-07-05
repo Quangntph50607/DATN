@@ -1,4 +1,4 @@
-import { HoaDonDTO } from "@/components/types/hoaDon-types";
+import { HoaDonDTO, CreateHoaDonDTO } from "@/components/types/hoaDon-types";
 
 
 const API_URL = "http://localhost:8080/api/lego-store/hoa-don";
@@ -7,7 +7,40 @@ const API_URL = "http://localhost:8080/api/lego-store/hoa-don";
 
 export const HoaDonService = {
 
+    // Create new order
+    async createHoaDon(orderData: CreateHoaDonDTO): Promise<HoaDonDTO> {
+        try {
+            console.log('Sending order data:', orderData);
+            const res = await fetch(`${API_URL}/create`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+                body: JSON.stringify(orderData),
+            });
 
+            if (!res.ok) {
+                let errorMessage = 'Không thể tạo hóa đơn';
+                const contentType = res.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    const errorData = await res.json();
+                    errorMessage = Array.isArray(errorData)
+                        ? errorData.join(', ')
+                        : errorData.message || JSON.stringify(errorData);
+                } else {
+                    const errorText = await res.text();
+                    errorMessage = errorText || 'Không thể tạo hóa đơn';
+                }
+                throw new Error(errorMessage);
+            }
+
+            return await res.json();
+        } catch (error) {
+            console.error('Lỗi tạo hóa đơn:', error);
+            throw error;
+        }
+    },
 
     async getAllHoaDons(): Promise<HoaDonDTO[]> {
         try {
