@@ -31,7 +31,6 @@ export interface SanPham {
   giaKhuyenMai?: number | null;
   soLuongManhGhep?: number;
   soLuongTon: number;
-  anhDaiDien?: string | null;
   soLuongVote?: number;
   danhGiaTrungBinh?: number;
   ngayTao?: number | string;
