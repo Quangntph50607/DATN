@@ -1,13 +1,44 @@
-import { HoaDonDTO } from "@/components/types/hoaDon-types";
+import { HoaDonDTO, CreateHoaDonDTO } from "@/components/types/hoaDon-types";
 
 
 const API_URL = "http://localhost:8080/api/lego-store/hoa-don";
 
-
-
 export const HoaDonService = {
 
+    // Create new order
+    async createHoaDon(orderData: CreateHoaDonDTO): Promise<HoaDonDTO> {
+        try {
+            console.log('Sending order data:', orderData);
+            const res = await fetch(`${API_URL}/create`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+                body: JSON.stringify(orderData),
+            });
 
+            if (!res.ok) {
+                let errorMessage = 'Không thể tạo hóa đơn';
+                const contentType = res.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    const errorData = await res.json();
+                    errorMessage = Array.isArray(errorData)
+                        ? errorData.join(', ')
+                        : errorData.message || JSON.stringify(errorData);
+                } else {
+                    const errorText = await res.text();
+                    errorMessage = errorText || 'Không thể tạo hóa đơn';
+                }
+                throw new Error(errorMessage);
+            }
+
+            return await res.json();
+        } catch (error) {
+            console.error('Lỗi tạo hóa đơn:', error);
+            throw error;
+        }
+    },
 
     async getAllHoaDons(): Promise<HoaDonDTO[]> {
         try {
@@ -56,25 +87,28 @@ export const HoaDonService = {
         return res.json();
     },
 
-    async updateTrangThai(id: number, trangThai: string): Promise<HoaDonDTO> {
-        const res = await fetch(`${API_URL}/${id}/trang-thai?trangThai=${encodeURIComponent(trangThai)}`, {
-            method: "PUT",
-        });
-        if (!res.ok) throw new Error(`Không thể cập nhật trạng thái: ${res.statusText}`);
-        return res.json();
-    },
-    // Đếm số lượng hóa đơn theo trạng thái
-    async getStatusCounts(): Promise<Record<string, number>> {
-        const res = await fetch(`${API_URL}/status-count`, {
-            cache: "no-store",
-        });
-        if (!res.ok) throw new Error("Không thể lấy thống kê trạng thái");
-        return res.json();
-    },
-    // Lấy chi tiết sản phẩm của hóa đơn
-    async getChiTietSanPhamByHoaDonId(id: number) {
-        const res = await fetch(`http://localhost:8080/api/lego-store/hoa-don-chi-tiet/hoaDon/${id}`);
-        if (!res.ok) throw new Error("Không thể lấy chi tiết sản phẩm hóa đơn");
-        return res.json();
-    },
+  async updateTrangThai(id: number, trangThai: string): Promise<HoaDonDTO> {
+    const res = await fetch(
+      `${API_URL}/${id}/trang-thai?trangThai=${encodeURIComponent(trangThai)}`,
+      {
+        method: "PUT",
+      }
+    );
+    if (!res.ok) throw new Error("Không thể cập nhật trạng thái");
+    return res.json();
+  },
+
+  async getStatusCounts(): Promise<Record<string, number>> {
+    const res = await fetch(`${API_URL}/status-count`, { cache: "no-store" });
+    if (!res.ok) throw new Error("Không thể lấy thống kê trạng thái");
+    return res.json();
+  },
+
+  async getChiTietSanPhamByHoaDonId(id: number): Promise<HoaDonChiTietDTO[]> {
+    const res = await fetch(
+      `http://localhost:8080/api/lego-store/hoa-don-chi-tiet/hoaDon/${id}`
+    );
+    if (!res.ok) throw new Error("Không thể lấy chi tiết sản phẩm hóa đơn");
+    return res.json();
+  },
 };

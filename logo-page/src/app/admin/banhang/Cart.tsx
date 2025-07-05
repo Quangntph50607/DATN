@@ -13,6 +13,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { accountSchema, AccountFormData } from '@/lib/accountSchema';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { CartItem } from '@/components/types/order.type';
+import Image from 'next/image';
 
 interface Props {
   cart: CartItem[];
@@ -216,12 +217,12 @@ const Cart: React.FC<Props> = ({ cart, updateQuantity, removeFromCart, customerN
           <p className="text-center text-gray-400 py-10">Giỏ hàng trống</p>
         ) : (
           cart.map(item => {
-            const image = item.anhDaiDien || (item.anhSps && item.anhSps.length > 0 ? item.anhSps[0].url : '/no-image.png');
+            const image = item.anhDaiDien || '/no-image.png';
             return (
               <motion.div key={item.id} layout className="flex items-center justify-between py-3 border-b border-white/10">
                 <div className="flex items-center">
                   <div className="w-12 h-12 rounded-md overflow-hidden mr-3 bg-white/10">
-                    <img src={image} alt={item.tenSanPham} className="w-full h-full object-cover" />
+                    <Image src={image} alt={item.tenSanPham} width={48} height={48} className="w-full h-full object-cover" unoptimized />
                   </div>
                   <div>
                     <h4 className="text-sm font-medium text-white line-clamp-1">{item.tenSanPham}</h4>

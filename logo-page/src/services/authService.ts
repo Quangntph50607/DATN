@@ -2,6 +2,7 @@ interface LoginResponse {
   id: number;
   ten: string;
   email: string;
+  roleId: number;
   message: string;
 }
 

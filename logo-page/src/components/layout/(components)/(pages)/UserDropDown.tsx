@@ -18,7 +18,7 @@ export default function UserDropDown() {
   const route = useRouter();
   const handleLogout = () => {
     clearUser();
-    route.push("/");
+    route.push("/auth/login");
   };
   return (
     <DropdownMenu>

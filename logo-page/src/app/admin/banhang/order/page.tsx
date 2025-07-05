@@ -7,11 +7,31 @@ import ProductList from '../ProductList';
 import Cart from '../Cart';
 import { toast } from 'sonner';
 import Summary from '../Summary';
-import { CartItem, PendingOrder } from '@/components/types/order.type';
+import { CartItem } from '@/components/types/order.type';
 import { v4 as uuidv4 } from 'uuid';
 import { useListKhuyenMaiTheoSanPham } from '@/hooks/useKhuyenmai';
-import { SanPham } from '@/components/types/product.type';
+import { KhuyenMaiTheoSanPham } from '@/components/types/khuyenmai-type';
+import { useCreateHoaDon } from '@/hooks/useHoaDon';
+import { useUserStore } from '@/context/authStore.store';
+import { CreateHoaDonDTO } from '@/components/types/hoaDon-types';
 import { useRouter } from 'next/navigation';
+import { PhieuGiamGia } from '@/components/types/phieugiam.type';
+
+const getValidImageName = (filenameOrObj: string | { url: string }) => {
+    let filename = '';
+    if (typeof filenameOrObj === 'string') {
+        filename = filenameOrObj;
+    } else if (filenameOrObj && typeof filenameOrObj === 'object' && 'url' in filenameOrObj) {
+        filename = filenameOrObj.url;
+    }
+    filename = filename.replace(/^anh_/, '');
+    const lastUnderscore = filename.lastIndexOf('_');
+    if (lastUnderscore !== -1) {
+        filename = filename.substring(lastUnderscore + 1);
+    }
+    filename = filename.replace(/(.jpg)+$/, '.jpg');
+    return filename;
+};
 
 const OrderPage = () => {
     const { data: products = [] } = useListKhuyenMaiTheoSanPham();
@@ -25,16 +45,42 @@ const OrderPage = () => {
     const [paymentMethod, setPaymentMethod] = useState<'' | 'cash' | 'transfer'>('');
     const [cashGiven, setCashGiven] = useState<number | ''>('');
     const router = useRouter();
-    const paidRef = useRef(false);
+    const [selectedVoucher, setSelectedVoucher] = useState<PhieuGiamGia | null>(null);
+    const [hydrated, setHydrated] = useState(false);
+
+    // Hooks for creating order
+    const createHoaDonMutation = useCreateHoaDon();
+    const user = useUserStore((state) => state.user);
+
+    useEffect(() => {
+        setHydrated(true);
+    }, []);
+
+    useEffect(() => {
+        console.log("hydrated:", hydrated, "user:", user);
+        if (!hydrated) return;
+        if (!user) {
+            console.log("Chưa có user, không redirect");
+            return;
+        }
+        if (user.roleId !== 1 && user.roleId !== 2) {
+            console.log("User không đủ quyền, redirect về /");
+            window.location.href = "/";
+        } else {
+            console.log("User đủ quyền, ở lại trang admin");
+        }
+    }, [user, hydrated, router]);
 
     const filteredProducts = useMemo(
-        () => (products as SanPham[]).filter((p) => p.tenSanPham.toLowerCase().includes(searchTerm.toLowerCase())),
+        () => (products as KhuyenMaiTheoSanPham[]).filter((p) => p.tenSanPham.toLowerCase().includes(searchTerm.toLowerCase())),
         [products, searchTerm]
     );
 
-    const addToCart = (product: SanPham) => {
+    const addToCart = (product: KhuyenMaiTheoSanPham) => {
         const existingItem = cart.find((item) => item.id === product.id);
-        const firstImage = product.anhSps && product.anhSps.length > 0 ? product.anhSps[0].url : product.anhDaiDien || '/no-image.png';
+        const firstImage = product.anhUrls && product.anhUrls.length > 0
+            ? `/images/${getValidImageName(product.anhUrls[0])}`
+            : '/no-image.png';
         if (existingItem) {
             if (existingItem.quantity < (product.soLuongTon ?? 0)) {
                 setCart(cart.map((item) => item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item));
@@ -48,6 +94,11 @@ const OrderPage = () => {
                     ...product,
                     quantity: 1,
                     anhDaiDien: firstImage,
+                    danhMucId: typeof product['danhMucId'] === 'number' ? product['danhMucId'] : 0,
+                    boSuuTapId: typeof product['boSuuTapId'] === 'number' ? product['boSuuTapId'] : 0,
+                    doTuoi: typeof product.doTuoi === 'number' ? product.doTuoi : 0,
+                    moTa: typeof product.moTa === 'string' ? product.moTa : '',
+                    soLuongManhGhep: typeof product.soLuongManhGhep === 'number' ? product.soLuongManhGhep : 0,
                 },
             ]);
         }
@@ -73,27 +124,83 @@ const OrderPage = () => {
     };
 
     const subtotal = useMemo(() => cart.reduce((sum, item) => sum + item.gia * item.quantity, 0), [cart]);
-    const discountAmount = useMemo(() => (subtotal * discount) / 100, [subtotal, discount]);
+    const discountAmount = useMemo(() => {
+        if (!selectedVoucher) return 0;
+        if (selectedVoucher.loaiPhieuGiam === "Theo %") {
+            // Nếu có giamToiDa, không vượt quá giamToiDa
+            const percentDiscount = (subtotal * selectedVoucher.giaTriGiam) / 100;
+            if (selectedVoucher.giamToiDa) {
+                return Math.min(percentDiscount, selectedVoucher.giamToiDa, subtotal);
+            }
+            return Math.min(percentDiscount, subtotal);
+        } else if (selectedVoucher.loaiPhieuGiam === "Theo số tiền") {
+            return Math.min(selectedVoucher.giaTriGiam, subtotal);
+        }
+        return 0;
+    }, [subtotal, selectedVoucher]);
     const total = useMemo(() => subtotal - discountAmount, [subtotal, discountAmount]);
 
-    // Khi mount, nếu có pending-order-to-load thì load vào giỏ
-    useEffect(() => {
-        if (typeof window !== 'undefined') {
-            const pendingOrderStr = localStorage.getItem('pending-order-to-load');
-            if (pendingOrderStr) {
-                try {
-                    const order = JSON.parse(pendingOrderStr);
-                    setCart(order.items || []);
-                    setCustomerName(order.customerName || '');
-                    setCustomerEmail(order.customerEmail || '');
-                    setCustomerPhone(order.customerPhone || '');
-                    setDiscount(order.discount || 0);
-                    // Lưu lại vào localStorage để có thể restore nếu reload trang POS (nếu muốn)
-                    localStorage.setItem('pending-order-to-load', pendingOrderStr);
-                } catch { }
-            }
+    // Function to create order
+    const createOrder = async () => {
+        if (!user || (user.roleId !== 1 && user.roleId !== 2)) {
+            toast.error("Bạn không có quyền tạo hóa đơn tại quầy!");
+            return;
         }
-    }, []);
+
+        if (cart.length === 0) {
+            toast.error('Giỏ hàng trống');
+            return;
+        }
+
+        if (!customerPhone) {
+            toast.error('Vui lòng nhập số điện thoại khách hàng');
+            return;
+        }
+
+        if (!paymentMethod) {
+            toast.error('Vui lòng chọn phương thức thanh toán');
+            return;
+        }
+
+        const orderData: CreateHoaDonDTO = {
+            loaiHD: 1,
+            nvId: user.id,
+            sdt: customerPhone,
+            diaChiGiaoHang: "Tại quầy",
+            phuongThucThanhToan: paymentMethod === 'cash' ? 'CASH' : 'BANK_TRANSFER',
+            cartItems: cart.map(item => ({
+                idSanPham: item.id,
+                soLuong: item.quantity
+            })),
+        };
+
+        console.log('orderData:', orderData);
+
+        try {
+            const result = await createHoaDonMutation.mutateAsync(orderData);
+            console.log('Order created successfully:', result);
+            toast.success(`Tạo hóa đơn thành công! Cảm ơn ${customerName || "quý khách"}`);
+
+            // Clear cart and form
+            setCart([]);
+            setDiscount(0);
+            setCustomerName('');
+            setCustomerEmail('');
+            setCustomerPhone('');
+            setPaymentMethod('');
+            setCashGiven('');
+
+            // Navigate to orders list
+            router.push('/admin/hoadon');
+        } catch (error: unknown) {
+            console.error('Lỗi tạo hóa đơn:', error);
+            let message = 'Có lỗi xảy ra khi tạo hóa đơn';
+            if (error instanceof Error) {
+                message = error.message;
+            }
+            toast.error(message);
+        }
+    };
 
     const handleSavePendingOrder = () => {
         if (cart.length === 0) {
@@ -123,6 +230,23 @@ const OrderPage = () => {
         router.push('/admin/banhang/pending');
     };
 
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const pendingOrderStr = localStorage.getItem('pending-order-to-load');
+            if (pendingOrderStr) {
+                try {
+                    const order = JSON.parse(pendingOrderStr);
+                    setCart(order.items || []);
+                    setCustomerName(order.customerName || '');
+                    setCustomerEmail(order.customerEmail || '');
+                    setCustomerPhone(order.customerPhone || '');
+                    setDiscount(order.discount || 0);
+                    localStorage.removeItem('pending-order-to-load'); // Xóa sau khi load
+                } catch { }
+            }
+        }
+    }, []);
+
     return (
         <Card className="p-4 bg-gray-800 shadow-md w-full max-w-full min-h-screen">
             <div className="flex justify-between items-center">
@@ -138,7 +262,14 @@ const OrderPage = () => {
                 </a>
             </div>
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-8 min-h-screen flex gap-6">
-                <ProductList products={filteredProducts} searchTerm={searchTerm} onSearch={setSearchTerm} onAddToCart={addToCart} />
+                <ProductList
+                    products={filteredProducts}
+                    searchTerm={searchTerm}
+                    onSearch={setSearchTerm}
+                    onAddToCart={addToCart}
+                    cart={cart}
+                    pendingOrders={pendingOrders}
+                />
                 <div className="w-2/5 mx-auto h-full">
                     <Card className="glass-card flex flex-col max-h-[700px]">
                         <CardHeader><CardTitle className="text-2xl font-bold text-white">Đơn hàng</CardTitle></CardHeader>
@@ -158,29 +289,13 @@ const OrderPage = () => {
                                 customerName={customerName}
                                 customerEmail={customerEmail}
                                 customerPhone={customerPhone}
-                                discount={discount}
                                 subtotal={subtotal}
                                 discountAmount={discountAmount}
                                 total={total}
                                 onChangeName={setCustomerName}
                                 onChangeEmail={setCustomerEmail}
                                 onChangePhone={setCustomerPhone}
-                                onChangeDiscount={setDiscount}
-                                onCheckout={() => {
-                                    if (cart.length === 0) {
-                                        toast.error("Giỏ hàng trống");
-                                        return;
-                                    }
-                                    paidRef.current = true;
-                                    localStorage.setItem('pending-order-paid', 'true');
-                                    localStorage.removeItem('pending-order-to-load');
-                                    setCart([]);
-                                    setDiscount(0);
-                                    setCustomerName('');
-                                    setCustomerEmail('');
-                                    setCustomerPhone('');
-                                    toast.success(`Thanh toán thành công! Cảm ơn ${customerName || "quý khách"}`);
-                                }}
+                                onCheckout={createOrder}
                                 isCheckoutDisabled={cart.length === 0}
                                 onSavePending={handleSavePendingOrder}
                                 paymentMethod={paymentMethod}
@@ -188,6 +303,8 @@ const OrderPage = () => {
                                 cashGiven={cashGiven}
                                 setCashGiven={setCashGiven}
                                 cart={cart}
+                                selectedVoucher={selectedVoucher}
+                                setSelectedVoucher={setSelectedVoucher}
                             />
                         </CardContent>
                     </Card>

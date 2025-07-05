@@ -24,7 +24,7 @@ export default function LegoCollectionPage() {
   const addMutation = useAddBoSuuTap();
   const editMutation = useEditBoSuuTap();
   const deleteMutation = useXoaBoSuuTap();
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage] = useState(1);
 
   const [collectionToEdit, setCollectionToEdit] = useState<BoSuuTap | null>(
     null
