@@ -59,26 +59,31 @@ export default function HoaDonChiTiet({
 
     // Nếu không tìm thấy sản phẩm, trả về giá trị mặc định
     if (!matched) {
-      console.warn(`Không tìm thấy sản phẩm cho spId: ${productId}`);
       return {
         ...ct,
         spId: {
           id: productId,
           maSanPham: "N/A",
           tenSanPham: "N/A",
+          doTuoi: 0,
+          gia: 0,
+          soLuongTon: 0,
+          trangThai: "N/A",
+          danhMucId: 0,
+          boSuuTapId: 0,
+          soLuongManhGhep: 0,
+          moTa: "",
         },
       };
     }
 
     return {
       ...ct,
-      spId: {
-        id: productId,
-        maSanPham: matched.maSanPham ?? "N/A",
-        tenSanPham: matched.tenSanPham ?? "N/A",
-      },
+      spId: matched,
     };
   });
+
+  console.log("Exporting to Excel", { detail, chiTietSanPham, users });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -105,6 +110,7 @@ export default function HoaDonChiTiet({
               >
                 <FileSpreadsheet className="w-4 h-4 mr-2" /> Excel
               </Button>
+
               <Button
                 className="bg-blue-400"
                 onClick={() =>
