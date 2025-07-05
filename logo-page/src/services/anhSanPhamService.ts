@@ -124,3 +124,21 @@ export const anhSanPhamSevice = {
     return res.json();
   },
 };
+
+export async function getAnhByFileName(fileName: string): Promise<Blob> {
+  try {
+    const response = await fetch(`${API_URL}/images/${fileName}`, {
+      credentials: "include",
+    });
+
+    if (!response.ok) {
+      throw new Error(`Không tìm thấy ảnh: ${fileName}`);
+    }
+
+    const blob = await response.blob();
+    return blob;
+  } catch (error) {
+    console.error("Lỗi khi lấy ảnh theo tên:", error);
+    throw error;
+  }
+}

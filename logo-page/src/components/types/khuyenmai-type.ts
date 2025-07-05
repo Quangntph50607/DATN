@@ -29,7 +29,7 @@ export interface KhuyenMaiTheoSanPham {
   boSuuTapId: number | null;
   trangThai: string;
   trangThaiKM: string;
-  anhUrls: string;
+  anhUrls: { url: string; anhChinh: boolean }[];
   giaKhuyenMai: number | null;
   phanTramKhuyenMai: number | null;
 }
