@@ -1,4 +1,4 @@
-import { HoaDonChiTietDTO, HoaDonDTO } from "@/components/types/hoaDon-types";
+import { HoaDonDTO, CreateHoaDonDTO } from "@/components/types/hoaDon-types";
 import { HoaDonService } from "@/services/hoaDonService";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -31,7 +31,21 @@ export function useUpdateTrangThai() {
   });
 }
 
-// Thống kê trạng thái
+export function useCreateHoaDon() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (orderData: CreateHoaDonDTO) => HoaDonService.createHoaDon(orderData),
+        onSuccess: () => {
+            // Invalidate and refetch all hoa don queries
+            queryClient.invalidateQueries({ queryKey: ["hoaDons"] });
+            queryClient.invalidateQueries({ queryKey: ["hoaDons", "statusCounts"] });
+        },
+        onError: (error) => {
+            console.error('Lỗi tạo hóa đơn:', error);
+        },
+    });
+}
+
 export function useHoaDonStatusCounts() {
   return useQuery<Record<string, number>, Error>({
     queryKey: ["hoaDon", "status-counts"],

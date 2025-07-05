@@ -1,38 +1,91 @@
-import { HoaDonChiTietDTO, HoaDonDTO } from "@/components/types/hoaDon-types";
+import { HoaDonDTO, CreateHoaDonDTO } from "@/components/types/hoaDon-types";
+
 
 const API_URL = "http://localhost:8080/api/lego-store/hoa-don";
 
 export const HoaDonService = {
-  async getAllHoaDons(): Promise<HoaDonDTO[]> {
-    const res = await fetch(`${API_URL}/get-all-hoa-don`, {
-      cache: "no-store",
-    });
-    if (!res.ok) throw new Error("Không thể tải danh sách hóa đơn");
-    return res.json();
-  },
 
-  async getPagedHoaDons(
-    page: number = 0,
-    size: number = 10
-  ): Promise<{
-    content: HoaDonDTO[];
-    totalPages: number;
-    totalElements: number;
-    number: number;
-  }> {
-    const res = await fetch(`${API_URL}/paging?page=${page}&size=${size}`, {
-      cache: "no-store",
-    });
-    if (!res.ok)
-      throw new Error("Không thể tải danh sách hóa đơn có phân trang");
-    return res.json();
-  },
+    // Create new order
+    async createHoaDon(orderData: CreateHoaDonDTO): Promise<HoaDonDTO> {
+        try {
+            console.log('Sending order data:', orderData);
+            const res = await fetch(`${API_URL}/create`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+                body: JSON.stringify(orderData),
+            });
 
-  async getHoaDonById(id: number): Promise<HoaDonDTO> {
-    const res = await fetch(`${API_URL}/${id}`);
-    if (!res.ok) throw new Error("Không thể lấy chi tiết hóa đơn");
-    return res.json();
-  },
+            if (!res.ok) {
+                let errorMessage = 'Không thể tạo hóa đơn';
+                const contentType = res.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    const errorData = await res.json();
+                    errorMessage = Array.isArray(errorData)
+                        ? errorData.join(', ')
+                        : errorData.message || JSON.stringify(errorData);
+                } else {
+                    const errorText = await res.text();
+                    errorMessage = errorText || 'Không thể tạo hóa đơn';
+                }
+                throw new Error(errorMessage);
+            }
+
+            return await res.json();
+        } catch (error) {
+            console.error('Lỗi tạo hóa đơn:', error);
+            throw error;
+        }
+    },
+
+    async getAllHoaDons(): Promise<HoaDonDTO[]> {
+        try {
+            const res = await fetch(`${API_URL}/get-all-hoa-don`, {
+                cache: 'no-store',
+            });
+
+            if (!res.ok) {
+                throw new Error('Không thể tải danh sách hóa đơn');
+            }
+
+            return await res.json();
+        } catch (error) {
+            console.error('Lỗi:', error);
+            throw error;
+        }
+    },
+
+    // Hàm lấy tất cả hóa đơn (có phân trang)
+    async getPagedHoaDons(page: number = 0, size: number = 10): Promise<{
+        content: HoaDonDTO[];
+        totalPages: number;
+        totalElements: number;
+        number: number;
+    }> {
+        try {
+            const res = await fetch(`${API_URL}/paging?page=${page}&size=${size}`, {
+                cache: 'no-store',
+            });
+
+            if (!res.ok) {
+                throw new Error('Không thể tải danh sách hóa đơn');
+            }
+
+            return await res.json();
+        } catch (error) {
+            console.error('Lỗi:', error);
+            throw error;
+        }
+    },
+
+    // Lấy chi tiết hóa đơn theo ID
+    async getHoaDonById(id: number) {
+        const res = await fetch(`${API_URL}/${id}`);
+        if (!res.ok) throw new Error("Không thể lấy chi tiết hóa đơn");
+        return res.json();
+    },
 
   async updateTrangThai(id: number, trangThai: string): Promise<HoaDonDTO> {
     const res = await fetch(

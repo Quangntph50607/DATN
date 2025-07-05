@@ -5,6 +5,8 @@ interface User {
   id: number;
   ten: string;
   email: string;
+  roleId: number;
+  message: string;
 }
 interface UserStore {
   user: User | null;

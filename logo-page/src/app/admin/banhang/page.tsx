@@ -12,7 +12,23 @@ import PendingOrders from './PendingOrders';
 import { CartItem, PendingOrder } from '@/components/types/order.type';
 import { v4 as uuidv4 } from 'uuid';
 import { useListKhuyenMaiTheoSanPham } from '@/hooks/useKhuyenmai';
-import { SanPham } from '@/components/types/product.type';
+import { KhuyenMaiTheoSanPham } from '@/components/types/khuyenmai-type';
+
+const getValidImageName = (filenameOrObj: string | { url: string }) => {
+  let filename = '';
+  if (typeof filenameOrObj === 'string') {
+    filename = filenameOrObj;
+  } else if (filenameOrObj && typeof filenameOrObj === 'object' && 'url' in filenameOrObj) {
+    filename = filenameOrObj.url;
+  }
+  filename = filename.replace(/^anh_/, '');
+  const lastUnderscore = filename.lastIndexOf('_');
+  if (lastUnderscore !== -1) {
+    filename = filename.substring(lastUnderscore + 1);
+  }
+  filename = filename.replace(/(.jpg)+$/, '.jpg');
+  return filename;
+};
 
 const POSPage = () => {
   const { data: products = [] } = useListKhuyenMaiTheoSanPham();
@@ -27,30 +43,37 @@ const POSPage = () => {
   const [cashGiven, setCashGiven] = useState<number | ''>('');
 
   const filteredProducts = useMemo(
-    () => (products as SanPham[]).filter((p) => p.tenSanPham.toLowerCase().includes(searchTerm.toLowerCase())),
+    () => (products as KhuyenMaiTheoSanPham[]).filter((p) => p.tenSanPham.toLowerCase().includes(searchTerm.toLowerCase())),
     [products, searchTerm]
   );
 
-  const addToCart = (product: SanPham) => {
-    const existingItem = cart.find((item) => item.id === product.id);
-    const firstImage = product.anhSps && product.anhSps.length > 0 ? product.anhSps[0].url : product.anhDaiDien || '/no-image.png';
-    if (existingItem) {
-      if (existingItem.quantity < (product.soLuongTon ?? 0)) {
-        setCart(cart.map((item) => item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item));
-      } else {
-        toast.error(`Chỉ còn ${product.soLuongTon ?? 0} sản phẩm trong kho`);
-      }
-    } else {
-      setCart([
-        ...cart,
-        {
-          ...product,
-          quantity: 1,
-          anhDaiDien: firstImage,
-        },
-      ]);
-    }
-  };
+  const addToCart = (product: KhuyenMaiTheoSanPham) => {
+          const existingItem = cart.find((item) => item.id === product.id);
+          const firstImage = product.anhUrls && product.anhUrls.length > 0
+              ? `/images/${getValidImageName(product.anhUrls[0])}`
+              : '/no-image.png';
+          if (existingItem) {
+              if (existingItem.quantity < (product.soLuongTon ?? 0)) {
+                  setCart(cart.map((item) => item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item));
+              } else {
+                  toast.error(`Chỉ còn ${product.soLuongTon ?? 0} sản phẩm trong kho`);
+              }
+          } else {
+              setCart([
+                  ...cart,
+                  {
+                      ...product,
+                      quantity: 1,
+                      anhDaiDien: firstImage,
+                      danhMucId: typeof product['danhMucId'] === 'number' ? product['danhMucId'] : 0,
+                      boSuuTapId: typeof product['boSuuTapId'] === 'number' ? product['boSuuTapId'] : 0,
+                      doTuoi: typeof product.doTuoi === 'number' ? product.doTuoi : 0,
+                      moTa: typeof product.moTa === 'string' ? product.moTa : '',
+                      soLuongManhGhep: typeof product.soLuongManhGhep === 'number' ? product.soLuongManhGhep : 0,
+                  },
+              ]);
+          }
+      };
 
   const updateQuantity = (id: number, amount: number) => {
     setCart(cart.map(item => {

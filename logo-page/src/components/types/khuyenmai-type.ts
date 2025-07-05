@@ -1,3 +1,4 @@
+
 export interface KhuyenMaiDTO {
   id: number;
   maKhuyenMai?: string;

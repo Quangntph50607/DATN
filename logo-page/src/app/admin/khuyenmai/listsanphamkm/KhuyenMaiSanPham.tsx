@@ -22,15 +22,9 @@ import {
   useKhuyenMai,
   useListKhuyenMaiTheoSanPham,
 } from "@/hooks/useKhuyenmai";
-<<<<<<< HEAD
-import React, { useState } from "react";
-import { toast } from "sonner";
-import { motion } from "framer-motion";
-=======
 import { PlusIcon } from "lucide-react";
 import React, { useState } from "react";
 import { toast } from "sonner";
->>>>>>> 959bb71c003f55a9ebd637224587965b6aa7977f
 interface Props {
   currentPage: number;
   itemPerPage: number;
@@ -43,19 +37,11 @@ export default function KhuyenMaiSanPham({ currentPage, itemPerPage }: Props) {
   const applyKM = useAddKhuyenMaiVaoSanPham();
   const [selectedKMId, setSelectedKMId] = useState<number | null>(null);
   const [selectedSPId, setSelectedSPId] = useState<number[]>([]);
-<<<<<<< HEAD
-
-=======
->>>>>>> 959bb71c003f55a9ebd637224587965b6aa7977f
   function toogleSanPham(id: number) {
     setSelectedSPId((prev) =>
       prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
     );
   }
-<<<<<<< HEAD
-
-=======
->>>>>>> 959bb71c003f55a9ebd637224587965b6aa7977f
   function handleApplyKM() {
     if (!selectedKMId || selectedSPId.length === 0) {
       toast.error("Vui lòng chọn mã khuyến mãi vào sản phẩm");
@@ -73,44 +59,19 @@ export default function KhuyenMaiSanPham({ currentPage, itemPerPage }: Props) {
       }
     );
   }
-<<<<<<< HEAD
-
-=======
->>>>>>> 959bb71c003f55a9ebd637224587965b6aa7977f
   const paginatedData = danhSachSanPhamKM.slice(
     (currentPage - 1) * itemPerPage,
     currentPage * itemPerPage
   );
-<<<<<<< HEAD
-
-  return (
-    <div className="p-6 space-y-6">
-      <h2 className="text-xl font-bold">Áp dụng khuyến mãi cho sản phẩm</h2>
-
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -20 }}
-        transition={{ duration: 0.3, ease: "easeOut" }}
-        className="glass-card flex gap-3 p-6 mb-8 rounded-md border border-white/20 bg-[#10123c]"
-      >
-        <Select onValueChange={(value) => setSelectedKMId(Number(value))}>
-          <SelectTrigger className="w-72">
-=======
   return (
     <div className="p-6 space-y-6">
       <div className="glass-card flex gap-3 p-6 mb-8 rounded-md border border-white">
         <Select onValueChange={(value) => setSelectedKMId(Number(value))}>
           <SelectTrigger className="w-72 ">
->>>>>>> 959bb71c003f55a9ebd637224587965b6aa7977f
             <SelectValue placeholder="Chọn khuyến mãi" />
           </SelectTrigger>
           <SelectContent>
             {danhSachKhuyenMai.map((km: KhuyenMaiDTO) => (
-<<<<<<< HEAD
-              <SelectItem key={km.id} value={km.id.toString()}>
-                {km.tenKhuyenMai} (${km.phanTramKhuyenMai}%)
-=======
               <SelectItem
                 key={km.id}
                 value={km.id.toString()}
@@ -119,33 +80,21 @@ export default function KhuyenMaiSanPham({ currentPage, itemPerPage }: Props) {
               >
                 {km.tenKhuyenMai} - (giảm {km.phanTramKhuyenMai}%)
                 {km.trangThai === "expired" && " (Đã hết hạn)"}
->>>>>>> 959bb71c003f55a9ebd637224587965b6aa7977f
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
-<<<<<<< HEAD
-        <Button onClick={handleApplyKM}>Áp dung khuyến mãi</Button>
-      </motion.div>
-=======
         <Button onClick={handleApplyKM} className="bg-purple-400 px-2">
           <PlusIcon /> Áp dung khuyến mãi
         </Button>
       </div>
->>>>>>> 959bb71c003f55a9ebd637224587965b6aa7977f
       {/* Table */}
       {isLoading ? (
         <div className="text-center py-4">Đang tải dữ liệu ....</div>
       ) : (
-<<<<<<< HEAD
-        <div className="border-3 border-blue-900 rounded-2xl ">
-          <Table>
-            <TableHeader>
-=======
         <div className="border-3 border-blue-500 rounded-2xl mt-3 overflow-x-auto shadow-2xl shadow-blue-500/20">
           <Table>
             <TableHeader className="bg-blue-500">
->>>>>>> 959bb71c003f55a9ebd637224587965b6aa7977f
               <TableRow>
                 <TableHead>#</TableHead>
                 <TableHead>STT</TableHead>
@@ -190,15 +139,6 @@ export default function KhuyenMaiSanPham({ currentPage, itemPerPage }: Props) {
                           : "-"}
                       </TableCell>
                       <TableCell>
-<<<<<<< HEAD
-                        {apDungKhuyenMai ? (
-                          <span className="text-green-600 font-medium">
-                            Đã áp dụng
-                          </span>
-                        ) : (
-                          <span className="text-gray-400 italic">
-                            Chưa áp dụng
-=======
                         {sp.trangThaiKM === "Đang áp dụng" ? (
                           <span className="text-green-500 font-semibold">
                             {sp.trangThaiKM}
@@ -206,7 +146,6 @@ export default function KhuyenMaiSanPham({ currentPage, itemPerPage }: Props) {
                         ) : (
                           <span className="text-red-500 font-semibold">
                             {sp.trangThaiKM}
->>>>>>> 959bb71c003f55a9ebd637224587965b6aa7977f
                           </span>
                         )}
                       </TableCell>
