@@ -8,7 +8,6 @@ import Cart from '../Cart';
 import { toast } from 'sonner';
 import Summary from '../Summary';
 import { CartItem } from '@/components/types/order.type';
-import { v4 as uuidv4 } from 'uuid';
 import { useListKhuyenMaiTheoSanPham } from '@/hooks/useKhuyenmai';
 import { KhuyenMaiTheoSanPham } from '@/components/types/khuyenmai-type';
 import { useCreateHoaDon } from '@/hooks/useHoaDon';
