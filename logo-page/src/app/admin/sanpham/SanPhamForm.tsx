@@ -60,9 +60,18 @@ export default function SanPhamForm({
   const { data: BoSuuTapList = [], isLoading: isLoadingBoSuuTap } =
     useBoSuutap();
 
+  // Helper functions để lấy tên danh mục và bộ sưu tập
+  const getDanhMucName = (id?: number) => {
+    return danhMucList.find((dm) => dm.id === id)?.tenDanhMuc || "";
+  };
+
+  const getBoSuuTapName = (id?: number) => {
+    return BoSuuTapList.find((bst) => bst.id === id)?.tenBoSuuTap || "";
+  };
+
   useEffect(() => {
-    if (edittingSanPham && danhMucList.length > 0 && BoSuuTapList.length > 0) {
-      form.reset({
+    if (edittingSanPham) {
+      const formData = {
         tenSanPham: edittingSanPham.tenSanPham,
         moTa: edittingSanPham.moTa ?? "",
         danhMucId: edittingSanPham.danhMucId,
@@ -72,9 +81,30 @@ export default function SanPhamForm({
         doTuoi: edittingSanPham.doTuoi,
         soLuongManhGhep: edittingSanPham.soLuongManhGhep,
         trangThai: edittingSanPham.trangThai,
-      });
+      };
+
+      form.reset(formData);
+
+      // Thử setValue trực tiếp để debug
+      setTimeout(() => {
+        // Nếu reset không hoạt động, thử setValue trực tiếp
+        if (form.getValues("danhMucId") !== edittingSanPham.danhMucId) {
+          form.setValue("danhMucId", edittingSanPham.danhMucId);
+        }
+
+        if (form.getValues("boSuuTapId") !== edittingSanPham.boSuuTapId) {
+          form.setValue("boSuuTapId", edittingSanPham.boSuuTapId);
+        }
+      }, 100);
     }
-  }, [edittingSanPham, danhMucList, BoSuuTapList, form]);
+  }, [edittingSanPham, form]);
+
+  // Cập nhật form khi danh sách được load xong
+  useEffect(() => {
+    if (edittingSanPham && danhMucList.length > 0 && BoSuuTapList.length > 0) {
+      form.trigger();
+    }
+  }, [danhMucList, BoSuuTapList, edittingSanPham, form]);
 
   useEffect(() => {
     const subscription = form.watch((values) => {
@@ -143,14 +173,31 @@ export default function SanPhamForm({
                   <FormLabel>Danh mục</FormLabel>
                   <FormControl>
                     <Select
-                      onValueChange={(value) => field.onChange(Number(value))}
-                      value={field.value?.toString()}
+                      onValueChange={(value) => {
+                        console.log("🔄 Danh mục thay đổi thành:", value);
+                        field.onChange(Number(value));
+                      }}
+                      value={
+                        field.value !== undefined
+                          ? String(field.value)
+                          : undefined
+                      }
                       disabled={isLoadingDanhMuc}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Chọn danh mục">
-                          {danhMucList.find((dm) => dm.id === field.value)
-                            ?.tenDanhMuc ?? ""}
+                          {(() => {
+                            const name = field.value
+                              ? getDanhMucName(field.value)
+                              : "";
+                            console.log(
+                              "🎯 Render danh mục - field.value:",
+                              field.value,
+                              "name:",
+                              name
+                            );
+                            return name;
+                          })()}
                         </SelectValue>
                       </SelectTrigger>
                       <SelectContent>
@@ -176,12 +223,32 @@ export default function SanPhamForm({
                   <FormLabel>Bộ Sưu Tập</FormLabel>
                   <FormControl>
                     <Select
-                      onValueChange={(value) => field.onChange(Number(value))}
-                      value={field.value?.toString()}
+                      onValueChange={(value) => {
+                        console.log("🔄 Bộ sưu tập thay đổi thành:", value);
+                        field.onChange(Number(value));
+                      }}
+                      value={
+                        field.value !== undefined
+                          ? String(field.value)
+                          : undefined
+                      }
                       disabled={isLoadingBoSuuTap}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Chọn bộ sưu tập" />
+                        <SelectValue placeholder="Chọn bộ sưu tập">
+                          {(() => {
+                            const name = field.value
+                              ? getBoSuuTapName(field.value)
+                              : "";
+                            console.log(
+                              "🎯 Render bộ sưu tập - field.value:",
+                              field.value,
+                              "name:",
+                              name
+                            );
+                            return name;
+                          })()}
+                        </SelectValue>
                       </SelectTrigger>
                       <SelectContent>
                         {BoSuuTapList.map((bst) => (

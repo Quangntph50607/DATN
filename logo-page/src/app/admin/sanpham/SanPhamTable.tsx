@@ -12,6 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import AnhSanPhamManager from "./AnhSanPhamManager";
+import { useState } from "react";
 
 interface Props {
   sanPhams: SanPham[];

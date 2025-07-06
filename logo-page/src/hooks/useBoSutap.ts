@@ -4,14 +4,14 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export function useBoSuutap() {
   return useQuery<BoSuuTap[], Error>({
-    queryKey: ["boSuTaps"],
+    queryKey: ["boSuuTaps"],
     queryFn: boSuuTapService.getBoSutap,
   });
 }
 
 export function useBoSuuTapID(id: number) {
   return useQuery<BoSuuTap>({
-    queryKey: ["boSuTaps", id],
+    queryKey: ["boSuuTaps", id],
     queryFn: () => boSuuTapService.getBoSuuTapID(id),
     enabled: !!id,
   });
@@ -23,7 +23,7 @@ export function useAddBoSuuTap() {
   return useMutation({
     mutationFn: boSuuTapService.addBoSuuTap,
     onSuccess() {
-      queryClient.invalidateQueries({ queryKey: ["boSuTaps"] });
+      queryClient.invalidateQueries({ queryKey: ["boSuuTaps"] });
     },
   });
 }
@@ -34,7 +34,7 @@ export function useEditBoSuuTap() {
     mutationFn: ({ id, data }: { id: number; data: BoSuuTap }) =>
       boSuuTapService.editBoSuuTap(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["boSuTaps"] });
+      queryClient.invalidateQueries({ queryKey: ["boSuuTaps"] });
     },
   });
 }
@@ -45,7 +45,7 @@ export function useXoaBoSuuTap() {
   return useMutation({
     mutationFn: (id: number) => boSuuTapService.xoaBoSuuTap(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["boSuTaps"] });
+      queryClient.invalidateQueries({ queryKey: ["boSuuTaps"] });
     },
   });
 }
