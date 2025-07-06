@@ -18,7 +18,8 @@ export interface CreateHoaDonDTO {
   nvId?: number;
 }
 
-export interface HoaDonDTO {
+// Interface cũ - có thể xóa sau khi kiểm tra không còn sử dụng
+export interface HoaDonDTOOld {
   id: number;
   maHD: string;
   loaiHD: number;

@@ -41,8 +41,8 @@ interface Props {
   onCheckout: () => void;
   isCheckoutDisabled: boolean;
   onSavePending: () => void;
-  paymentMethod: '' | 'cash' | 'transfer';
-  setPaymentMethod: (m: '' | 'cash' | 'transfer') => void;
+  paymentMethod: '' | 'cash' | 'transfer' | 'cod';
+  setPaymentMethod: (m: '' | 'cash' | 'transfer' | 'cod') => void;
   cashGiven: number | '';
   setCashGiven: (v: number | '') => void;
   cart: CartItem[];
