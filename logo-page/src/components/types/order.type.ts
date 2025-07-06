@@ -2,6 +2,7 @@ import { SanPham } from './product.type';
 
 export interface CartItem extends SanPham {
     quantity: number;
+    anhDaiDien?: string;
 }
 
 export interface PendingOrder {

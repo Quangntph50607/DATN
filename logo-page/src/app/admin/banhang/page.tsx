@@ -13,6 +13,7 @@ import { CartItem, PendingOrder } from '@/components/types/order.type';
 import { v4 as uuidv4 } from 'uuid';
 import { useListKhuyenMaiTheoSanPham } from '@/hooks/useKhuyenmai';
 import { KhuyenMaiTheoSanPham } from '@/components/types/khuyenmai-type';
+import { PhieuGiamGia } from '@/components/types/phieugiam.type';
 
 const getValidImageName = (filenameOrObj: string | { url: string }) => {
   let filename = '';
@@ -39,7 +40,8 @@ const POSPage = () => {
   const [customerEmail, setCustomerEmail] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [pendingOrders, setPendingOrders] = useLocalStorage('pending-orders', []);
-  const [paymentMethod, setPaymentMethod] = useState<'' | 'cash' | 'transfer'>('');
+  const [paymentMethod, setPaymentMethod] = useState<'' | 'cash' | 'transfer' | 'cod'>('');
+  const [selectedVoucher, setSelectedVoucher] = useState<PhieuGiamGia | null>(null);
   const [cashGiven, setCashGiven] = useState<number | ''>('');
 
   const filteredProducts = useMemo(
@@ -48,32 +50,32 @@ const POSPage = () => {
   );
 
   const addToCart = (product: KhuyenMaiTheoSanPham) => {
-          const existingItem = cart.find((item) => item.id === product.id);
-          const firstImage = product.anhUrls && product.anhUrls.length > 0
-              ? `/images/${getValidImageName(product.anhUrls[0])}`
-              : '/no-image.png';
-          if (existingItem) {
-              if (existingItem.quantity < (product.soLuongTon ?? 0)) {
-                  setCart(cart.map((item) => item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item));
-              } else {
-                  toast.error(`Chỉ còn ${product.soLuongTon ?? 0} sản phẩm trong kho`);
-              }
-          } else {
-              setCart([
-                  ...cart,
-                  {
-                      ...product,
-                      quantity: 1,
-                      anhDaiDien: firstImage,
-                      danhMucId: typeof product['danhMucId'] === 'number' ? product['danhMucId'] : 0,
-                      boSuuTapId: typeof product['boSuuTapId'] === 'number' ? product['boSuuTapId'] : 0,
-                      doTuoi: typeof product.doTuoi === 'number' ? product.doTuoi : 0,
-                      moTa: typeof product.moTa === 'string' ? product.moTa : '',
-                      soLuongManhGhep: typeof product.soLuongManhGhep === 'number' ? product.soLuongManhGhep : 0,
-                  },
-              ]);
-          }
-      };
+    const existingItem = cart.find((item) => item.id === product.id);
+    const firstImage = product.anhUrls && product.anhUrls.length > 0
+      ? `/images/${getValidImageName(product.anhUrls[0])}`
+      : '/no-image.png';
+    if (existingItem) {
+      if (existingItem.quantity < (product.soLuongTon ?? 0)) {
+        setCart(cart.map((item) => item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item));
+      } else {
+        toast.error(`Chỉ còn ${product.soLuongTon ?? 0} sản phẩm trong kho`);
+      }
+    } else {
+      setCart([
+        ...cart,
+        {
+          ...product,
+          quantity: 1,
+          anhDaiDien: firstImage,
+          danhMucId: typeof product['danhMucId'] === 'number' ? product['danhMucId'] : 0,
+          boSuuTapId: typeof product['boSuuTapId'] === 'number' ? product['boSuuTapId'] : 0,
+          doTuoi: typeof product.doTuoi === 'number' ? product.doTuoi : 0,
+          moTa: typeof product.moTa === 'string' ? product.moTa : '',
+          soLuongManhGhep: typeof product.soLuongManhGhep === 'number' ? product.soLuongManhGhep : 0,
+        },
+      ]);
+    }
+  };
 
   const updateQuantity = (id: number, amount: number) => {
     setCart(cart.map(item => {
@@ -94,7 +96,10 @@ const POSPage = () => {
     setCart(cart.filter(item => item.id !== id));
   };
 
-  const subtotal = useMemo(() => cart.reduce((sum, item) => sum + item.gia * item.quantity, 0), [cart]);
+  const subtotal = useMemo(() => cart.reduce((sum, item) => {
+    const price = item.giaKhuyenMai && item.giaKhuyenMai > 0 ? item.giaKhuyenMai : item.gia;
+    return sum + price * item.quantity;
+  }, 0), [cart]);
   const discountAmount = useMemo(() => (subtotal * discount) / 100, [subtotal, discount]);
   const total = useMemo(() => subtotal - discountAmount, [subtotal, discountAmount]);
 
@@ -157,7 +162,7 @@ const POSPage = () => {
         </h1>
       </div>
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-8 min-h-screen flex gap-6">
-        <ProductList products={filteredProducts} searchTerm={searchTerm} onSearch={setSearchTerm} onAddToCart={addToCart} />
+        <ProductList products={filteredProducts} searchTerm={searchTerm} onSearch={setSearchTerm} onAddToCart={addToCart} cart={cart} pendingOrders={pendingOrders} />
         <div className="w-2/5 mx-auto h-full">
           <Card className="glass-card flex flex-col max-h-[700px]">
             <CardHeader><CardTitle className="text-2xl font-bold text-white">Đơn hàng</CardTitle></CardHeader>
@@ -177,14 +182,12 @@ const POSPage = () => {
                 customerName={customerName}
                 customerEmail={customerEmail}
                 customerPhone={customerPhone}
-                discount={discount}
                 subtotal={subtotal}
                 discountAmount={discountAmount}
                 total={total}
                 onChangeName={setCustomerName}
                 onChangeEmail={setCustomerEmail}
                 onChangePhone={setCustomerPhone}
-                onChangeDiscount={setDiscount}
                 onCheckout={handleCheckout}
                 isCheckoutDisabled={cart.length === 0}
                 onSavePending={handleSavePendingOrder}
@@ -193,6 +196,8 @@ const POSPage = () => {
                 cashGiven={cashGiven}
                 setCashGiven={setCashGiven}
                 cart={cart}
+                selectedVoucher={selectedVoucher}
+                setSelectedVoucher={setSelectedVoucher}
               />
             </CardContent>
           </Card>

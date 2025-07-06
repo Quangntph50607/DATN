@@ -1,5 +1,5 @@
 'use client';
-import React, { useMemo, useState, useEffect, useRef } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { motion } from 'framer-motion';
 import { useLocalStorage } from '@/context/useLocalStorage';
@@ -8,7 +8,6 @@ import Cart from '../Cart';
 import { toast } from 'sonner';
 import Summary from '../Summary';
 import { CartItem } from '@/components/types/order.type';
-import { v4 as uuidv4 } from 'uuid';
 import { useListKhuyenMaiTheoSanPham } from '@/hooks/useKhuyenmai';
 import { KhuyenMaiTheoSanPham } from '@/components/types/khuyenmai-type';
 import { useCreateHoaDon } from '@/hooks/useHoaDon';
@@ -42,7 +41,7 @@ const OrderPage = () => {
     const [customerEmail, setCustomerEmail] = useState('');
     const [customerPhone, setCustomerPhone] = useState('');
     const [pendingOrders, setPendingOrders] = useLocalStorage('pending-orders', []);
-    const [paymentMethod, setPaymentMethod] = useState<'' | 'cash' | 'transfer'>('');
+    const [paymentMethod, setPaymentMethod] = useState<'' | 'cash' | 'transfer' | 'cod'>('');
     const [cashGiven, setCashGiven] = useState<number | ''>('');
     const router = useRouter();
     const [selectedVoucher, setSelectedVoucher] = useState<PhieuGiamGia | null>(null);
@@ -123,7 +122,10 @@ const OrderPage = () => {
         setCart(cart.filter(item => item.id !== id));
     };
 
-    const subtotal = useMemo(() => cart.reduce((sum, item) => sum + item.gia * item.quantity, 0), [cart]);
+    const subtotal = useMemo(() => cart.reduce((sum, item) => {
+        const price = item.giaKhuyenMai && item.giaKhuyenMai > 0 ? item.giaKhuyenMai : item.gia;
+        return sum + price * item.quantity;
+    }, 0), [cart]);
     const discountAmount = useMemo(() => {
         if (!selectedVoucher) return 0;
         if (selectedVoucher.loaiPhieuGiam === "Theo %") {
@@ -162,21 +164,43 @@ const OrderPage = () => {
             return;
         }
 
+        if (!user?.id) {
+            toast.error("Không xác định được nhân viên tạo hóa đơn!");
+            return;
+        }
+        if (cart.some(item => !item.id)) {
+            toast.error("Có sản phẩm trong giỏ hàng bị thiếu ID!");
+            return;
+        }
+
         const orderData: CreateHoaDonDTO = {
             loaiHD: 1,
             nvId: user.id,
+            userId: user.id,
             sdt: customerPhone,
             diaChiGiaoHang: "Tại quầy",
-            phuongThucThanhToan: paymentMethod === 'cash' ? 'CASH' : 'BANK_TRANSFER',
+            phuongThucThanhToan: (
+                paymentMethod === 'cash'
+                    ? 'Tiền mặt'
+                    : paymentMethod === 'transfer'
+                        ? 'Chuyển khoản'
+                        : paymentMethod === 'cod'
+                            ? 'COD'
+                            : 'Tiền mặt'
+            ) as unknown as 'CASH' | 'BANK_TRANSFER' | 'CASH_ON_DELIVERY',
             cartItems: cart.map(item => ({
                 idSanPham: item.id,
                 soLuong: item.quantity
             })),
+            ...(selectedVoucher && { idPhieuGiam: selectedVoucher.id }),
         };
 
         console.log('orderData:', orderData);
+        console.log('User:', user);
+        console.log('Cart length:', cart.length);
 
         try {
+            console.log('Starting to create order...');
             const result = await createHoaDonMutation.mutateAsync(orderData);
             console.log('Order created successfully:', result);
             toast.success(`Tạo hóa đơn thành công! Cảm ơn ${customerName || "quý khách"}`);
@@ -189,11 +213,18 @@ const OrderPage = () => {
             setCustomerPhone('');
             setPaymentMethod('');
             setCashGiven('');
+            setSelectedVoucher(null);
 
             // Navigate to orders list
             router.push('/admin/hoadon');
         } catch (error: unknown) {
             console.error('Lỗi tạo hóa đơn:', error);
+            console.error('Error type:', typeof error);
+            console.error('Error instanceof Error:', error instanceof Error);
+            if (error instanceof Error) {
+                console.error('Error message:', error.message);
+                console.error('Error stack:', error.stack);
+            }
             let message = 'Có lỗi xảy ra khi tạo hóa đơn';
             if (error instanceof Error) {
                 message = error.message;
@@ -207,8 +238,9 @@ const OrderPage = () => {
             toast.error('Giỏ hàng trống');
             return;
         }
+        const randomShort = Math.random().toString(36).substring(2, 8).toUpperCase();
         const newOrder = {
-            id: uuidv4(),
+            id: `HDC${randomShort}`,
             items: cart,
             totalAmount: total,
             customerName,
@@ -226,6 +258,7 @@ const OrderPage = () => {
         setCustomerName('');
         setCustomerEmail('');
         setCustomerPhone('');
+        setSelectedVoucher(null);
         toast.success('Đã lưu hóa đơn chờ!');
         router.push('/admin/banhang/pending');
     };

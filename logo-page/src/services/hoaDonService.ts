@@ -1,4 +1,4 @@
-import { HoaDonDTO, CreateHoaDonDTO } from "@/components/types/hoaDon-types";
+import { HoaDonDTO, CreateHoaDonDTO, HoaDonChiTietDTO } from "@/components/types/hoaDon-types";
 
 
 const API_URL = "http://localhost:8080/api/lego-store/hoa-don";
