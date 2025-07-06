@@ -21,12 +21,15 @@ import { Card } from "@/components/ui/card";
 import { motion } from "framer-motion";
 import { Modal } from "@/components/layout/(components)/(pages)/Modal";
 import { PlusIcon } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function SanPhamPage() {
   const { data: sanPhams = [], isLoading, refetch } = useSanPham();
   const { data: danhMucs = [] } = useDanhMuc();
   const { data: boSuuTaps = [] } = useBoSuutap();
-
+  const [activedTabs, setActivetedTabs] = useState<
+    "Đang kinh doanh" | "Ngừng kinh doanh" | "Hết hàng"
+  >("Đang kinh doanh");
   const [editSanPham, setEditSanPham] = useState<SanPham | null>(null);
   const [formKey, setFormKey] = useState(0);
   const { keyword } = useSearchStore();
@@ -40,30 +43,6 @@ export default function SanPhamPage() {
   useEffect(() => {
     console.log("edit id:", editSanPham?.id);
   }, [editSanPham]);
-
-  // Filter logic
-  const filteredSanPhams = sanPhams.filter((sp) => {
-    const lowerKeyword = keyword.toLowerCase();
-
-    const matchKeyword =
-      sp.tenSanPham.toLowerCase().includes(lowerKeyword) ||
-      sp.maSanPham?.toLowerCase().includes(lowerKeyword);
-
-    const matchDanhMuc =
-      selectedDanhMuc === null || sp.danhMucId === selectedDanhMuc;
-    const matchBoSuuTap =
-      selectedBoSuuTap === null || sp.boSuuTapId === selectedBoSuuTap;
-
-    return matchKeyword && matchDanhMuc && matchBoSuuTap;
-  });
-
-  // Pagination
-  const itemPerPage = 10;
-  const totalPages = Math.ceil(filteredSanPhams.length / itemPerPage);
-  const paginatedSanPhams = filteredSanPhams.slice(
-    (currentPage - 1) * itemPerPage,
-    currentPage * itemPerPage
-  );
 
   const handleSubmit = async (data: ProductData, id?: number) => {
     try {
@@ -153,35 +132,94 @@ export default function SanPhamPage() {
               </Button>
             </div>
 
-            <SanPhamTable
-              sanPhams={paginatedSanPhams}
-              onDelete={handleDelete}
-              onEdit={(product) => {
-                setEditSanPham({ ...product });
-                setIsModalOpen(true);
+            <Tabs
+              defaultValue="Đang kinh doanh"
+              value={activedTabs}
+              onValueChange={(value) => {
+                setActivetedTabs(
+                  value as "Đang kinh doanh" | "Ngừng kinh doanh" | "Hết hàng"
+                );
+                setCurrentPage(1);
               }}
-            />
+            >
+              <TabsList className="gap-2 border-gray-200 border-1">
+                <TabsTrigger value="Đang kinh doanh">
+                  <span className="text-green-500">Đang kinh doanh</span>
+                </TabsTrigger>
+                <TabsTrigger value="Ngừng kinh doanh">
+                  <span className="text-yellow-500"> Ngừng kinh doanh</span>
+                </TabsTrigger>
+                <TabsTrigger value="Hết hàng">
+                  <span className="text-red-500"> Hết hàng</span>
+                </TabsTrigger>
+              </TabsList>
+
+              {/* TabsContent cho từng trạng thái */}
+              {["Đang kinh doanh", "Ngừng kinh doanh", "Hết hàng"].map(
+                (trangThai) => {
+                  const filtered = sanPhams.filter((sp) => {
+                    const lowerKeyword = keyword.toLowerCase();
+                    const matchKeyword =
+                      sp.tenSanPham.toLowerCase().includes(lowerKeyword) ||
+                      sp.maSanPham?.toLowerCase().includes(lowerKeyword);
+                    const matchDanhMuc =
+                      selectedDanhMuc === null ||
+                      sp.danhMucId === selectedDanhMuc;
+                    const matchBoSuuTap =
+                      selectedBoSuuTap === null ||
+                      sp.boSuuTapId === selectedBoSuuTap;
+                    const matchTrangThai = sp.trangThai === trangThai;
+                    return (
+                      matchKeyword &&
+                      matchDanhMuc &&
+                      matchBoSuuTap &&
+                      matchTrangThai
+                    );
+                  });
+                  // Pagination
+                  const itemPerPage = 10;
+                  const totalPages = Math.ceil(filtered.length / itemPerPage);
+                  const paginated = filtered.slice(
+                    (currentPage - 1) * itemPerPage,
+                    currentPage * itemPerPage
+                  );
+
+                  return (
+                    <TabsContent key={trangThai} value={trangThai}>
+                      <SanPhamTable
+                        sanPhams={paginated}
+                        onDelete={handleDelete}
+                        onEdit={(product) => {
+                          setEditSanPham({ ...product });
+                          setIsModalOpen(true);
+                        }}
+                      />
+                      <div className="flex gap-2 items-center justify-center mt-4">
+                        <Button
+                          disabled={currentPage === 1}
+                          variant="outline"
+                          onClick={() => setCurrentPage((prev) => prev - 1)}
+                        >
+                          Trang trước
+                        </Button>
+                        <span className="font-medium">
+                          Trang {currentPage} / {totalPages}
+                        </span>
+                        <Button
+                          disabled={currentPage === totalPages}
+                          variant="outline"
+                          onClick={() => setCurrentPage((prev) => prev + 1)}
+                        >
+                          Trang sau
+                        </Button>
+                      </div>
+                    </TabsContent>
+                  );
+                }
+              )}
+            </Tabs>
           </>
         )}
-        <div className="flex gap-2 items-center justify-center">
-          <Button
-            disabled={currentPage === 1}
-            variant="outline"
-            onClick={() => setCurrentPage((prev) => prev - 1)}
-          >
-            Trang trước
-          </Button>
-          <span className="font-medium">
-            Trang {currentPage} / {totalPages}
-          </span>
-          <Button
-            disabled={currentPage === totalPages}
-            variant="outline"
-            onClick={() => setCurrentPage((prev) => prev + 1)}
-          >
-            Trang sau
-          </Button>
-        </div>
       </div>
     </Card>
   );
