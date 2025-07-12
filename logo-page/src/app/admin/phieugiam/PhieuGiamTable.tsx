@@ -57,14 +57,14 @@ export default function PhieuGiamTable({
           <TableRow>
             <TableHead>STT</TableHead>
             <TableHead>Mã Phiếu</TableHead>
+            <TableHead>Tên Phiếu</TableHead>
             <TableHead>Số Lượng</TableHead>
             <TableHead>Giá Trị Giảm</TableHead>
             <TableHead>Giảm Tối Đa</TableHead>
             <TableHead>Giá Trị Tối Thiểu</TableHead>
-            <TableHead>Loại Giảm</TableHead>
-            <TableHead>Trạng Thái</TableHead>
             <TableHead>Ngày Bắt Đầu</TableHead>
             <TableHead>Ngày Kết Thúc</TableHead>
+            <TableHead>Trạng Thái</TableHead>
             <TableHead className="text-center">Hành Động</TableHead>
           </TableRow>
         </TableHeader>
@@ -85,18 +85,18 @@ export default function PhieuGiamTable({
                 <TableRow key={pgg.id}>
                   <TableCell>{index + 1}</TableCell>
                   <TableCell>{pgg.maPhieu}</TableCell>
+                  <TableCell>{pgg.tenPhieu}</TableCell>
                   <TableCell>{pgg.soLuong}</TableCell>
                   <TableCell>
                     {formatGiaTriGiam(pgg.giaTriGiam, pgg.loaiPhieuGiam)}
                   </TableCell>
                   <TableCell>{formatVND(pgg.giamToiDa)}</TableCell>
                   <TableCell>{formatVND(pgg.giaTriToiThieu)}</TableCell>
-                  <TableCell>{pgg.loaiPhieuGiam}</TableCell>
+                  <TableCell>{pgg.ngayBatDau}</TableCell>
+                  <TableCell>{pgg.ngayKetThuc}</TableCell>
                   <TableCell className={`font-bold ${status.className}`}>
                     {status.text}
                   </TableCell>
-                  <TableCell>{pgg.ngayBatDau}</TableCell>
-                  <TableCell>{pgg.ngayKetThuc}</TableCell>
                   <TableCell>
                     <div className="flex justify-center gap-2">
                       <Button

@@ -25,8 +25,10 @@ export const productSchema = z.object({
 });
 
 export const anhSanPhamSchema = z.object({
-  file: z.any().refine((file) => file?.length === 1, "Cần chọn đúng 1 ảnh"),
-  thuTu: z.number({ required_error: "Không để trống số thứ tự" }),
+  file: z
+    .any()
+    .refine((file) => file?.length <= 5, "Ảnh chọn không được vượt quá 5 ảnh"),
+  // thuTu: z.number({ required_error: "Không để trống số thứ tự" }),
   anhChinh: z.boolean(),
   sanPhamId: z.coerce.number().min(1, "Phải có ID sản phẩm"),
   moTa: z.string().optional(),

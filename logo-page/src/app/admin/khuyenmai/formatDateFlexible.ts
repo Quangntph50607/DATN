@@ -1,7 +1,8 @@
 import { format } from "date-fns";
 
 export function formatDateFlexible(
-  date: string | number[] | undefined | null
+  date: string | number[] | undefined | null,
+  withTime: boolean = true
 ): string {
   if (!date) return "";
   if (Array.isArray(date)) {
@@ -13,5 +14,5 @@ export function formatDateFlexible(
   // Xử lý kiểu string
   const dt = new Date(date);
   if (isNaN(dt.getTime())) return "";
-  return format(dt, "dd-MM-yyyy HH:mm:ss");
+  return format(dt, withTime ? "dd-MM-yyyy HH:mm:ss" : "dd-MM-yyyy");
 }

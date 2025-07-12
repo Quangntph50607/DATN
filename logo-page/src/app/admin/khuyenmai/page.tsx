@@ -10,17 +10,35 @@ import { Card } from "@/components/ui/card";
 import { motion } from "framer-motion";
 import { Modal } from "@/components/layout/(components)/(pages)/Modal";
 import { PlusIcon } from "lucide-react";
+import { useSearchStore } from "@/context/useSearch.store";
+import KhuyenMaiFilter from "./KhuyenMaiFilter";
 
 export default function KhuyenMaiPage() {
   const { data: khuyenMai = [], isLoading, refetch } = useKhuyenMai();
   const [editing, setEditing] = useState<KhuyenMaiDTO | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
   const deleteKhuyenMaiMutation = useDeleteKhuyenMai();
   const [currentPage, setCurrentPage] = useState(1);
+  const { keyword, setKeyword } = useSearchStore();
+
   const itemPerPage = 10;
   const totalPages = Math.ceil(khuyenMai.length / itemPerPage);
-  const paginatedData = khuyenMai.slice(
+
+  const filtered = khuyenMai.filter((km) => {
+    const lowerKeyword = keyword.toLowerCase();
+    const matchKeyword =
+      km.maKhuyenMai?.toLowerCase().includes(lowerKeyword) ||
+      km.tenKhuyenMai.toLowerCase().includes(lowerKeyword);
+    const from = fromDate ? new Date(fromDate) : null;
+    const to = toDate ? new Date(toDate) : null;
+    const startDate = new Date(km.ngayBatDau);
+
+    const matchDate = (!from || startDate >= from) && (!to || startDate <= to);
+    return matchKeyword && matchDate;
+  });
+  const paginatedData = filtered.slice(
     (currentPage - 1) * itemPerPage,
     currentPage * itemPerPage
   );
@@ -44,6 +62,12 @@ export default function KhuyenMaiPage() {
     refetch();
     setEditing(null);
     setIsModalOpen(false);
+  };
+  const handleResetFilter = () => {
+    setKeyword("");
+    setFromDate("");
+    setToDate("");
+    setCurrentPage(1);
   };
   return (
     <Card className="p-4 bg-gray-800 shadow-md  w-full h-full">
@@ -72,6 +96,13 @@ export default function KhuyenMaiPage() {
           onSucess={handleSucces}
         />
       </Modal>
+      <KhuyenMaiFilter
+        fromDate={fromDate}
+        toDate={toDate}
+        onChangeFromDate={setFromDate}
+        onChangeTodate={setToDate}
+        onResetFilter={handleResetFilter}
+      />
       <div className="space-y-4">
         <div className="flex justify-between">
           <h2 className="text-lg font-bold">Danh sách khuyến mại</h2>

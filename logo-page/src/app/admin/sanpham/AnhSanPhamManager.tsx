@@ -16,13 +16,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+
 import {
   useAddAnhSanPham,
   useAnhSanPhamTheoSanPhamId,
@@ -32,7 +26,7 @@ import {
 import { AnhSanPhamData, anhSanPhamSchema } from "@/lib/sanphamschema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Dialog } from "@radix-ui/react-dialog";
-import { Edit, EyeIcon, Trash2Icon } from "lucide-react";
+import { EyeIcon, PlusCircle, Trash2Icon, X } from "lucide-react";
 import Image from "next/image";
 import React, { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -45,25 +39,22 @@ interface Props {
   open?: boolean;
   onOpenChange?: (val: boolean) => void;
 }
-const soThuTu = [1, 2, 3, 4, 5];
 export default function AnhSanPhamManager({
   sanPhamId,
   maSanPham,
   tenSanPham,
-  trigger = <EyeIcon size={4} />,
+  trigger = <PlusCircle size={4} />,
   open,
   onOpenChange,
 }: Props) {
-  const [preview, setPreview] = useState<string | null>(null);
+  const [preview, setPreview] = useState<string[]>([]);
   const { mutate: addAnhSanPham, isPending } = useAddAnhSanPham();
-  const { mutate: suaAnhSanPham } = useSuaAnhSanPham();
   const { mutate: xoaAnh } = useXoaAnhSanPham();
   const { data: anhSp = [] } = useAnhSanPhamTheoSanPhamId(sanPhamId);
   const [editMode, setEditMode] = useState(false);
-  const [anhDangSua, setAnhDangSua] = useState<AnhSanPhamChiTiet | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const useOrders = anhSp.map((a) => a.thuTu);
-  const availableOrders = soThuTu.filter((stt) => !useOrders.includes(stt));
+  // const useOrders = anhSp.map((a) => a.thuTu);
+  // const availableOrders = soThuTu.filter((stt) => !useOrders.includes(stt));
 
   console.log(anhSp);
   const form = useForm<AnhSanPhamData>({
@@ -74,75 +65,77 @@ export default function AnhSanPhamManager({
     },
   });
   function onSubmit(data: AnhSanPhamData) {
-    if (editMode && anhDangSua?.id) {
+    if (editMode) {
       const formData = new FormData();
-      formData.append("thuTu", data.thuTu?.toString() ?? "");
+      // formData.append("thuTu", data.thuTu?.toString() ?? "");
       formData.append("anhChinh", data.anhChinh ? "true" : "false");
       formData.append("sanPhamId", data.sanPhamId.toString());
-      if (data.file?.[0]) {
-        formData.append("file", data.file[0]);
+      if (data.file) {
+        formData.append("file", data.file);
       }
-      suaAnhSanPham(
-        {
-          id: anhDangSua.id,
-          data: {
-            file: data.file?.[0],
-            thuTu: data.thuTu,
-            anhChinh: data.anhChinh,
-            sanPhamId,
-          },
-        },
-        {
-          onSuccess: () => {
-            toast.success("Cập nhật thành công");
-            form.reset();
-            setAnhDangSua(null);
-            setEditMode(false);
-            setPreview(null);
-            if (fileInputRef.current) {
-              fileInputRef.current.value = "";
-            }
-          },
-        }
-      );
+      // suaAnhSanPham(
+      //   {
+      //     id: anhDangSua.id,
+      //     data: {
+      //       file: data.file?.[0],
+      //       // thuTu: data.thuTu,
+      //       anhChinh: data.anhChinh,
+      //       sanPhamId,
+      //     },
+      //   },
+      //   {
+      //     onSuccess: () => {
+      //       toast.success("Cập nhật thành công");
+      //       form.reset();
+      //       setAnhDangSua(null);
+      //       setEditMode(false);
+      //       setPreview(null);
+      //       if (fileInputRef.current) {
+      //         fileInputRef.current.value = "";
+      //       }
+      //     },
+      //   }
+      // );
     } else {
-      if (data.thuTu && useOrders.includes(data.thuTu)) {
-        form.setError("thuTu", {
-          message: `Só thứ tự ${data.thuTu} đã được sử dụng`,
-        });
-        return;
-      }
-      if (data.file?.[0]) {
-        const xetAnhChinh = anhSp.some((img) => img.anhChinh);
-        if (data.anhChinh && xetAnhChinh) {
-          confirm(
-            "Có ảnh chính hiện tại. Bạn có muốn thay đổi ảnh chính không?"
+      if (data.file) {
+        const files = data.file ? Array.from(data.file as FileList) : [];
+        const validTypes = [
+          "image/jpeg",
+          "image/png",
+          "image/jpg",
+          "image/gif",
+        ];
+        const invalidFiles = files.filter(
+          (file) => !validTypes.includes(file.type)
+        );
+        if (invalidFiles.length > 0) {
+          toast.error("Chỉ cho phép file .jpeg, .png, .jpg, .gif!");
+          return;
+        }
+        if (files.length > 0) {
+          addAnhSanPham(
+            {
+              files,
+              sanPhamId,
+              anhChinh: data.anhChinh,
+            },
+            {
+              onSuccess: () => {
+                form.reset({
+                  sanPhamId,
+                  anhChinh: false,
+                  file: undefined,
+                  moTa: "",
+                });
+                setPreview([]);
+                if (fileInputRef.current) {
+                  fileInputRef.current.value = "";
+                }
+                toast.success("Thêm ảnh thành công");
+              },
+            }
           );
         }
-        addAnhSanPham(
-          {
-            files: [data.file[0]],
-            sanPhamId,
-            thuTu: data.thuTu,
-            anhChinh: data.anhChinh,
-          },
-          {
-            onSuccess: () => {
-              form.reset({
-                sanPhamId,
-                anhChinh: false,
-                thuTu: undefined,
-                file: undefined,
-                moTa: "",
-              });
-              setPreview(null);
-              if (fileInputRef.current) {
-                fileInputRef.current.value = "";
-              }
-              toast.success("Thêm ảnh thành công");
-            },
-          }
-        );
       }
     }
   }
@@ -151,7 +144,7 @@ export default function AnhSanPhamManager({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent
-        className="bg-gray-900 max-w-none w-[98vw] xl:w-[1800px] rounded-xl overflow-y-auto"
+        className="bg-gray-800 max-w-none w-[98vw] xl:w-[1800px] rounded-xl overflow-y-auto"
         onInteractOutside={(e) => {
           e.preventDefault();
         }}
@@ -175,31 +168,52 @@ export default function AnhSanPhamManager({
                       <Input
                         type="file"
                         accept="image/*"
+                        multiple
                         ref={fileInputRef}
                         onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            setPreview(URL.createObjectURL(file));
+                          const files = e.target.files;
+                          const anhToiDa = 5;
+                          const soAnhDaCo = anhSp.length;
+                          const soAnhConLai = anhToiDa - soAnhDaCo;
+                          if (files && files.length > soAnhConLai) {
+                            toast.error(
+                              `Sản phẩm đã có ${soAnhDaCo}. Chỉ thêm tối đa ${soAnhConLai} ảnh nữa !`
+                            );
+                            if (fileInputRef.current) {
+                              fileInputRef.current.value = "";
+                            }
+                            return;
+                          }
+                          if (files && files.length > 0) {
+                            const previews = Array.from(files).map((file) =>
+                              URL.createObjectURL(file)
+                            );
+                            setPreview(previews);
                             field.onChange(e.target.files);
                           }
                         }}
                       />
                     </FormControl>
-                    {preview && (
-                      <Image
-                        src={preview}
-                        alt="preview"
-                        width={128}
-                        height={128}
-                        unoptimized
-                      />
+                    {preview.length > 0 && (
+                      <div className="flex flex-wrap gap-2 relative mt-2">
+                        {preview.map((src, idx) => (
+                          <Image
+                            key={idx}
+                            src={src}
+                            alt="preview"
+                            width={100}
+                            height={100}
+                            unoptimized
+                          />
+                        ))}
+                      </div>
                     )}
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
-              <FormField
+              {/* <FormField
                 control={form.control}
                 name="thuTu"
                 render={({ field }) => (
@@ -231,7 +245,7 @@ export default function AnhSanPhamManager({
                     <FormMessage />
                   </FormItem>
                 )}
-              />
+              /> */}
 
               <FormField
                 control={form.control}
@@ -259,7 +273,7 @@ export default function AnhSanPhamManager({
                     ? "Đang tải lên... "
                     : "Tải ảnh lên"}
                 </Button>
-                {editMode && (
+                {/* {editMode && (
                   <Button
                     type="button"
                     variant="outline"
@@ -272,7 +286,7 @@ export default function AnhSanPhamManager({
                   >
                     Hủy chỉnh sửa
                   </Button>
-                )}
+                )} */}
               </div>
             </form>
           </Form>
@@ -295,7 +309,7 @@ export default function AnhSanPhamManager({
                     className="w-full aspect-square object-cover rounded"
                   />
 
-                  <p className="text-sm mt-2">Thứ tự ảnh: {anh.thuTu} </p>
+                  {/* <p className="text-sm mt-2">Thứ tự ảnh: {anh.thuTu} </p> */}
                   {anh.anhChinh && (
                     <span className="absolute top-1 left-1  bg-green-500 text-white text-xs px-1 rounded ">
                       Ảnh chính
@@ -317,7 +331,7 @@ export default function AnhSanPhamManager({
                     >
                       <Trash2Icon size={16} />
                     </Button>
-                    <Button
+                    {/* <Button
                       onClick={() => {
                         setEditMode(true);
                         setAnhDangSua(anh);
@@ -326,7 +340,7 @@ export default function AnhSanPhamManager({
                         );
                         form.reset({
                           sanPhamId,
-                          thuTu: anh.thuTu,
+                          // thuTu: anh.thuTu,
                           anhChinh: anh.anhChinh,
                         });
                       }}
@@ -334,7 +348,7 @@ export default function AnhSanPhamManager({
                       title="Chỉnh sửa ảnh"
                     >
                       <Edit size={16} />
-                    </Button>
+                    </Button> */}
                   </div>
                 </div>
               ))

@@ -48,7 +48,7 @@ export default function SanPhamForm({
       moTa: "",
       danhMucId: undefined,
       boSuuTapId: undefined,
-      gia: 1000,
+      gia: undefined,
       doTuoi: undefined,
       trangThai: "Đang kinh doanh",
       soLuongTon: undefined,
@@ -85,9 +85,7 @@ export default function SanPhamForm({
 
       form.reset(formData);
 
-      // Thử setValue trực tiếp để debug
       setTimeout(() => {
-        // Nếu reset không hoạt động, thử setValue trực tiếp
         if (form.getValues("danhMucId") !== edittingSanPham.danhMucId) {
           form.setValue("danhMucId", edittingSanPham.danhMucId);
         }
@@ -129,8 +127,9 @@ export default function SanPhamForm({
           await onSubmit(data, edittingSanPham?.id);
           onSucces?.();
         })}
-        className="space-y-6 mt-2 "
+        className="space-y-6 mt-4"
       >
+        {/* Tên sản phẩm */}
         <FormField
           control={form.control}
           name="tenSanPham"
@@ -145,17 +144,207 @@ export default function SanPhamForm({
           )}
         />
 
+        {/* Grid chia các input theo hàng */}
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* Danh mục */}
+          <FormField
+            control={form.control}
+            name="danhMucId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Danh mục</FormLabel>
+                <FormControl>
+                  <Select
+                    onValueChange={(value) => field.onChange(Number(value))}
+                    value={
+                      field.value !== undefined
+                        ? String(field.value)
+                        : undefined
+                    }
+                    disabled={isLoadingDanhMuc}
+                  >
+                    <SelectTrigger className="w-77">
+                      <SelectValue placeholder="Chọn danh mục">
+                        {field.value ? getDanhMucName(field.value) : ""}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {danhMucList.map((dm) => (
+                        <SelectItem key={dm.id} value={dm.id.toString()}>
+                          {dm.tenDanhMuc}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Bộ sưu tập */}
+          <FormField
+            control={form.control}
+            name="boSuuTapId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Bộ sưu tập</FormLabel>
+                <FormControl>
+                  <Select
+                    onValueChange={(value) => field.onChange(Number(value))}
+                    value={
+                      field.value !== undefined
+                        ? String(field.value)
+                        : undefined
+                    }
+                    disabled={isLoadingBoSuuTap}
+                  >
+                    <SelectTrigger className="w-77">
+                      <SelectValue placeholder="Chọn bộ sưu tập">
+                        {field.value ? getBoSuuTapName(field.value) : ""}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {BoSuuTapList.map((bst) => (
+                        <SelectItem key={bst.id} value={bst.id.toString()}>
+                          {bst.tenBoSuuTap}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Độ tuổi */}
+          <FormField
+            control={form.control}
+            name="doTuoi"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Độ tuổi</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    min={0}
+                    value={field.value ?? ""}
+                    onChange={(e) =>
+                      field.onChange(
+                        e.target.value === "" ? undefined : +e.target.value
+                      )
+                    }
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Giá */}
+          <FormField
+            control={form.control}
+            name="gia"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Giá (VNĐ)</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    min={0}
+                    value={field.value ?? ""}
+                    onChange={(e) =>
+                      field.onChange(
+                        e.target.value === "" ? undefined : +e.target.value
+                      )
+                    }
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Số lượng tồn */}
+          <FormField
+            control={form.control}
+            name="soLuongTon"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Số lượng tồn</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    min={0}
+                    value={field.value ?? ""}
+                    onChange={(e) =>
+                      field.onChange(
+                        e.target.value === "" ? undefined : +e.target.value
+                      )
+                    }
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Số lượng mảnh ghép */}
+          <FormField
+            control={form.control}
+            name="soLuongManhGhep"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Số lượng mảnh ghép</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    min={0}
+                    value={field.value ?? ""}
+                    onChange={(e) =>
+                      field.onChange(
+                        e.target.value === "" ? undefined : +e.target.value
+                      )
+                    }
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Trạng thái (disabled) */}
+          <FormField
+            control={form.control}
+            name="trangThai"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Trạng thái</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    disabled
+                    className="bg-gray-100 text-gray-100"
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+        </div>
+
+        {/* Mô tả sản phẩm */}
         <FormField
           control={form.control}
           name="moTa"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Mô tả</FormLabel>
+              <FormLabel>Mô tả sản phẩm</FormLabel>
               <FormControl>
                 <Textarea
                   placeholder="Nhập mô tả sản phẩm"
                   {...field}
-                  className="h-30"
+                  className="min-h-[120px]"
                 />
               </FormControl>
               <FormMessage />
@@ -163,223 +352,14 @@ export default function SanPhamForm({
           )}
         />
 
-        <div className="flex flex-wrap  gap-4">
-          <div className="basis-full sm:basis-1/2 lg:basis-1/3">
-            <FormField
-              control={form.control}
-              name="danhMucId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Danh mục</FormLabel>
-                  <FormControl>
-                    <Select
-                      onValueChange={(value) => {
-                        console.log("🔄 Danh mục thay đổi thành:", value);
-                        field.onChange(Number(value));
-                      }}
-                      value={
-                        field.value !== undefined
-                          ? String(field.value)
-                          : undefined
-                      }
-                      disabled={isLoadingDanhMuc}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Chọn danh mục">
-                          {(() => {
-                            const name = field.value
-                              ? getDanhMucName(field.value)
-                              : "";
-                            console.log(
-                              "🎯 Render danh mục - field.value:",
-                              field.value,
-                              "name:",
-                              name
-                            );
-                            return name;
-                          })()}
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent>
-                        {danhMucList.map((dm) => (
-                          <SelectItem key={dm.id} value={dm.id.toString()}>
-                            {dm.tenDanhMuc}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-          <div className="basis-full sm:basis-1/2 lg:basis-1/3">
-            <FormField
-              control={form.control}
-              name="boSuuTapId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Bộ Sưu Tập</FormLabel>
-                  <FormControl>
-                    <Select
-                      onValueChange={(value) => {
-                        console.log("🔄 Bộ sưu tập thay đổi thành:", value);
-                        field.onChange(Number(value));
-                      }}
-                      value={
-                        field.value !== undefined
-                          ? String(field.value)
-                          : undefined
-                      }
-                      disabled={isLoadingBoSuuTap}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Chọn bộ sưu tập">
-                          {(() => {
-                            const name = field.value
-                              ? getBoSuuTapName(field.value)
-                              : "";
-                            console.log(
-                              "🎯 Render bộ sưu tập - field.value:",
-                              field.value,
-                              "name:",
-                              name
-                            );
-                            return name;
-                          })()}
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent>
-                        {BoSuuTapList.map((bst) => (
-                          <SelectItem key={bst.id} value={bst.id.toString()}>
-                            {bst.tenBoSuuTap}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-          <div className="basis-full sm:basis-1/2 lg:basis-1/3">
-            <FormField
-              control={form.control}
-              name="doTuoi"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Độ tuổi</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      value={field.value ?? ""}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        field.onChange(value === "" ? undefined : +value);
-                      }}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          <div className="basis-full sm:basis-1/2 lg:basis-1/3">
-            <FormField
-              control={form.control}
-              name="gia"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Giá</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      value={field.value ?? ""}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        field.onChange(value === "" ? undefined : +value);
-                      }}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-          <div className="basis-full sm:basis-1/2 lg:basis-1/3">
-            <FormField
-              control={form.control}
-              name="soLuongTon"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Số lượng tồn</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      value={field.value ?? ""}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        field.onChange(value === "" ? undefined : +value);
-                      }}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          <div className="basis-full sm:basis-1/2 lg:basis-1/3">
-            <FormField
-              control={form.control}
-              name="soLuongManhGhep"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Số lượng mảnh ghép</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      value={field.value ?? ""}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        field.onChange(value === "" ? undefined : +value);
-                      }}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          <div className=" basis-full sm:basis-1/2 lg:basis-1/3">
-            <FormField
-              control={form.control}
-              name="trangThai"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Trạng thái</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      disabled
-                      className="bg-gray-200 text-gray-200"
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-          </div>
-        </div>
-        <div className="flex gap-3 items-center mt-4 mb-2 ">
-          <span> Nổi bật</span>
+        {/* Nổi bật toggle */}
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-medium">Nổi bật</span>
           <Switch />
         </div>
 
-        <div className="flex gap-2 pt-4">
+        {/* Buttons */}
+        <div className="flex gap-3 pt-4">
           <Button type="submit">
             {edittingSanPham ? "Cập nhật" : "Thêm mới"}
           </Button>
