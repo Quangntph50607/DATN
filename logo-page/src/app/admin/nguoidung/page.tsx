@@ -34,6 +34,7 @@ import {
 } from "@/hooks/useAccount";
 import { ToastProvider } from "@/components/ui/toast-provider";
 import { Card } from "@/components/ui/card";
+import { parseBackendDate } from "@/utils/dateUtils";
 
 type TabType = "employee" | "customer" | "inactive";
 
@@ -74,10 +75,38 @@ function UserManagementContent() {
     )
   );
 
+  console.log('DEBUG - filteredAccounts:', filteredAccounts.map(acc => ({ email: acc.email, ngayTao: acc.ngayTao })));
+
+  // Sắp xếp tài khoản còn lại theo ngày tạo cũ nhất lên đầu (mới nhất xuống dưới)
+  let sortedAccounts = [...filteredAccounts].sort((a, b) => {
+    const dateA = parseBackendDate(a.ngayTao ?? [])?.getTime() ?? 0;
+    const dateB = parseBackendDate(b.ngayTao ?? [])?.getTime() ?? 0;
+    return dateB - dateA; // ngày mới nhất lên đầu
+  });
+
+  console.log('DEBUG - sortedAccounts:', sortedAccounts.map(acc => ({
+    email: acc.email,
+    ngayTao: acc.ngayTao,
+    time: parseBackendDate(acc.ngayTao ?? [])?.getTime() ?? 0
+  })));
+
+  // Nếu vừa tạo user mới, đưa user đó lên đầu (ưu tiên email)
+  const createUser = useCreateUser();
+  const updateUser = useUpdateAccount();
+  const softDelete = useSoftDeleteAccount();
+  const { refetch } = useAccounts();
+
+  if (createUser.data && createUser.data.email) {
+    const found = sortedAccounts.find(u => u.email === createUser.data.email);
+    if (found) {
+      sortedAccounts = [found, ...sortedAccounts.filter(u => u.email !== found.email)];
+    }
+  }
+
   // Phân trang
   const itemPerPage = 5;
-  const totalPages = Math.ceil(filteredAccounts.length / itemPerPage);
-  const paginatedAccounts = filteredAccounts.slice(
+  const totalPages = Math.ceil(sortedAccounts.length / itemPerPage);
+  const paginatedAccounts = sortedAccounts.slice(
     (currentPage - 1) * itemPerPage,
     currentPage * itemPerPage
   );
@@ -86,11 +115,6 @@ function UserManagementContent() {
   React.useEffect(() => {
     setCurrentPage(1);
   }, [currentTab, searchTerm]);
-
-  const createUser = useCreateUser();
-  const updateUser = useUpdateAccount();
-  const softDelete = useSoftDeleteAccount();
-  const { refetch } = useAccounts();
 
   const handleEditAccount = (account: DTOUser) => {
     setEditingAccount(account);
@@ -178,7 +202,6 @@ function UserManagementContent() {
   console.log("Inactive accounts:", inactiveAccounts);
   console.log("Current tab:", currentTab);
   console.log("Filtered accounts:", filteredAccounts);
-
 
   return (
     <Card className="p-4 bg-gray-800 shadow-md w-full max-w-full min-h-screen">

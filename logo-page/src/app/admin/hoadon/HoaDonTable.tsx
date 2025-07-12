@@ -131,7 +131,7 @@ function HoaDonTable({
                   {hd.maHD || "N/A"}
                 </TableCell>
                 <TableCell className="text-white ">
-                  {hd.user?.ten || hd.ten || "N/A"}
+                  {hd.user?.ten || hd.ten || "Khách lẻ"}
                 </TableCell>
                 <TableCell className="text-green-400 font-medium">
                   {hd.tongTien.toLocaleString("vi-VN")}₫

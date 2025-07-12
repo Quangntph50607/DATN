@@ -256,8 +256,8 @@ export default function AnhSanPhamManager({
                       ? "Đang cập nhật..."
                       : "Cập nhật ảnh"
                     : isPending
-                    ? "Đang tải lên... "
-                    : "Tải ảnh lên"}
+                      ? "Đang tải lên... "
+                      : "Tải ảnh lên"}
                 </Button>
                 {editMode && (
                   <Button
@@ -287,7 +287,7 @@ export default function AnhSanPhamManager({
                   className="relative group border border-gray-200 rounded-xl p-2 shadow-md"
                 >
                   <Image
-                    src={`http://localhost:8080/api/anhsp/images/${anh.url}`}
+                    src={anh.url ? `http://localhost:8080/api/anhsp/images/${anh.url}` : '/no-image.png'}
                     alt="Ảnh sản phẩm"
                     width={128}
                     height={128}
@@ -322,7 +322,7 @@ export default function AnhSanPhamManager({
                         setEditMode(true);
                         setAnhDangSua(anh);
                         setPreview(
-                          `http://localhost:8080/api/anhsp/images/${anh.url}`
+                          anh.url ? `http://localhost:8080/api/anhsp/images/${anh.url}` : '/no-image.png'
                         );
                         form.reset({
                           sanPhamId,

@@ -16,6 +16,8 @@ export interface CreateHoaDonDTO {
   cartItems: CartItemDTO[];
   idPhieuGiam?: number;
   nvId?: number;
+  maVanChuyen: string;
+  qrCodeUrl?: string;
 }
 
 // Interface cũ - có thể xóa sau khi kiểm tra không còn sử dụng
@@ -38,6 +40,7 @@ export interface HoaDonDTOOld {
   nvName: string;
   pggid?: number;
   maPGG?: string;
+  qrCodeUrl?: string;
 }
 export enum TrangThaiHoaDon {
   PENDING = "Đang xử lý",
@@ -75,6 +78,7 @@ export interface HoaDonDTO {
   nvId?: DTOUserWithId;
   nvName?: string;
   phieuGiamGia?: PhieuGiamGia;
+  qrCodeUrl?: string;
 }
 
 export interface HoaDonChiTietDTO {
