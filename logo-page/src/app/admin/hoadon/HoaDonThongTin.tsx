@@ -7,6 +7,7 @@ import {
 } from "@/components/types/hoaDon-types";
 import { Badge } from "@/components/ui/badge";
 import { formatDateFlexible } from "../khuyenmai/formatDateFlexible";
+import Image from "next/image";
 
 interface Props {
   detail: HoaDonDTO | null;
@@ -60,6 +61,8 @@ export const HoaDonThongTin = ({ detail }: Props) => {
     </div>
   );
 
+  console.log("Chi tiết hóa đơn:", detail);
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-y-5 gap-x-8 mb-6 text-sm">
       <div className="space-y-2">
@@ -93,12 +96,26 @@ export const HoaDonThongTin = ({ detail }: Props) => {
         />
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-2 flex flex-col items-start">
         <InfoItem
           label="Khách hàng"
           value={detail.ten || detail.user?.ten || "Khách lẻ"}
         />
-        <InfoItem label="SĐT" value={detail.sdt || "N/A"} />
+        <InfoItem label="SĐT" value={detail.sdt || detail.user?.sdt || "Chưa có"} />
+
+        {detail.qrCodeUrl && (
+          <div className="mt-2 flex flex-col items-center">
+            <span className="text-gray-400">Mã QR chuyển khoản:</span>
+            <Image
+              src={detail.qrCodeUrl}
+              alt="QR chuyển khoản"
+              width={140}
+              height={140}
+              className="mt-2 rounded-lg"
+              unoptimized
+            />
+          </div>
+        )}
 
         {isOnline && (
           <>

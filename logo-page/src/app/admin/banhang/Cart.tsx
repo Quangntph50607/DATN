@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { MinusCircle, PlusCircle, Trash2, UserPlus } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Input } from '@/components/ui/input';
@@ -25,9 +24,10 @@ interface Props {
   onChangeName: (name: string) => void;
   onChangeEmail: (email: string) => void;
   onChangePhone: (phone: string) => void;
+  setSelectedCustomerId: (id: number | null) => void;
 }
 
-const Cart: React.FC<Props> = ({ cart, updateQuantity, removeFromCart, customerName, customerEmail, customerPhone, onChangeName, onChangeEmail, onChangePhone }) => {
+const Cart: React.FC<Props> = ({ cart, updateQuantity, removeFromCart, customerName, customerEmail, customerPhone, onChangeName, onChangeEmail, onChangePhone, setSelectedCustomerId }) => {
   const { data: accounts = [] } = useAccounts();
   const [openDialog, setOpenDialog] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -184,6 +184,7 @@ const Cart: React.FC<Props> = ({ cart, updateQuantity, removeFromCart, customerN
                     onChangeName(acc.ten || '');
                     onChangeEmail(acc.email || '');
                     onChangePhone(acc.sdt || '');
+                    setSelectedCustomerId(typeof acc.id === 'number' ? acc.id : null);
                     setShowSuggestions(false);
                   }}
                 >
@@ -212,20 +213,24 @@ const Cart: React.FC<Props> = ({ cart, updateQuantity, removeFromCart, customerN
           className="bg-background/70 border-white/20 text-white placeholder:text-gray-400 w-48"
         />
       </div>
-      <ScrollArea className="flex-grow mb-4 pr-2 scrollable-area">
+      <div className="flex-grow mb-4 pr-2">
         {cart.length === 0 ? (
           <p className="text-center text-gray-400 py-10">Giỏ hàng trống</p>
         ) : (
           cart.map(item => {
             const image = item.anhDaiDien || '/no-image.png';
             return (
-              <motion.div key={item.id} layout className="flex items-center justify-between py-3 border-b border-white/10">
+              <motion.div
+                key={item.id}
+                layout
+                className="flex items-center justify-between py-4 px-3 mb-3 bg-gradient-to-r from-slate-800 to-slate-700 rounded-xl shadow-md border border-white/10 hover:scale-[1.01] transition-transform"
+              >
                 <div className="flex items-center">
-                  <div className="w-12 h-12 rounded-md overflow-hidden mr-3 bg-white/10">
-                    <Image src={image} alt={item.tenSanPham} width={48} height={48} className="w-full h-full object-cover" unoptimized />
+                  <div className="w-14 h-14 rounded-lg overflow-hidden mr-4 bg-white/10 border border-primary/30">
+                    <Image src={image} alt={item.tenSanPham} width={56} height={56} className="w-full h-full object-cover" unoptimized />
                   </div>
                   <div>
-                    <h4 className="text-sm font-medium text-white line-clamp-1">{item.tenSanPham}</h4>
+                    <h4 className="text-base font-semibold text-white line-clamp-2">{item.tenSanPham}</h4>
                     <p className="text-xs text-gray-400">
                       {item.giaKhuyenMai != null && item.giaKhuyenMai > 0 ? (
                         <>
@@ -239,22 +244,22 @@ const Cart: React.FC<Props> = ({ cart, updateQuantity, removeFromCart, customerN
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button variant="ghost" size="icon" onClick={() => updateQuantity(item.id, -1)} className="w-7 h-7">
-                    <MinusCircle className="w-4 h-4 text-gray-400 hover:text-white" />
+                  <Button variant="ghost" size="icon" onClick={() => updateQuantity(item.id, -1)} className="w-8 h-8 bg-slate-700 hover:bg-primary/80 rounded-full">
+                    <MinusCircle className="w-5 h-5 text-primary" />
                   </Button>
-                  <span className="text-sm text-white w-5 text-center">{item.quantity}</span>
-                  <Button variant="ghost" size="icon" onClick={() => updateQuantity(item.id, 1)} className="w-7 h-7">
-                    <PlusCircle className="w-4 h-4 text-gray-400 hover:text-white" />
+                  <span className="text-base text-white w-6 text-center font-bold">{item.quantity}</span>
+                  <Button variant="ghost" size="icon" onClick={() => updateQuantity(item.id, 1)} className="w-8 h-8 bg-slate-700 hover:bg-primary/80 rounded-full">
+                    <PlusCircle className="w-5 h-5 text-primary" />
                   </Button>
-                  <Button variant="ghost" size="icon" onClick={() => removeFromCart(item.id)} className="w-7 h-7 text-red-400 hover:text-red-300">
-                    <Trash2 className="w-4 h-4" />
+                  <Button variant="ghost" size="icon" onClick={() => removeFromCart(item.id)} className="w-8 h-8 text-red-400 hover:bg-red-300 rounded-full">
+                    <Trash2 className="w-5 h-5" />
                   </Button>
                 </div>
               </motion.div>
             );
           })
         )}
-      </ScrollArea>
+      </div>
     </>
   );
 };
