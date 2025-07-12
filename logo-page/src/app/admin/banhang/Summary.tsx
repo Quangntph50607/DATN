@@ -27,6 +27,7 @@ import { BadgePercent } from 'lucide-react';
 import Image from 'next/image';
 import { CartItem } from '@/components/types/order.type';
 import { PhieuGiamGia } from '@/components/types/phieugiam.type';
+import { toast } from 'sonner';
 
 interface Props {
   customerName: string;
@@ -38,7 +39,7 @@ interface Props {
   onChangeName: (name: string) => void;
   onChangeEmail: (email: string) => void;
   onChangePhone: (phone: string) => void;
-  onCheckout: () => void;
+  onCheckout: (qrCodeUrl?: string) => void;
   isCheckoutDisabled: boolean;
   onSavePending: () => void;
   paymentMethod: '' | 'cash' | 'transfer' | 'cod';
@@ -48,6 +49,9 @@ interface Props {
   cart: CartItem[];
   selectedVoucher: PhieuGiamGia | null;
   setSelectedVoucher: (v: PhieuGiamGia | null) => void;
+  orderId: string;
+  qrCodeUrl: string | null;
+  setQrCodeUrl: (v: string | null) => void;
 }
 
 const Summary: React.FC<Props> = ({
@@ -67,14 +71,52 @@ const Summary: React.FC<Props> = ({
   cart,
   selectedVoucher,
   setSelectedVoucher,
+  // orderId,
+  qrCodeUrl,
+  setQrCodeUrl,
 }) => {
   const { data: phieuGiamGias = [] } = useGetPhieuGiam();
   const formatCurrency = (amount: number) =>
     new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
   const change = paymentMethod === 'cash' && cashGiven !== '' ? Number(cashGiven) - total : 0;
   const [open, setOpen] = React.useState(false);
+  const [showQR, setShowQR] = React.useState(false);
+  // XÓA local state qrCodeUrl ở đây, dùng prop thay thế
+  const [loadingQR, setLoadingQR] = React.useState(false);
+  const qrCodeRef = React.useRef<string | null>(null);
 
+  const handleGenerateQR = async () => {
+    setLoadingQR(true);
+    const accountNo = "606506122005";
+    const accountName = "NGO TIEN QUANG";
+    const acqId = "970422";
+    const addInfo = `THANH TOAN DON ${customerPhone || "KHACHLE"}`;
 
+    const res = await fetch("https://api.vietqr.io/v2/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        accountNo,
+        accountName,
+        acqId,
+        amount: total,
+        addInfo,
+        format: "text",
+      }),
+    });
+    const data = await res.json();
+    console.log("Kết quả trả về từ API VietQR:", data);
+    // Nếu có qrDataURL (ảnh base64) thì dùng, nếu không thì tự tạo URL ảnh QR code
+    let qrUrl = data.data.qrDataURL;
+    if (!qrUrl) {
+      // Tạo URL ảnh QR code từ thông tin đơn hàng
+      qrUrl = `https://img.vietqr.io/image/MB-606506122005-compact2.png?amount=${total}&addInfo=${encodeURIComponent(addInfo)}`;
+    }
+    setQrCodeUrl(qrUrl);
+    qrCodeRef.current = qrUrl;
+    setShowQR(true);
+    setLoadingQR(false);
+  };
 
   return (
     <>
@@ -177,9 +219,19 @@ const Summary: React.FC<Props> = ({
               <Button variant="outline">Hủy</Button>
             </DialogClose>
             <Button
-              onClick={() => {
-                onCheckout();
-                setOpen(false);
+              onClick={async () => {
+                // Nếu là khách lẻ (không chọn khách hàng) và chưa nhập SĐT
+                if (paymentMethod === "transfer" && (!customerPhone || customerPhone.trim() === "")) {
+                  toast.error("Vui lòng nhập số điện thoại khách hàng!");
+                  return;
+                }
+                if (paymentMethod === "transfer") {
+                  await handleGenerateQR();
+                  setOpen(false); // Đóng dialog xác nhận, mở dialog QR
+                } else {
+                  onCheckout();
+                  setOpen(false);
+                }
               }}
             >
               Xác nhận
@@ -187,6 +239,54 @@ const Summary: React.FC<Props> = ({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Đã tự động tạo đơn khi QR sẵn sàng, không cần dialog QR nữa */}
+
+      {showQR && (
+        <Dialog open={showQR} onOpenChange={setShowQR}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Quét mã QR để chuyển khoản</DialogTitle>
+            </DialogHeader>
+            <div className="flex flex-col items-center gap-4">
+              {loadingQR ? (
+                <div>Đang tạo mã QR...</div>
+              ) : (
+                <>
+                  <Image
+                    src={qrCodeUrl || `https://api.vietqr.io/image/970422-606506122005-ME0GcS6.jpg?accountName=NGO%20TIEN%20QUANG&amount=${total}&addInfo=${encodeURIComponent('Thanh toan hoa don')}`}
+                    alt="QR chuyển khoản"
+                    width={400}
+                    height={400}
+                    style={{ maxWidth: '100%', height: 'auto', display: 'block', margin: '0 auto' }}
+                    priority
+                  />
+                  <div className="text-center text-sm">
+                    Số tiền: <b>{formatCurrency(total)}</b><br />
+                    Nội dung: <b>{`THANH TOAN DON ${customerPhone || "KHACHLE"}`}</b>
+                  </div>
+                </>
+              )}
+            </div>
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button variant="outline">Đóng</Button>
+              </DialogClose>
+              <Button
+                onClick={() => {
+                  setShowQR(false);
+                  // ĐẢM BẢO truyền đúng prop qrCodeUrl ra ngoài
+                  console.log("QR gửi sang createOrder:", qrCodeRef.current);
+                  onCheckout(qrCodeRef.current || undefined);
+                }}
+                disabled={loadingQR}
+              >
+                Đã chuyển khoản
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
 
       <div className="space-y-2 text-sm mb-4">
         <div className="flex justify-between text-gray-300">
@@ -212,7 +312,16 @@ const Summary: React.FC<Props> = ({
             <SelectContent className="rounded-xl border-2 border-primary/60 shadow-lg bg-[#23272f] text-white">
               <SelectItem value={"0"} className="rounded-xl">Không áp dụng</SelectItem>
               {phieuGiamGias
-                .filter(opt => subtotal >= opt.giaTriToiThieu)
+                .filter(opt => {
+                  const now = new Date();
+                  if (opt.ngayKetThuc) {
+                    const [day, month, year] = opt.ngayKetThuc.split("-");
+                    const isoDate = `${year}-${month}-${day}T23:59:59`;
+                    const expiry = new Date(isoDate);
+                    if (expiry < now) return false;
+                  }
+                  return subtotal >= opt.giaTriToiThieu;
+                })
                 .map(opt => (
                   <SelectItem key={opt.id} value={String(opt.id)} className="rounded-xl">
                     {opt.maPhieu ? `${opt.maPhieu} - ` : ''}

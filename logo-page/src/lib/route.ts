@@ -35,9 +35,6 @@ export const adminRoutes = [
   {
     label: "Bán Hàng",
     icon: "bar-chart-3",
-    children: [
-      { label: "POS - Bán hàng tại quầy", href: "/admin/banhang/order" },
-      { label: "Đơn hàng chờ", href: "/admin/banhang/pending" },
-    ],
+    href: "/admin/banhang",
   },
 ];

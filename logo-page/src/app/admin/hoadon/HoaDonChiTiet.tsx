@@ -87,7 +87,7 @@ export default function HoaDonChiTiet({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-full  !max-w-[800px] h-[90vh] overflow-y-auto dark:bg-gray-800 text-white rounded-xl">
+      <DialogContent className="w-full  !max-w-[800px] dark:bg-gray-800 text-white rounded-xl">
         <DialogHeader>
           <DialogTitle className="text-2xl text-center">
             Chi tiết hóa đơn
@@ -126,8 +126,8 @@ export default function HoaDonChiTiet({
 
             <Separator className="my-2" />
             <h3 className="text-lg font-semibold mb-2">Chi tiết sản phẩm</h3>
-            <div className="border-3 border-blue-500 rounded-2xl mt-3 overflow-x-auto">
-              <Table className="min-w-full table-auto text-sm">
+            <div className=" border-2 border-blue-500 rounded-2xl mt-3 overflow-x-auto shadow-2xl shadow-blue-500/40">
+              <Table>
                 <TableHeader className="bg-blue-500">
                   <TableRow className="w-full">
                     <TableHead className="p-2">STT</TableHead>
