@@ -220,7 +220,7 @@ const HoaDonManagement = () => {
         <div className="text-center py-16 text-gray-300">Đang tải...</div>
       ) : (
         <>
-          <Card className="p-4 bg-gray-800 shadow-md max-h-screen w-full h-full">
+          <Card className="p-4 bg-gray-800 shadow-md w-full h-full">
             <HoaDonFilter
               filters={filters}
               setFilters={setFilters}
