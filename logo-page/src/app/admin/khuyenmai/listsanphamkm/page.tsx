@@ -9,17 +9,17 @@ import { motion } from "framer-motion";
 export default function Page() {
   const { data: danhSachSanPhamKM = [] } = useListKhuyenMaiTheoSanPham();
   const [currentPage, setCurrentPage] = useState(1);
-  const itemPerPage = 20;
+  const itemPerPage = 10;
   const totalPages = Math.ceil(danhSachSanPhamKM.length / itemPerPage);
 
   return (
-    <Card className="p-4 bg-gray-800 shadow-md max-h-screen w-full h-full">
+    <Card className="p-4 bg-gray-800 shadow-md  w-full h-full">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         className="text-center mb-8"
       >
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-white mb-2">
           Áp dụng khuyến mại cho sản phẩm
         </h1>
       </motion.div>

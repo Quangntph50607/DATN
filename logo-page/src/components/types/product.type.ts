@@ -2,7 +2,7 @@ export interface AnhSanPhamChiTiet {
   id: number;
   url: string;
   moTa: string;
-  thuTu: number;
+  // thuTu: number;
   anhChinh: boolean;
   sanPhamId?: number;
 }

@@ -22,6 +22,7 @@ import { motion } from "framer-motion";
 import { Modal } from "@/components/layout/(components)/(pages)/Modal";
 import { PlusIcon } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ConfirmDialog } from "@/shared/ConfirmDialog";
 
 export default function SanPhamPage() {
   const { data: sanPhams = [], isLoading, refetch } = useSanPham();
@@ -32,11 +33,13 @@ export default function SanPhamPage() {
   >("Đang kinh doanh");
   const [editSanPham, setEditSanPham] = useState<SanPham | null>(null);
   const [formKey, setFormKey] = useState(0);
-  const { keyword } = useSearchStore();
+  const { keyword, setKeyword } = useSearchStore();
   const [selectedDanhMuc, setSelectedDanhMuc] = useState<number | null>(null);
   const [selectedBoSuuTap, setSelectedBoSuuTap] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
   const addSanPhamMutation = useAddSanPham();
   const deleteSanPhamMutation = useXoaSanPham();
   const editSanPhamMutation = useEditSanPham();
@@ -60,15 +63,23 @@ export default function SanPhamPage() {
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (confirm("Bạn có chắc muốn xóa sản phẩm này?")) {
-      try {
-        await deleteSanPhamMutation.mutateAsync(id);
-        toast.success("Xóa thành công!");
-        refetch();
-      } catch {
-        toast.error("Lỗi khi xóa sản phẩm");
-      }
+  const confirmDelete = (id: number) => {
+    setPendingDeleteId(id);
+    setConfirmOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (pendingDeleteId == null) return;
+    // if (confirm("Bạn có chắc muốn chuyển trạn thái của sản phẩm này"))
+    try {
+      await deleteSanPhamMutation.mutateAsync(pendingDeleteId);
+      toast.success("Chuyển trạng thái thành công!");
+      refetch();
+    } catch {
+      toast.error("Lỗi khi chuyển trạng thái sản phẩm");
+    } finally {
+      setConfirmOpen(false);
+      setPendingDeleteId(null);
     }
   };
 
@@ -78,6 +89,11 @@ export default function SanPhamPage() {
     refetch();
     setIsModalOpen(false);
   };
+  const handleResetFilter = () => {
+    setKeyword("");
+    setSelectedBoSuuTap(null);
+    setSelectedDanhMuc(null);
+  };
 
   return (
     <Card className="p-4 bg-gray-800 shadow-md  w-full h-full">
@@ -86,7 +102,7 @@ export default function SanPhamPage() {
         animate={{ opacity: 1, y: 0 }}
         className="text-center mb-8"
       >
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">
+        <h1 className="text-4xl font-bold bg-gradient-to-r  bg-clip-text text-white mb-2">
           Quản Lý Sản Phẩm
         </h1>
       </motion.div>
@@ -117,6 +133,7 @@ export default function SanPhamPage() {
           selectedBoSuuTap={selectedBoSuuTap}
           onChangeDanhMuc={setSelectedDanhMuc}
           onChangeBoSuuTap={setSelectedBoSuuTap}
+          onResetFilter={handleResetFilter}
         />
         {isLoading ? (
           <p>Đang tải danh sách sản phẩm...</p>
@@ -124,10 +141,7 @@ export default function SanPhamPage() {
           <>
             <div className="flex items-center  justify-between">
               <p className="text-2xl font-bold ">Danh sách sản phẩm</p>
-              <Button
-                onClick={() => setIsModalOpen(true)}
-                className="bg-purple-400 px-2"
-              >
+              <Button onClick={() => setIsModalOpen(true)} className=" px-2">
                 <PlusIcon /> Thêm sản phẩm
               </Button>
             </div>
@@ -144,13 +158,13 @@ export default function SanPhamPage() {
             >
               <TabsList className="gap-2 border-gray-200 border-1">
                 <TabsTrigger value="Đang kinh doanh">
-                  <span className="text-green-500">Đang kinh doanh</span>
+                  <span className="">Đang kinh doanh</span>
                 </TabsTrigger>
                 <TabsTrigger value="Ngừng kinh doanh">
-                  <span className="text-yellow-500"> Ngừng kinh doanh</span>
+                  <span className=""> Ngừng kinh doanh</span>
                 </TabsTrigger>
                 <TabsTrigger value="Hết hàng">
-                  <span className="text-red-500"> Hết hàng</span>
+                  <span className=""> Hết hàng</span>
                 </TabsTrigger>
               </TabsList>
 
@@ -161,7 +175,8 @@ export default function SanPhamPage() {
                     const lowerKeyword = keyword.toLowerCase();
                     const matchKeyword =
                       sp.tenSanPham.toLowerCase().includes(lowerKeyword) ||
-                      sp.maSanPham?.toLowerCase().includes(lowerKeyword);
+                      sp.maSanPham?.toLowerCase().includes(lowerKeyword) ||
+                      sp.doTuoi.toString().includes(lowerKeyword);
                     const matchDanhMuc =
                       selectedDanhMuc === null ||
                       sp.danhMucId === selectedDanhMuc;
@@ -188,7 +203,7 @@ export default function SanPhamPage() {
                     <TabsContent key={trangThai} value={trangThai}>
                       <SanPhamTable
                         sanPhams={paginated}
-                        onDelete={handleDelete}
+                        onDelete={(id) => confirmDelete(id)}
                         onEdit={(product) => {
                           setEditSanPham({ ...product });
                           setIsModalOpen(true);
@@ -217,6 +232,16 @@ export default function SanPhamPage() {
                   );
                 }
               )}
+              <ConfirmDialog
+                open={confirmOpen}
+                onConfirm={handleDelete}
+                onCancel={() => {
+                  setConfirmOpen(false);
+                  setPendingDeleteId(null);
+                }}
+                title="Xác nhận chuyển trạng thái"
+                description="Bạn có chắc muốn thay đổi trạng thái sản phẩm này?"
+              />
             </Tabs>
           </>
         )}

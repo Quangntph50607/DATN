@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Edit, Eye, Trash2 } from "lucide-react";
+import { Edit, Eye, PlusCircle, SwitchCameraIcon, Trash2 } from "lucide-react";
 import { useBoSuutap } from "@/hooks/useBoSutap";
 import { useDanhMuc } from "@/hooks/useDanhMuc";
 import { SanPham } from "@/components/types/product.type";
@@ -12,7 +12,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import AnhSanPhamManager from "./AnhSanPhamManager";
-import { useState } from "react";
 
 interface Props {
   sanPhams: SanPham[];
@@ -24,87 +23,83 @@ export default function SanPhamTable({ sanPhams, onDelete, onEdit }: Props) {
   const { data: danhMucs = [] } = useDanhMuc();
   const { data: boSuuTaps = [] } = useBoSuutap();
 
-  const getTenDanhMuc = (id: number) =>
-    danhMucs.find((dm) => dm.id === id)?.tenDanhMuc || "Không rõ";
+  // const getTenDanhMuc = (id: number) =>
+  //   danhMucs.find((dm) => dm.id === id)?.tenDanhMuc || "Không rõ";
 
-  const getTenBST = (id: number) =>
-    boSuuTaps.find((bst) => bst.id === id)?.tenBoSuuTap || "Không rõ";
+  // const getTenBST = (id: number) =>
+  //   boSuuTaps.find((bst) => bst.id === id)?.tenBoSuuTap || "Không rõ";
+  const sortSanPham = [...sanPhams].sort((a, b) => b.id - a.id);
 
   return (
-    <div className=" border-2 border-blue-500 rounded-2xl mt-3 overflow-x-auto shadow-2xl shadow-blue-500/40">
+    <div className="border-2 border-blue-500 rounded-2xl mt-3 overflow-x-auto shadow-2xl shadow-blue-500/40">
       <Table>
         <TableHeader className="bg-blue-500">
           <TableRow>
-            <TableHead>STT</TableHead>
-            <TableHead>Mã sản phẩm</TableHead>
-            <TableHead>Tên sản phẩm</TableHead>
-            <TableHead>Mô tả</TableHead>
-            <TableHead>Danh mục</TableHead>
-            <TableHead>Bộ sưu tập</TableHead>
-            <TableHead>Độ tuổi</TableHead>
-            <TableHead>Giá</TableHead>
-            <TableHead>SL Tồn</TableHead>
-            <TableHead>SL mảnh ghép</TableHead>
-            <TableHead>Trạng Thái</TableHead>
-            <TableHead className="text-center">Hành động</TableHead>
+            <TableHead className="whitespace-nowrap">STT</TableHead>
+            <TableHead className="whitespace-nowrap">Mã sản phẩm</TableHead>
+            <TableHead className="whitespace-nowrap">Tên sản phẩm</TableHead>
+            <TableHead className="whitespace-nowrap">Độ tuổi</TableHead>
+            <TableHead className="whitespace-nowrap">Giá</TableHead>
+            <TableHead className="whitespace-nowrap">SL Tồn</TableHead>
+            <TableHead className="whitespace-nowrap">Trạng Thái</TableHead>
+            <TableHead className="whitespace-nowrap text-center">
+              Hành động
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {sanPhams.length === 0 ? (
+          {sortSanPham.length === 0 ? (
             <TableRow>
               <TableCell colSpan={10} className="text-center">
                 Không có sản phẩm nào
               </TableCell>
             </TableRow>
           ) : (
-            sanPhams.map((sanPham, index) => (
-              <TableRow key={sanPham.id}>
+            sortSanPham.map((sp, index) => (
+              <TableRow key={sp.id}>
                 <TableCell>{index + 1}</TableCell>
-                <TableCell>{sanPham.maSanPham}</TableCell>
-                <TableCell>{sanPham.tenSanPham}</TableCell>
-                <TableCell className="max-w-[170px] truncate">
-                  {sanPham.moTa
-                    ? sanPham.moTa.length > 100
-                      ? sanPham.moTa.slice(0, 100) + "..."
-                      : sanPham.moTa
-                    : ""}
+                <TableCell className="max-w-[100px] truncate">
+                  {sp.maSanPham}
                 </TableCell>
-                <TableCell>{getTenDanhMuc(sanPham.danhMucId)}</TableCell>
-                <TableCell>{getTenBST(sanPham.boSuuTapId)}</TableCell>
-                <TableCell>{sanPham.doTuoi}</TableCell>
-                <TableCell>{sanPham.gia.toLocaleString()}đ</TableCell>
-                <TableCell>{sanPham.soLuongTon}</TableCell>
-                <TableCell>{sanPham.soLuongManhGhep}</TableCell>
+                <TableCell className="max-w-[250px] truncate">
+                  {sp.tenSanPham}
+                </TableCell>
+                <TableCell>{sp.doTuoi}</TableCell>
+                <TableCell>{sp.gia.toLocaleString()}đ</TableCell>
+                <TableCell>{sp.soLuongTon}</TableCell>
                 <TableCell>
-                  {sanPham.trangThai === "Đang kinh doanh" ? (
+                  {sp.trangThai === "Đang kinh doanh" ? (
                     <span className="text-green-600 font-semibold">
                       Đang kinh doanh
                     </span>
-                  ) : sanPham.trangThai === "Ngừng kinh doanh" ? (
+                  ) : sp.trangThai === "Ngừng kinh doanh" ? (
                     <span className="text-yellow-500 font-semibold">
                       Ngừng kinh doanh
                     </span>
                   ) : (
-                    <span className="text-red-300 font-semibold">Hết hàng</span>
+                    <span className="text-red-400 font-semibold">Hết hàng</span>
                   )}
                 </TableCell>
                 <TableCell>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 justify-center">
                     <AnhSanPhamManager
-                      sanPhamId={sanPham.id}
-                      maSanPham={sanPham.maSanPham ?? ""}
-                      tenSanPham={sanPham.tenSanPham}
+                      sanPhamId={sp.id}
+                      maSanPham={sp.maSanPham ?? ""}
+                      tenSanPham={sp.tenSanPham}
                       trigger={
                         <Button title="Ảnh sản phẩm">
-                          <Eye className="size-4 text-black" />
+                          <PlusCircle className="size-4 text-gray-700" />
                         </Button>
                       }
                     />
-                    <Button onClick={() => onEdit(sanPham)} title="Chỉnh sửa">
+                    <Button onClick={() => onEdit(sp)} title="Chỉnh sửa">
                       <Edit className="w-4 h-4 text-blue-500" />
                     </Button>
-                    <Button onClick={() => onDelete(sanPham.id)} title="Xóa">
-                      <Trash2 className="w-4 h-4 text-red-500" />
+                    <Button
+                      onClick={() => onDelete(sp.id)}
+                      title="Chuyển trạng thái"
+                    >
+                      <SwitchCameraIcon className="w-4 h-4 text-red-500" />
                     </Button>
                   </div>
                 </TableCell>

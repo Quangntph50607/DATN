@@ -22,6 +22,7 @@ import {
   useKhuyenMai,
   useListKhuyenMaiTheoSanPham,
 } from "@/hooks/useKhuyenmai";
+import ReusableCombobox from "@/shared/ReusableCombobox";
 import { PlusIcon } from "lucide-react";
 import React, { useState } from "react";
 import { toast } from "sonner";
@@ -59,6 +60,9 @@ export default function KhuyenMaiSanPham({ currentPage, itemPerPage }: Props) {
       }
     );
   }
+  const khuyenMaiHieuLuc = danhSachKhuyenMai.filter(
+    (km) => km.trangThai !== "expired"
+  );
   const paginatedData = danhSachSanPhamKM.slice(
     (currentPage - 1) * itemPerPage,
     currentPage * itemPerPage
@@ -84,7 +88,17 @@ export default function KhuyenMaiSanPham({ currentPage, itemPerPage }: Props) {
             ))}
           </SelectContent>
         </Select>
-        <Button onClick={handleApplyKM} className="bg-purple-400 px-2">
+        <ReusableCombobox
+          items={khuyenMaiHieuLuc.map((list) => ({
+            id: list.id,
+            label: `${list.tenKhuyenMai} - (${list.phanTramKhuyenMai}%) `,
+          }))}
+          onSelect={setSelectedKMId}
+          selectedId={selectedKMId}
+          showAllOption={false}
+          placeholder="Chọn khuyến mãi"
+        />
+        <Button onClick={handleApplyKM} className=" px-2">
           <PlusIcon /> Áp dung khuyến mãi
         </Button>
       </div>

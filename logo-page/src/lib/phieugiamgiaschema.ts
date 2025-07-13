@@ -2,6 +2,10 @@ import { z } from "zod";
 
 export const phieuGiamGiaSchema = z
   .object({
+    tenPhieu: z
+      .string()
+      .nonempty("Tên phiếu không để trống")
+      .max(50, "Tên không vượt quá 50 ký tự"),
     soLuong: z
       .number({ required_error: "Số lượng không được để trống" })
       .min(1, { message: "Số lượng phải lớn hơn hoặc bằng 1" }),

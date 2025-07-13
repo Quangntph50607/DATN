@@ -37,7 +37,7 @@ export const anhSanPhamSevice = {
   // Add Ảnh sản phẩm
   async addAnhSanPham(data: {
     files: File[];
-    thuTu: number;
+    // thuTu: number;
     anhChinh: boolean;
     sanPhamId: number;
     moTa?: string;
@@ -45,7 +45,7 @@ export const anhSanPhamSevice = {
     try {
       const formData = new FormData();
       data.files.forEach((file) => formData.append("files", file)); // Sửa thành files
-      formData.append("thuTu", data.thuTu.toString());
+      // formData.append("thuTu", data.thuTu.toString());
       formData.append("anhChinh", data.anhChinh.toString());
       formData.append("sanPhamId", data.sanPhamId.toString());
       if (data.moTa) {
@@ -73,18 +73,16 @@ export const anhSanPhamSevice = {
     id: number,
     data: {
       file?: File;
-      thuTu: number;
+      // thuTu: number;
       anhChinh: boolean;
       sanPhamId: number;
-      moTa?: string;
     }
   ): Promise<AnhSanPhamChiTiet> {
     const formData = new FormData();
     if (data.file) formData.append("file", data.file);
-    formData.append("thuTu", data.thuTu.toString());
+    // formData.append("thuTu", data.thuTu.toString());
     formData.append("anhChinh", data.anhChinh.toString());
     formData.append("sanpham", data.sanPhamId.toString());
-    if (data.moTa) formData.append("moTa", data.moTa);
 
     const res = await fetch(`${API_URL}/update-image/${id}`, {
       method: "PUT",
