@@ -76,7 +76,7 @@ export default function KhuyenMaiPage() {
         animate={{ opacity: 1, y: 0 }}
         className="text-center mb-8"
       >
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 bg-clip-text text-white mb-2">
           Quản Lý Khuyến Mãi
         </h1>
       </motion.div>
@@ -106,10 +106,7 @@ export default function KhuyenMaiPage() {
       <div className="space-y-4">
         <div className="flex justify-between">
           <h2 className="text-lg font-bold">Danh sách khuyến mại</h2>
-          <Button
-            onClick={() => setIsModalOpen(true)}
-            className="bg-purple-400 px-2"
-          >
+          <Button onClick={() => setIsModalOpen(true)} className=" px-2">
             <PlusIcon />
             Thêm khuyến mại
           </Button>

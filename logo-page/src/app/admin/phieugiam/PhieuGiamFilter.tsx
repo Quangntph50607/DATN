@@ -33,28 +33,28 @@ export default function PhieuGiamFilter({
   const { keyword, setKeyword } = useSearchStore();
 
   return (
-    <div className="flex flex-wrap gap-4 my-4">
+    <div className="flex flex-wrap gap-4 items-end my-4">
       {/* Từ khóa */}
-      <div>
-        <Label className="mb-2 block">Từ khóa</Label>
+      <div className="flex flex-col min-w-[200px]">
+        <Label className="mb-1">Từ khóa</Label>
         <Input
           placeholder="Tìm theo tên hoặc mã"
           value={keyword}
           onChange={(e) => setKeyword(e.target.value)}
-          className="w-full sm:w-[300px]"
+          className="w-[300px]"
         />
       </div>
 
       {/* Loại phiếu */}
-      <div>
-        <Label className="mb-2 block">Loại phiếu</Label>
+      <div className="flex flex-col min-w-[150px]">
+        <Label className="mb-1">Loại phiếu</Label>
         <Select
           value={selectedLoaiPhieuGiam}
           onValueChange={(val) =>
-            onChangeLoaiPhieuGiam(val as "Theo %" | "Theo số tiền" | "")
+            onChangeLoaiPhieuGiam(val as "" | "Theo %" | "Theo số tiền")
           }
         >
-          <SelectTrigger>
+          <SelectTrigger className="w-full">
             <SelectValue placeholder="Tìm theo loại" />
           </SelectTrigger>
           <SelectContent>
@@ -65,8 +65,8 @@ export default function PhieuGiamFilter({
       </div>
 
       {/* Từ ngày */}
-      <div>
-        <Label className="mb-2 block">Từ ngày</Label>
+      <div className="flex flex-col min-w-[150px]">
+        <Label className="mb-1">Từ ngày</Label>
         <Input
           type="date"
           value={fromDate}
@@ -75,8 +75,8 @@ export default function PhieuGiamFilter({
       </div>
 
       {/* Đến ngày */}
-      <div>
-        <Label className="mb-2 block">Đến ngày</Label>
+      <div className="flex flex-col min-w-[150px]">
+        <Label className="mb-1">Đến ngày</Label>
         <Input
           type="date"
           value={toDate}
@@ -85,14 +85,14 @@ export default function PhieuGiamFilter({
       </div>
 
       {/* Nút đặt lại */}
-      <div className="col-span-full text-right">
+      <div className="min-w-[120px]">
         <Button
           type="button"
           onClick={onResetFilter}
-          variant="outline"
-          className="text-sm text-blue-500 underline hover:text-blue-700"
+          variant="default"
+          className="text-sm text-blue-500 underline hover:text-blue-700 w-full"
         >
-          Đặt lại bộ lọc
+          Đặt lại
         </Button>
       </div>
     </div>

@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useSearchStore } from "@/context/useSearch.store";
-import React, { useState } from "react";
+import React from "react";
 
 interface Props {
   fromDate: string;
@@ -20,40 +20,46 @@ export default function KhuyenMaiFilter({
 }: Props) {
   const { keyword, setKeyword } = useSearchStore();
   return (
-    <div>
+    <div className="flex flex-wrap gap-4 my-4 items-end">
       {/* Từ khóa */}
-      <div>
-        <Label className="mb-2 block">Từ khóa</Label>
+      <div className="flex flex-col">
+        <Label className="mb-1">Từ khóa</Label>
         <Input
-          placeholder="Tìm theo tên hoặc mã"
+          placeholder="Tìm theo tên, mã khuyến mãi"
           value={keyword}
           onChange={(e) => setKeyword(e.target.value)}
+          className="w-[300px]"
         />
       </div>
-      <div>
-        <Label className="mb-2 block">Từ ngày</Label>
+
+      {/* Từ ngày */}
+      <div className="flex flex-col">
+        <Label className="mb-1">Ngày bắt đầu</Label>
         <Input
           type="date"
           value={fromDate}
           onChange={(e) => onChangeFromDate(e.target.value)}
+          className="w-[150px]"
         />
       </div>
 
       {/* Đến ngày */}
-      <div>
-        <Label className="mb-2 block">Đến ngày</Label>
+      <div className="flex flex-col">
+        <Label className="mb-1">Ngày kết thúc</Label>
         <Input
           type="date"
           value={toDate}
           onChange={(e) => onChangeTodate(e.target.value)}
+          className="w-[150px]"
         />
       </div>
-      {/* Nút đặt lại */}
-      <div className="col-span-full text-right">
+
+      {/* Nút reset */}
+      <div className="">
         <Button
           type="button"
           onClick={onResetFilter}
-          variant="ghost"
+          variant="default"
           className="text-sm text-blue-500 underline hover:text-blue-700"
         >
           Đặt lại bộ lọc

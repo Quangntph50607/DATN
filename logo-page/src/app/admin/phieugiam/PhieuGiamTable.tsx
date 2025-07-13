@@ -10,7 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Edit, Trash2 } from "lucide-react";
+import { Edit, Eye, Trash2 } from "lucide-react";
 import React from "react";
 
 interface Props {
@@ -106,12 +106,15 @@ export default function PhieuGiamTable({
                       >
                         <Edit className="w-4 h-4 text-blue-500" />
                       </Button>
-                      <Button
+                      {/* <Button
                         size="icon"
                         title="Xóa"
                         onClick={() => onDelete(pgg.id)}
                       >
                         <Trash2 className="w-4 h-4 text-red-500" />
+                      </Button> */}
+                      <Button size="icon" title="Chi tiết">
+                        <Eye className="w-4 h-4 text-red-500" />
                       </Button>
                     </div>
                   </TableCell>

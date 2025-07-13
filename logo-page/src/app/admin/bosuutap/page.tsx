@@ -24,7 +24,7 @@ export default function LegoCollectionPage() {
   const addMutation = useAddBoSuuTap();
   const editMutation = useEditBoSuuTap();
   const deleteMutation = useXoaBoSuuTap();
-  const [currentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const [collectionToEdit, setCollectionToEdit] = useState<BoSuuTap | null>(
     null
@@ -101,7 +101,7 @@ export default function LegoCollectionPage() {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-8"
         >
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent ">
+          <h1 className="text-4xl font-bold bg-gradient-to-r  bg-clip-text text-white ">
             Quản Lý Bộ Sưu Tập
           </h1>
         </motion.div>
@@ -112,7 +112,7 @@ export default function LegoCollectionPage() {
             searchTerm={searchTerm}
             setSearchTerm={setSearchTerm}
           />
-          <Button className=" shadow-lg bg-purple-400" onClick={handleOpenForm}>
+          <Button className=" shadow-lg " onClick={handleOpenForm}>
             <PlusIcon />
             Thêm Bộ Sưu Tập
           </Button>

@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import { format, parse } from "date-fns";
 
 export function formatDateFlexible(
   date: string | number[] | undefined | null,
@@ -15,4 +15,16 @@ export function formatDateFlexible(
   const dt = new Date(date);
   if (isNaN(dt.getTime())) return "";
   return format(dt, withTime ? "dd-MM-yyyy HH:mm:ss" : "dd-MM-yyyy");
+}
+// Chuyển chuỗi ngày 'dd/MM/yyyy' -> Date chỉ có phần ngày
+export function parseInputDate(str: string): Date {
+  const parsed = parse(str, "dd/MM/yyyy", new Date());
+  return new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
+}
+
+// Chuyển mảng [year, month, day, hour, minute] -> Date chỉ có phần ngày
+export function parseArrayDateToDateOnly(arr: number[]): Date | null {
+  if (!Array.isArray(arr) || arr.length < 3) return null;
+  const [y, m, d] = arr;
+  return new Date(y, m - 1, d); // bỏ giờ phút giây
 }

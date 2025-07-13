@@ -55,22 +55,16 @@ export default function SanPhamFilter({
         />
 
         {/* Lọc theo bộ sưu tập */}
-        <Select
-          onValueChange={(val) => onChangeBoSuuTap(val === "all" ? null : +val)}
-          value={selectedBoSuuTap?.toString() || "all"}
-        >
-          <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder="Chọn bộ sưu tập" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Tất cả bộ sưu tập</SelectItem>
-            {boSuuTaps.map((bst) => (
-              <SelectItem key={bst.id} value={bst.id.toString()}>
-                {bst.tenBoSuuTap}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <ReusableCombobox
+          items={boSuuTaps.map((bst) => ({
+            id: bst.id,
+            label: bst.tenBoSuuTap,
+          }))}
+          selectedId={selectedBoSuuTap}
+          onSelect={onChangeBoSuuTap}
+          placeholder="Tìm theo tên bộ sựu tập"
+          allLabel="Tất cả bộ sưu tâp"
+        />
         {/* Reset */}
         <div className="col-span-full text-right">
           <Button
