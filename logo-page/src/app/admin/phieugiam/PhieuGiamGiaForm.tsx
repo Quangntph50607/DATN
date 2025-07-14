@@ -43,6 +43,7 @@ export default function PhieuGiamGia({ editing, setEditing, onSucess }: Props) {
   const form = useForm<PhieuGiamGiaData>({
     resolver: zodResolver(phieuGiamGiaSchema),
     defaultValues: {
+      tenPhieu: "",
       soLuong: undefined,
       giaTriGiam: undefined,
       giamToiDa: undefined,
@@ -58,6 +59,7 @@ export default function PhieuGiamGia({ editing, setEditing, onSucess }: Props) {
   useEffect(() => {
     if (editing) {
       form.reset({
+        tenPhieu: editing.tenPhieu,
         soLuong: editing.soLuong,
         giaTriGiam: editing.giaTriGiam,
         giamToiDa: editing.giamToiDa,
@@ -118,6 +120,19 @@ export default function PhieuGiamGia({ editing, setEditing, onSucess }: Props) {
     <div className="w-full mx-auto">
       <Form {...form}>
         <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
+          <FormField
+            control={form.control}
+            name="tenPhieu"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Tên phiếu</FormLabel>
+                <FormControl>
+                  <Input type="text" placeholder="Nhập tên phiếu" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           <FormField
             control={form.control}
             name="soLuong"

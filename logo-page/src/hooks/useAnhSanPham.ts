@@ -36,7 +36,7 @@ export function useAddAnhSanPham() {
   return useMutation({
     mutationFn: (data: {
       files: File[];
-      thuTu: number;
+      // thuTu: number;
       anhChinh: boolean;
       sanPhamId: number;
       moTa?: string;
@@ -64,7 +64,7 @@ export function useSuaAnhSanPham() {
       id: number;
       data: {
         file?: File;
-        thuTu: number;
+        // thuTu: number;
         anhChinh: boolean;
         sanPhamId: number;
         moTa?: string;

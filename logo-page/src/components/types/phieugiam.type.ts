@@ -1,6 +1,7 @@
 export interface PhieuGiamGia {
   id: number;
   maPhieu?: string;
+  tenPhieu: string;
   soLuong: number;
   loaiPhieuGiam: "Theo %" | "Theo số tiền";
   giaTriGiam: number;

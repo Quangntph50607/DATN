@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import React from "react";
 import { cn } from "@/lib/utils";
 import { formatDateFlexible } from "./formatDateFlexible";
-import { Edit, Trash2 } from "lucide-react";
+import { Edit, Eye, Trash2 } from "lucide-react";
 
 interface Props {
   khuyenMai: KhuyenMaiDTO[];
@@ -68,10 +68,10 @@ export default function KhuyenMaiTable({ khuyenMai, onDelete, onEdit }: Props) {
                     {km.trangThai === "active"
                       ? "Đang hoạt động"
                       : km.trangThai === "inactive"
-                        ? "Chưa bắt đầu"
-                        : km.trangThai === "expired"
-                          ? "Đã hết hạn"
-                          : "Không xác định"}
+                      ? "Chưa bắt đầu"
+                      : km.trangThai === "expired"
+                      ? "Đã hết hạn"
+                      : "Không xác định"}
                   </span>
                 </TableCell>
                 <TableCell>
@@ -79,8 +79,11 @@ export default function KhuyenMaiTable({ khuyenMai, onDelete, onEdit }: Props) {
                     <Button title="Chỉnh sửa" onClick={() => onEdit(km)}>
                       <Edit className="w-4 h-4 text-blue-500" />
                     </Button>
-                    <Button title="Xóa" onClick={() => onDelete(km.id)}>
+                    {/* <Button title="Xóa" onClick={() => onDelete(km.id)}>
                       <Trash2 className="w-4 h-4 text-red-500" />
+                    </Button> */}
+                    <Button title="Chi tiết">
+                      <Eye className="w-4 h-4 text-red-500" />
                     </Button>
                   </div>
                 </TableCell>

@@ -32,9 +32,9 @@ const LegoCollectionTable: React.FC<Props> = ({
           <TableRow className="font-bold">
             <TableHead className="w-20">STT</TableHead>
             <TableHead className="w-60 truncate">Tên bộ sưu tập</TableHead>
-            <TableHead className="w-80 truncate">Mô tả</TableHead>
             <TableHead className="w-60">Ngày tạo</TableHead>
-            <TableHead className="w-32">Hành đọng</TableHead>
+            <TableHead className="w-80 truncate">Mô tả</TableHead>
+            <TableHead className="w-32">Hành động</TableHead>
           </TableRow>
         </TableHeader>
 
@@ -42,9 +42,13 @@ const LegoCollectionTable: React.FC<Props> = ({
           {collections.map((c, index) => (
             <TableRow key={c.id}>
               <TableCell>{index + 1}</TableCell>
-              <TableCell>{c.tenBoSuuTap}</TableCell>
-              <TableCell>{c.moTa}</TableCell>
-              <TableCell>{formatDateFlexible(c.ngayTao)}</TableCell>
+              <TableCell className="w-60 max-w-[300px] truncate">
+                {c.tenBoSuuTap}
+              </TableCell>
+              <TableCell>{formatDateFlexible(c.ngayTao, false)}</TableCell>
+              <TableCell className="w-80 max-w-[320px] truncate">
+                {c.moTa}
+              </TableCell>
               <TableCell>
                 <div className="flex gap-2">
                   <Button onClick={() => onEdit(c)} title="Chỉnh sửa">
