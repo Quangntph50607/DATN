@@ -111,7 +111,6 @@ export default function SanPhaChitiet() {
           if (videoFile) {
             uploadVideo.mutate({ danhGiaId: res.id, file: videoFile });
           }
-          // reset form
           setTieuDe(""); setTextDanhGia(""); setSoSao(5); setFiles([]); setVideoFile(null);
           toast.success("Đánh giá thành công!");
         },
@@ -121,8 +120,6 @@ export default function SanPhaChitiet() {
       }
     );
   };
-
-  // Function to load images
   const loadImages = async (anhSps: AnhSanPhamChiTiet[]) => {
     const urls: Record<string, string | null> = {};
     for (const anh of anhSps) {
@@ -141,7 +138,6 @@ export default function SanPhaChitiet() {
     setImageUrls(urls);
   };
 
-  // Load images when sanPhamChiTiet is available
   useEffect(() => {
     if (sanPhamChiTiet?.anhSps && sanPhamChiTiet.anhSps.length > 0) {
       loadImages(sanPhamChiTiet.anhSps);
@@ -159,15 +155,12 @@ export default function SanPhaChitiet() {
         100
       )
       : 0;
-
-  // Increase quantity
   const tangSoLuong = () => {
     if (soLuong < sanPhamChiTiet.soLuongTon) {
       setSoLuong(soLuong + 1);
     }
   };
 
-  // Decrease quantity
   const giamSoLuong = () => {
     if (soLuong > 1) {
       setSoLuong(soLuong - 1);
@@ -190,13 +183,9 @@ export default function SanPhaChitiet() {
       setSoLuong(sanPhamChiTiet.soLuongTon);
     }
   };
-
-  // Handle thumbnail click to change main image
   const handleThumbnailClick = (fileName: string) => {
     setImageUrls((prev) => ({ ...prev, main: fileName }));
-  };
-
-  // Handle add to cart
+  }
   const handleAddToCart = () => {
     addToCart.mutate(
       { sanPhamId: sanPhamID, soLuong },
@@ -215,8 +204,6 @@ export default function SanPhaChitiet() {
       }
     );
   };
-
-  // Handle buy now - redirect to cart after adding
   const handleBuyNow = () => {
     addToCart.mutate(
       { sanPhamId: sanPhamID, soLuong },
@@ -256,7 +243,6 @@ export default function SanPhaChitiet() {
               -{discountPercent}%
             </span>
           )}
-          {/* Thumbnails */}
           {sanPhamChiTiet.anhSps && sanPhamChiTiet.anhSps.length > 0 && (
             <div className="flex gap-2 mt-4 overflow-x-auto">
               {sanPhamChiTiet.anhSps.map((anh, index) => (
@@ -282,7 +268,6 @@ export default function SanPhaChitiet() {
               ))}
             </div>
           )}
-          {/* Bình luận sản phẩm dưới ảnh */}
           <section className="max-w-2xl mx-auto mt-8 bg-white rounded-lg shadow-lg p-6" aria-labelledby="binh-luan-san-pham">
             <h2 className="text-2xl font-bold mb-4 text-gray-900" id="binh-luan-san-pham">
               Bình luận sản phẩm
@@ -379,13 +364,11 @@ export default function SanPhaChitiet() {
             )}
           </section>
         </div>
-        {/* Product Information */}
         <div className="w-full md:w-1/2 space-y-4">
           <h1 className="font-bold text-3xl text-gray-900">
             {sanPhamChiTiet.tenSanPham}
           </h1>
           <span className="text-gray-600">{sanPhamChiTiet.moTa}</span>
-          {/* Price */}
           <div className="space-y-2">
             <div className="flex items-center gap-4">
               <span className="font-semibold text-2xl text-red-500">
@@ -447,7 +430,6 @@ export default function SanPhaChitiet() {
               </Button>
             </div>
           </div>
-          {/* Additional Information */}
           <div className="text-gray-700 space-y-2">
             <p>
               <strong>Mã sản phẩm:</strong> {sanPhamChiTiet.maSanPham}
