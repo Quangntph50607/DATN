@@ -27,7 +27,6 @@ import { BadgePercent } from 'lucide-react';
 import Image from 'next/image';
 import { CartItem } from '@/components/types/order.type';
 import { PhieuGiamGia } from '@/components/types/phieugiam.type';
-import { toast } from 'sonner';
 
 interface Props {
   customerName: string;
@@ -139,7 +138,7 @@ const Summary: React.FC<Props> = ({
               <span className="font-semibold">Email:</span> {customerEmail || "-"}
             </div>
             <div>
-              <span className="font-semibold">SĐT:</span> {customerPhone || "-"}
+              <span className="font-semibold">SĐT:</span> {customerPhone && customerPhone.trim().length > 0 ? customerPhone : ""}
             </div>
             <ScrollArea className="h-48 pr-4 my-2">
               <div className="space-y-2">
@@ -220,11 +219,11 @@ const Summary: React.FC<Props> = ({
             </DialogClose>
             <Button
               onClick={async () => {
-                // Nếu là khách lẻ (không chọn khách hàng) và chưa nhập SĐT
-                if (paymentMethod === "transfer" && (!customerPhone || customerPhone.trim() === "")) {
-                  toast.error("Vui lòng nhập số điện thoại khách hàng!");
-                  return;
-                }
+                // BỎ validation bắt buộc nhập SĐT khi chuyển khoản
+                // if (paymentMethod === "transfer" && (!customerPhone || customerPhone.trim() === "")) {
+                //   toast.error("Vui lòng nhập số điện thoại khách hàng!");
+                //   return;
+                // }
                 if (paymentMethod === "transfer") {
                   await handleGenerateQR();
                   setOpen(false); // Đóng dialog xác nhận, mở dialog QR

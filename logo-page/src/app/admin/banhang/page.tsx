@@ -170,7 +170,16 @@ const OrderPage = () => {
     }
 
     // Sửa: Nếu có nhập SĐT thì lấy đúng, không thì truyền 'KHACHLE'
-    const phoneForOrder = customerPhone && customerPhone.trim() !== "" ? customerPhone.trim() : "KHACHLE";
+    // const phoneForOrder = customerPhone && customerPhone.trim() !== "" ? customerPhone.trim() : "KHACHLE";
+
+    // Kiểm tra định dạng SĐT nếu có nhập
+    if (customerPhone && customerPhone.trim().length > 0) {
+      const phoneRegex = /^0\d{9}$/;
+      if (!phoneRegex.test(customerPhone.trim())) {
+        toast.error('Số điện thoại không hợp lệ!');
+        return;
+      }
+    }
 
     if (!paymentMethod) {
       toast.error('Vui lòng chọn phương thức thanh toán');
@@ -182,10 +191,11 @@ const OrderPage = () => {
       return;
     }
 
+    // Nếu CreateHoaDonDTO yêu cầu sdt là string, thì phải truyền 'KHACHLE' khi không nhập, còn nếu không bắt buộc thì giữ như hiện tại
+    // Giả sử sdt là không bắt buộc, giữ như hiện tại:
     const orderData: CreateHoaDonDTO = {
       loaiHD: 1,
       nvId: user.id,
-      sdt: phoneForOrder,
       diaChiGiaoHang: "Tại quầy",
       maVanChuyen: "QUAY_" + Math.random().toString(36).substring(2, 8).toUpperCase(),
       phuongThucThanhToan: (
@@ -204,7 +214,8 @@ const OrderPage = () => {
       ...(selectedVoucher && { idPhieuGiam: selectedVoucher.id }),
       ...(selectedCustomerId ? { userId: selectedCustomerId } : {}), // chỉ truyền userId nếu có chọn khách hàng
       qrCodeUrl: qrCodeUrl || undefined,
-    };
+      ...(customerPhone && customerPhone.trim().length > 0 ? { sdt: customerPhone.trim() } : {}),
+    } as CreateHoaDonDTO;
 
     console.log("orderData gửi lên BE:", orderData);
     console.log('User:', user);
