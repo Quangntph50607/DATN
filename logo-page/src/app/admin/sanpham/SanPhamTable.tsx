@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Edit, Eye, PlusCircle, SwitchCameraIcon, Trash2 } from "lucide-react";
-import { useBoSuutap } from "@/hooks/useBoSutap";
-import { useDanhMuc } from "@/hooks/useDanhMuc";
+
 import { SanPham } from "@/components/types/product.type";
 import {
   Table,
@@ -11,7 +10,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import AnhSanPhamManager from "./AnhSanPhamManager";
 
 interface Props {
   sanPhams: SanPham[];
@@ -20,9 +18,6 @@ interface Props {
 }
 
 export default function SanPhamTable({ sanPhams, onDelete, onEdit }: Props) {
-  const { data: danhMucs = [] } = useDanhMuc();
-  const { data: boSuuTaps = [] } = useBoSuutap();
-
   // const getTenDanhMuc = (id: number) =>
   //   danhMucs.find((dm) => dm.id === id)?.tenDanhMuc || "Không rõ";
 
@@ -82,7 +77,7 @@ export default function SanPhamTable({ sanPhams, onDelete, onEdit }: Props) {
                 </TableCell>
                 <TableCell>
                   <div className="flex gap-2 justify-center">
-                    <AnhSanPhamManager
+                    {/* <AnhSanPhamManager
                       sanPhamId={sp.id}
                       maSanPham={sp.maSanPham ?? ""}
                       tenSanPham={sp.tenSanPham}
@@ -91,7 +86,10 @@ export default function SanPhamTable({ sanPhams, onDelete, onEdit }: Props) {
                           <PlusCircle className="size-4 text-gray-700" />
                         </Button>
                       }
-                    />
+                    /> */}
+                    <Button title="Chi tiết sửa">
+                      <Eye className="w-4 h-4 text-blue-500" />
+                    </Button>
                     <Button onClick={() => onEdit(sp)} title="Chỉnh sửa">
                       <Edit className="w-4 h-4 text-blue-500" />
                     </Button>
