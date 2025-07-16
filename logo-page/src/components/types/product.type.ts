@@ -41,3 +41,19 @@ export interface SanPham {
   boSuuTapId: number;
   anhSps?: AnhSanPhamChiTiet[];
 }
+export interface ProductData {
+  tenSanPham: string;
+  gia: number;
+  soLuongTon: number;
+  soLuongManhGhep: number;
+  moTa: string;
+  doTuoi: number;
+  danhMucId: number;
+  boSuuTapId: number;
+  files: FileList;
+}
+
+export interface CreateSanPhamResponse {
+  sanPham: SanPham;
+  anhSps: AnhSanPhamChiTiet[];
+}

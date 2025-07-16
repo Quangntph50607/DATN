@@ -1,7 +1,10 @@
 // src/services/sanPhamService.ts
 
 // import { CreateSanPhamDto } from "@/components/types/createSanPham.dto";
-import { SanPham } from "@/components/types/product.type";
+import {
+  CreateSanPhamResponse,
+  SanPham,
+} from "@/components/types/product.type";
 import { ProductData } from "@/lib/sanphamschema";
 
 const API_URL = "http://localhost:8080/api";
@@ -40,25 +43,54 @@ export const sanPhamService = {
   },
 
   // Add
-  async addSanPham(data: ProductData): Promise<SanPham> {
-    const payload = {
-      ...data,
-      danhMuc: { id: data.danhMucId },
-      boSuuTap: { id: data.boSuuTapId },
-    };
-    console.log("Payload gửi đi:", data);
+  // async addSanPham(data: ProductData): Promise<SanPham> {
+  //   const payload = {
+  //     ...data,
+  //     danhMuc: { id: data.danhMucId },
+  //     boSuuTap: { id: data.boSuuTapId },
+  //   };
+  //   console.log("Payload gửi đi:", data);
 
-    const res = await fetch(`${API_URL}/sanpham/Create`, {
+  //   const res = await fetch(`${API_URL}/sanpham/Create`, {
+  //     method: "POST",
+  //     headers: {
+  //       "Content-Type": "application/json",
+  //     },
+  //     credentials: "include",
+  //     body: JSON.stringify(payload),
+  //   });
+
+  //   if (!res.ok) {
+  //     throw new Error("Không thể thêm sản phẩm");
+  //   }
+
+  //   return await res.json();
+  // },
+  async addSanPham(data: ProductData): Promise<CreateSanPhamResponse> {
+    const formData = new FormData();
+    formData.append("tenSanPham", data.tenSanPham);
+    formData.append("gia", data.gia.toString());
+    formData.append("soLuongTon", data.soLuongTon.toString());
+    formData.append("soLuongManhGhep", data.soLuongManhGhep.toString());
+    formData.append("moTa", data.moTa);
+    formData.append("doTuoi", data.doTuoi.toString());
+    formData.append("danhMucId", data.danhMucId.toString());
+    formData.append("boSuuTapId", data.boSuuTapId.toString());
+
+    Array.from(data.files).forEach((file) => {
+      formData.append("files", file);
+    });
+
+    const res = await fetch(`${API_URL}/sanpham/CreateWithFileImages`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
       credentials: "include",
-      body: JSON.stringify(payload),
+      body: formData,
     });
 
     if (!res.ok) {
-      throw new Error("Không thể thêm sản phẩm");
+      const resData = await res.json();
+      const errorMsg = resData.message || "Không thể thêm sản phẩm";
+      throw new Error(errorMsg);
     }
 
     return await res.json();

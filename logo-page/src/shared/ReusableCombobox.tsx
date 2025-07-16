@@ -64,10 +64,10 @@ export default function ReusableCombobox({
         </Button>
       </PopoverTrigger>
 
-      <PopoverContent className="w-[250px]  p-0">
-        <Command className="bg-gray-500 ">
-          <CommandInput placeholder={placeholder} className="h-9" />
-          <CommandList className="max-h-60 overflow-y-auto">
+      <PopoverContent className="w-[250px]   p-0">
+        <Command className="bg-gray-600 ">
+          <CommandInput placeholder={placeholder} className="h-9 text-black" />
+          <CommandList className="max-h-60 overflow-y-auto text-black">
             <CommandEmpty>Không tìm thấy</CommandEmpty>
             <CommandGroup className="">
               {showAllOption && (
