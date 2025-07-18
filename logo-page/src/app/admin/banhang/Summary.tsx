@@ -83,6 +83,7 @@ const Summary: React.FC<Props> = ({
   // XÓA local state qrCodeUrl ở đây, dùng prop thay thế
   const [loadingQR, setLoadingQR] = React.useState(false);
   const qrCodeRef = React.useRef<string | null>(null);
+  const [showConfirmReceived, setShowConfirmReceived] = React.useState(false);
 
   const handleGenerateQR = async () => {
     setLoadingQR(true);
@@ -274,9 +275,7 @@ const Summary: React.FC<Props> = ({
               <Button
                 onClick={() => {
                   setShowQR(false);
-                  // ĐẢM BẢO truyền đúng prop qrCodeUrl ra ngoài
-                  console.log("QR gửi sang createOrder:", qrCodeRef.current);
-                  onCheckout(qrCodeRef.current || undefined);
+                  setShowConfirmReceived(true); // Mở dialog xác nhận đã nhận tiền
                 }}
                 disabled={loadingQR}
               >
@@ -286,6 +285,30 @@ const Summary: React.FC<Props> = ({
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Dialog xác nhận đã nhận tiền */}
+      <Dialog open={showConfirmReceived} onOpenChange={setShowConfirmReceived}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Xác nhận đã nhận tiền</DialogTitle>
+            <DialogDescription>Bạn đã nhận được tiền từ khách chưa?</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowConfirmReceived(false)}>
+              Hủy
+            </Button>
+            <Button
+              variant="default"
+              onClick={() => {
+                setShowConfirmReceived(false);
+                onCheckout(qrCodeRef.current || undefined);
+              }}
+            >
+              Xác nhận
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <div className="space-y-2 text-sm mb-4">
         <div className="flex justify-between text-gray-300">
