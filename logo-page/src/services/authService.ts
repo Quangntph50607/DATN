@@ -4,6 +4,7 @@ interface LoginResponse {
   email: string;
   roleId: number;
   message: string;
+  token?: string; // Thêm dòng này
 }
 
 interface RegisterResponse {
