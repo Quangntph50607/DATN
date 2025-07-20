@@ -8,17 +8,18 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import React from "react";
+import React, { useState } from "react";
 import { cn } from "@/lib/utils";
 import { formatDateFlexible } from "./formatDateFlexible";
-import { Edit, Eye, Trash2 } from "lucide-react";
+import { Edit, Eye } from "lucide-react";
 
 interface Props {
   khuyenMai: KhuyenMaiDTO[];
-  onDelete: (id: number) => void;
   onEdit: (data: KhuyenMaiDTO) => void;
+  onView?: (id: number) => void;
 }
-export default function KhuyenMaiTable({ khuyenMai, onDelete, onEdit }: Props) {
+
+export default function KhuyenMaiTable({ khuyenMai, onEdit, onView }: Props) {
   return (
     <div className="border-3 border-blue-500 rounded-2xl mt-3 overflow-x-auto shadow-2xl shadow-blue-500/20">
       <Table>
@@ -82,8 +83,12 @@ export default function KhuyenMaiTable({ khuyenMai, onDelete, onEdit }: Props) {
                     {/* <Button title="Xóa" onClick={() => onDelete(km.id)}>
                       <Trash2 className="w-4 h-4 text-red-500" />
                     </Button> */}
-                    <Button title="Chi tiết">
-                      <Eye className="w-4 h-4 text-red-500" />
+                    <Button
+                      title="Xem chi tiết"
+                      onClick={() => onView?.(km.id)}
+                      variant="outline"
+                    >
+                      <Eye className="w-4 h-4 text-green-600" />
                     </Button>
                   </div>
                 </TableCell>

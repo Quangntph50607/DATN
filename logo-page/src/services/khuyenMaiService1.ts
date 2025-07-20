@@ -1,5 +1,6 @@
 // services/khuyenMaiService.ts
 import {
+  ChiTietKhuyenMai,
   KhuyenMaiDTO,
   KhuyenMaiSanPhamDTO,
   KhuyenMaiTheoSanPham,
@@ -29,26 +30,20 @@ export const khuyenMaiService = {
     return res.json();
   },
 
-  async addKhuyenMai(data: KhuyenMaiPayLoad): Promise<KhuyenMaiPayLoad> {
-    try {
-      const res = await fetch(`${API_URL}/Create`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-        cache: "no-store",
-      });
-      if (!res.ok) {
-        throw new Error("Không thể thêm khuyến mãi ");
-      }
-      return await res.json();
-    } catch (error) {
-      console.error("Lỗi thêm :", error);
-      throw error;
+  async addKhuyenMai(data: KhuyenMaiPayLoad): Promise<KhuyenMaiDTO> {
+    const res = await fetch(`${API_URL}/Create`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+      cache: "no-store",
+    });
+    if (!res.ok) {
+      throw new Error("Không thể thêm khuyến mãi ");
     }
+    return await res.json(); // API trả về object có `id`, `trangThai`, ...
   },
-
   async suaKhuyenMai(id: number, data: KhuyenMaiDTO): Promise<KhuyenMaiDTO> {
     const res = await fetch(`${API_URL}/Update/${id}`, {
       method: "PUT",
@@ -104,5 +99,26 @@ export const khuyenMaiService = {
       console.error("Lỗi:", error);
       throw error;
     }
+  },
+  async historyChitietKhuyenMai(id: number): Promise<ChiTietKhuyenMai> {
+    console.log("historyChitietKhuyenMai - calling API with id:", id);
+    const res = await fetch(`${API_URL}/getDetail/${id}`, {
+      cache: "no-store",
+    });
+    console.log("historyChitietKhuyenMai - response status:", res.status);
+    console.log("historyChitietKhuyenMai - response ok:", res.ok);
+
+    if (!res.ok) {
+      console.error(
+        "historyChitietKhuyenMai - API error:",
+        res.status,
+        res.statusText
+      );
+      throw new Error("Không thể lấy chi tiết khuyến mãi");
+    }
+
+    const data = await res.json();
+    console.log("historyChitietKhuyenMai - response data:", data);
+    return data;
   },
 };

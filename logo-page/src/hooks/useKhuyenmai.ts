@@ -1,6 +1,7 @@
 // hooks/useKhuyenMai.ts
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  ChiTietKhuyenMai,
   KhuyenMaiDTO,
   KhuyenMaiSanPhamDTO,
   KhuyenMaiTheoSanPham,
@@ -28,8 +29,8 @@ export function useKhuyenMaiID(id: number) {
 
 export function useAddKhuyenMai() {
   const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (data: KhuyenMaiPayLoad) => khuyenMaiService.addKhuyenMai(data),
+  return useMutation<KhuyenMaiDTO, Error, KhuyenMaiPayLoad>({
+    mutationFn: (data) => khuyenMaiService.addKhuyenMai(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["khuyenmais"] });
     },
@@ -77,5 +78,18 @@ export function useListKhuyenMaiTheoSanPham() {
   return useQuery<KhuyenMaiTheoSanPham[]>({
     queryKey: ["sanPhams"],
     queryFn: khuyenMaiService.ListSanPhamTheoKhuyenMai,
+  });
+}
+
+// Chi tiết lịch sử km
+export function useHistoryKhuyenMai(id: number) {
+  console.log("useHistoryKhuyenMai - id:", id);
+  return useQuery<ChiTietKhuyenMai>({
+    queryKey: ["chiTietKhuyenMai", id],
+    queryFn: async () => {
+      const result = await khuyenMaiService.historyChitietKhuyenMai(id);
+      return result;
+    },
+    enabled: !!id,
   });
 }

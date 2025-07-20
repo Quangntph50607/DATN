@@ -2,7 +2,12 @@
 import React, { useState } from "react";
 import KhuyenMaiForm from "./KhuyenMaiForm";
 import KhuyenMaiTable from "./KhuyenMaiTable";
-import { useDeleteKhuyenMai, useKhuyenMai } from "@/hooks/useKhuyenmai";
+import KhuyenMaiDetailModal from "./KhuyenMaiDetailModal";
+import {
+  useDeleteKhuyenMai,
+  useHistoryKhuyenMai,
+  useKhuyenMai,
+} from "@/hooks/useKhuyenmai";
 import { toast } from "sonner";
 import { KhuyenMaiDTO } from "@/components/types/khuyenmai-type";
 import { Button } from "@/components/ui/button";
@@ -17,12 +22,16 @@ export default function KhuyenMaiPage() {
   const { data: khuyenMai = [], isLoading, refetch } = useKhuyenMai();
   const [editing, setEditing] = useState<KhuyenMaiDTO | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
-  const deleteKhuyenMaiMutation = useDeleteKhuyenMai();
   const [currentPage, setCurrentPage] = useState(1);
   const { keyword, setKeyword } = useSearchStore();
+  const [viewingId, setViewingId] = useState<number | null>(null);
 
+  const { data: chiTietData, isLoading: isLoadingDetail } = useHistoryKhuyenMai(
+    viewingId ?? 0
+  );
   const itemPerPage = 10;
   const totalPages = Math.ceil(khuyenMai.length / itemPerPage);
 
@@ -43,32 +52,29 @@ export default function KhuyenMaiPage() {
     currentPage * itemPerPage
   );
 
-  const handleDelete = async (id: number) => {
-    if (window.confirm("Bạn có chắc muốn xóa khuyến mãi này?")) {
-      try {
-        await deleteKhuyenMaiMutation.mutateAsync(id);
-        toast.success("Xóa thành khuyến mãi thành công!");
-        refetch();
-      } catch {
-        toast.error("Lỗi xóa sản phẩm");
-      }
-    }
-  };
   const handleEdit = (data: KhuyenMaiDTO) => {
     setEditing(data);
     setIsModalOpen(true);
   };
+
+  const handleView = (id: number) => {
+    setViewingId(id);
+    setIsDetailModalOpen(true);
+  };
+
   const handleSucces = () => {
     refetch();
     setEditing(null);
     setIsModalOpen(false);
   };
+
   const handleResetFilter = () => {
     setKeyword("");
     setFromDate("");
     setToDate("");
     setCurrentPage(1);
   };
+
   return (
     <Card className="p-4 bg-gray-800 shadow-md  w-full h-full">
       <motion.div
@@ -80,6 +86,8 @@ export default function KhuyenMaiPage() {
           Quản Lý Khuyến Mãi
         </h1>
       </motion.div>
+
+      {/* Modal thêm/sửa khuyến mãi */}
       <Modal
         open={isModalOpen}
         onOpenChange={(open) => {
@@ -96,6 +104,25 @@ export default function KhuyenMaiPage() {
           onSucess={handleSucces}
         />
       </Modal>
+
+      {/* Modal xem chi tiết khuyến mãi */}
+      <Modal
+        open={isDetailModalOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            setViewingId(null);
+          }
+          setIsDetailModalOpen(open);
+        }}
+        title="Chi tiết lịch sử khuyến mãi"
+        className="max-w-6xl"
+      >
+        <KhuyenMaiDetailModal
+          data={chiTietData || null}
+          isLoading={isLoadingDetail}
+        />
+      </Modal>
+
       <KhuyenMaiFilter
         fromDate={fromDate}
         toDate={toDate}
@@ -117,8 +144,8 @@ export default function KhuyenMaiPage() {
           <>
             <KhuyenMaiTable
               khuyenMai={paginatedData}
-              onDelete={handleDelete}
               onEdit={handleEdit}
+              onView={handleView}
             />
             <div className="flex flex-wrap gap-2 justify-center items-center">
               <Button

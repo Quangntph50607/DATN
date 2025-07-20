@@ -16,10 +16,15 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { DateTimePicker } from "@/components/ui/date-picker";
 import { khuyenMaiSchema, KhuyenMaiData } from "@/lib/khuyenmaischema";
-import { useAddKhuyenMai, useEditKhuyenMai } from "@/hooks/useKhuyenmai";
+import {
+  useAddKhuyenMai,
+  useAddKhuyenMaiVaoSanPham,
+  useEditKhuyenMai,
+  useKhuyenMai,
+} from "@/hooks/useKhuyenmai";
 import { KhuyenMaiDTO } from "@/components/types/khuyenmai-type";
-import { useEffect } from "react";
-import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import SanPhamMultiSelect from "./SanPhamMultiSelect";
 
 interface Props {
   editing: KhuyenMaiDTO | null;
@@ -41,27 +46,48 @@ export default function KhuyenMaiForm({
       ngayKetThuc: new Date(),
     },
   });
-
-  const parseDate = (dateString: string) => {
-    const pared = parse(dateString, "dd-MM-YYYY HH:mm:ss", new Date());
-    return isNaN(pared.getTime()) ? new Date() : pared;
-  };
-
   useEffect(() => {
     if (editing) {
-      form.reset({
-        tenKhuyenMai: editing.tenKhuyenMai,
-        phanTramKhuyenMai: editing.phanTramKhuyenMai,
-        ngayBatDau: parseDate(editing.ngayBatDau),
-        ngayKetThuc: parseDate(editing.ngayKetThuc),
-      });
+      if (
+        Array.isArray(editing.ngayBatDau) &&
+        editing.ngayBatDau.length >= 5 &&
+        Array.isArray(editing.ngayKetThuc) &&
+        editing.ngayKetThuc.length >= 5
+      ) {
+        const [y1, m1, d1, h1, min1] = editing.ngayBatDau.map(Number);
+        const [y2, m2, d2, h2, min2] = editing.ngayKetThuc.map(Number);
+
+        const start = new Date(y1, m1 - 1, d1, h1, min1);
+        const end = new Date(y2, m2 - 1, d2, h2, min2);
+
+        form.reset({
+          tenKhuyenMai: editing.tenKhuyenMai,
+          phanTramKhuyenMai: editing.phanTramKhuyenMai,
+          ngayBatDau: start,
+          ngayKetThuc: end,
+        });
+      }
     }
   }, [editing, form]);
-
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const addKhuyenMai = useAddKhuyenMai();
   const editKhuyenMai = useEditKhuyenMai();
-
+  const addKhuyenMaiVaoSp = useAddKhuyenMaiVaoSanPham();
+  const { data: khuyenMaiList = [] } = useKhuyenMai();
   const onSubmit = (data: KhuyenMaiData) => {
+    const checkTrungTen = khuyenMaiList.some(
+      (km) =>
+        km.tenKhuyenMai.trim().toLowerCase() ===
+          data.tenKhuyenMai.trim().toLowerCase() && km.id !== editing?.id
+    );
+    if (checkTrungTen) {
+      toast.error("Tên khuyến mại đã tồn tại !");
+      return;
+    }
+    if (data.ngayBatDau > data.ngayKetThuc) {
+      toast.error("Ngày bắt đầu phải sau ngày kết thúc");
+      return;
+    }
     const now = new Date();
     if (data.ngayBatDau < now) {
       toast.error("Ngày bắt đầu phải từ hôm nay trở đi");
@@ -85,10 +111,8 @@ export default function KhuyenMaiForm({
         {
           onSuccess: () => {
             toast.success("Sửa khuyến mãi thành công!");
-            toast.success("Sửa khuyến mãi thành công!");
             setEditing(null);
             form.reset();
-            onSucess?.();
             onSucess?.();
           },
           onError: () => {
@@ -98,16 +122,43 @@ export default function KhuyenMaiForm({
       );
     } else {
       addKhuyenMai.mutate(payload, {
-        onSuccess: () => {
-          toast.success("Thêm khuyến mãi thành công");
-          toast.success("Thêm khuyến mãi thành công");
+        onSuccess: (res) => {
+          if (res?.id && selectedIds.length > 0) {
+            addKhuyenMaiVaoSp.mutate(
+              {
+                khuyenMaiId: res.id,
+                listSanPhamId: selectedIds,
+              },
+              {
+                onSuccess: (res: any) => {
+                  if (res.trangThai === "SUCCESS") {
+                    toast.success("Áp dụng khuyến mãi thành công!");
+                  } else if (
+                    res.trangThai === "FAILED" &&
+                    res.sanPhamTrung?.length > 0
+                  ) {
+                    const tenSp = res.sanPhamTrung
+                      .map((sp: any) => sp.tenSanPham)
+                      .join(", ");
+                    toast.error(
+                      `Không thể áp dụng cho: ${tenSp}. Các sản phẩm này đã có khuyến mãi trùng thời gian.`
+                    );
+                  } else {
+                    toast.error(res.message || "Áp dụng khuyến mãi thất bại");
+                  }
+                },
+                onError: (err: any) => {
+                  toast.error(
+                    err?.response?.data?.message ||
+                      "Áp dụng khuyến mãi thất bại"
+                  );
+                },
+              }
+            );
+          }
           form.reset();
+          setSelectedIds([]);
           onSucess?.();
-          onSucess?.();
-        },
-        onError: () => {
-          toast.error("Thêm khuyến mãi thất bại");
-          toast.error("Thêm khuyến mãi thất bại");
         },
       });
     }
@@ -142,7 +193,7 @@ export default function KhuyenMaiForm({
                 <FormControl>
                   <Input
                     type="number"
-                    placeholder="0 - 60"
+                    placeholder="---"
                     {...field}
                     onChange={(e) => field.onChange(+e.target.value)}
                   />
@@ -188,7 +239,11 @@ export default function KhuyenMaiForm({
               )}
             />
           </div>
-
+          {/* Checkbox */}
+          <SanPhamMultiSelect
+            selectedIds={selectedIds}
+            setSelectedIds={setSelectedIds}
+          />
           {/* Submit */}
           <div className="flex gap-2">
             <Button type="submit">{editing ? "Cập nhật" : "Thêm mới"}</Button>
