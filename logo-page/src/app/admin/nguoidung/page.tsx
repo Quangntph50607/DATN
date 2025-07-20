@@ -35,6 +35,7 @@ import {
 import { ToastProvider } from "@/components/ui/toast-provider";
 import { Card } from "@/components/ui/card";
 import { parseBackendDate } from "@/utils/dateUtils";
+import { ConfirmDialog } from "@/shared/ConfirmDialog";
 
 type TabType = "employee" | "customer" | "inactive";
 
@@ -44,6 +45,7 @@ function UserManagementContent() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState<DTOUser | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [accountToChangeStatus, setAccountToChangeStatus] = useState<DTOUser | null>(null);
 
   const { data: allAccounts = [] } = useAccounts();
   const { data: roles = [] } = useRoles();
@@ -178,23 +180,27 @@ function UserManagementContent() {
     setIsFormOpen(true);
   };
 
-  const handleDelete = (account: DTOUser) => {
-    if (!confirm("Bạn có chắc chắn muốn ngừng hoạt động tài khoản này?")) return;
+  // Thay thế handleDelete để mở dialog xác nhận
+  const handleRequestChangeStatus = (account: DTOUser) => {
+    setAccountToChangeStatus(account);
+  };
 
-    softDelete.mutate(
-      {
-        ...account
-      },
-      {
-        onSuccess: () => {
-          toast.success("Đã chuyển tài khoản sang trạng thái ngừng hoạt động");
-          refetch();
-        },
-        onError: () => {
-          toast.error("Xóa tài khoản thất bại");
-        },
-      }
-    );
+  const handleConfirmChangeStatus = () => {
+    if (accountToChangeStatus) {
+      softDelete.mutate(
+        { ...accountToChangeStatus },
+        {
+          onSuccess: () => {
+            toast.success("Đã chuyển tài khoản sang trạng thái ngừng hoạt động");
+            refetch();
+          },
+          onError: () => {
+            toast.error("Xóa tài khoản thất bại");
+          },
+        }
+      );
+      setAccountToChangeStatus(null);
+    }
   };
 
   console.log("Employees:", employees);
@@ -289,7 +295,7 @@ function UserManagementContent() {
                 <AccountTable
                   accounts={paginatedAccounts}
                   onEdit={handleEditAccount}
-                  onDelete={handleDelete}
+                  onDelete={handleRequestChangeStatus}
                   roles={roles}
                   type="employee"
                 />
@@ -318,7 +324,7 @@ function UserManagementContent() {
                   accounts={paginatedAccounts}
                   roles={roles}
                   onEdit={handleEditAccount}
-                  onDelete={handleDelete}
+                  onDelete={handleRequestChangeStatus}
                   type={currentTab}
                 />
                 {/* Phân trang */}
@@ -351,7 +357,7 @@ function UserManagementContent() {
                   accounts={paginatedAccounts}
                   roles={roles}
                   onEdit={handleEditAccount}
-                  onDelete={handleDelete}
+                  onDelete={handleRequestChangeStatus}
                   type={currentTab}
                 />
                 {/* Phân trang */}
@@ -385,6 +391,13 @@ function UserManagementContent() {
             account={editingAccount}
             onSave={handleSaveAccount}
             type={currentTab}
+          />
+          <ConfirmDialog
+            open={!!accountToChangeStatus}
+            title="Xác nhận chuyển trạng thái"
+            description="Bạn có chắc muốn thay đổi trạng thái tài khoản này?"
+            onCancel={() => setAccountToChangeStatus(null)}
+            onConfirm={handleConfirmChangeStatus}
           />
         </div>
       </div>

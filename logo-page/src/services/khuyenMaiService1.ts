@@ -5,6 +5,7 @@ import {
   KhuyenMaiSanPhamDTO,
   KhuyenMaiTheoSanPham,
 } from "@/components/types/khuyenmai-type";
+import { fetchWithAuth } from "./fetchWithAuth";
 
 export interface KhuyenMaiPayLoad {
   tenKhuyenMai: string;
@@ -19,46 +20,49 @@ const API_URL_SP_List = "http://localhost:8080/api/sanpham";
 
 export const khuyenMaiService = {
   async getKhuyenMai(): Promise<KhuyenMaiDTO[]> {
-    const res = await fetch(`${API_URL}/ReadAll`, { cache: "no-store" });
+    const res = await fetchWithAuth(`${API_URL}/ReadAll`);
     if (!res.ok) throw new Error("Không tìm thấy danh sách khuyến mãi");
     return res.json();
   },
 
   async getKhuyenMaiID(id: number): Promise<KhuyenMaiDTO> {
-    const res = await fetch(`${API_URL}/ReadOne/${id}`, { cache: "no-store" });
+    const res = await fetchWithAuth(`${API_URL}/ReadOne/${id}`);
     if (!res.ok) throw new Error("Không tìm thấy khuyến mãi");
     return res.json();
   },
 
-  async addKhuyenMai(data: KhuyenMaiPayLoad): Promise<KhuyenMaiDTO> {
-    const res = await fetch(`${API_URL}/Create`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-      cache: "no-store",
-    });
-    if (!res.ok) {
-      throw new Error("Không thể thêm khuyến mãi ");
+  async addKhuyenMai(data: KhuyenMaiPayLoad): Promise<KhuyenMaiPayLoad> {
+    try {
+      const res = await fetchWithAuth(`${API_URL}/Create`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) {
+        throw new Error("Không thể thêm khuyến mãi ");
+      }
+      return await res.json();
+    } catch (error) {
+      console.error("Lỗi thêm :", error);
+      throw error;
     }
-    return await res.json(); // API trả về object có `id`, `trangThai`, ...
   },
+
   async suaKhuyenMai(id: number, data: KhuyenMaiDTO): Promise<KhuyenMaiDTO> {
-    const res = await fetch(`${API_URL}/Update/${id}`, {
+    const res = await fetchWithAuth(`${API_URL}/Update/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
-      cache: "no-store",
     });
     if (!res.ok) throw new Error("Không thể sửa khuyến mãi");
     return res.json();
   },
 
   async xoaKhuyenMai(id: number): Promise<void> {
-    const res = await fetch(`${API_URL}/Delete/${id}`, {
+    const res = await fetchWithAuth(`${API_URL}/Delete/${id}`, {
       method: "DELETE",
-      cache: "no-store",
     });
     if (!res.ok) throw new Error("Không thể xóa khuyến mãi");
   },
@@ -68,11 +72,10 @@ export const khuyenMaiService = {
     data: KhuyenMaiSanPhamDTO
   ): Promise<KhuyenMaiSanPhamDTO | string> {
     try {
-      const res = await fetch(`${API_URL_KM}/apply-Khuyen-mai`, {
+      const res = await fetchWithAuth(`${API_URL_KM}/apply-Khuyen-mai`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
-        cache: "no-store",
       });
       const contentType = res.headers.get("content-type");
       if (contentType?.includes("application/json")) {
@@ -88,9 +91,7 @@ export const khuyenMaiService = {
   // Get All List SanPham theo khuyến mãi
   async ListSanPhamTheoKhuyenMai(): Promise<KhuyenMaiTheoSanPham[]> {
     try {
-      const res = await fetch(`${API_URL_SP_List}/ReadAllV2`, {
-        cache: "no-store",
-      });
+      const res = await fetchWithAuth(`${API_URL_SP_List}/ReadAllV2`);
       if (!res.ok) {
         throw new Error("Không tìm thấy danh sách sản phẩm");
       }

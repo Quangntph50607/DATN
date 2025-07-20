@@ -1,11 +1,12 @@
 import { BoSuuTap } from "@/components/types/product.type";
+import { fetchWithAuth } from "./fetchWithAuth";
 
 const API_URL = "http://localhost:8080/api/bosuutap";
 //All
 export const boSuuTapService = {
   async getBoSutap(): Promise<BoSuuTap[]> {
     try {
-      const res = await fetch(`${API_URL}/ReadAll`, { cache: "no-store" });
+      const res = await fetchWithAuth(`${API_URL}/ReadAll`);
       if (!res.ok) {
         throw new Error("Khong tìm thấy bộ sưu tập ");
       }
@@ -19,9 +20,7 @@ export const boSuuTapService = {
   //Ct
   async getBoSuuTapID(id: number): Promise<BoSuuTap> {
     try {
-      const res = await fetch(`${API_URL}/ReadOne/${id}`, {
-        cache: "no-store",
-      });
+      const res = await fetchWithAuth(`${API_URL}/ReadOne/${id}`);
       if (!res.ok) {
         throw new Error(`Không tìm thấy bộ sưu tập với ID ${id}`);
       }
@@ -35,13 +34,12 @@ export const boSuuTapService = {
   //Add
   async addBoSuuTap(data: BoSuuTap): Promise<BoSuuTap> {
     try {
-      const res = await fetch(`${API_URL}/Create`, {
+      const res = await fetchWithAuth(`${API_URL}/Create`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(data),
-        cache: "no-store",
       });
       if (!res.ok) {
         throw new Error("Không thể thêm bộ sưu tập ");
@@ -56,13 +54,12 @@ export const boSuuTapService = {
   //   Sửa
   async editBoSuuTap(id: number, data: BoSuuTap): Promise<BoSuuTap> {
     try {
-      const res = await fetch(`${API_URL}/Update/${id}`, {
+      const res = await fetchWithAuth(`${API_URL}/Update/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(data),
-        cache: "no-store",
       });
       if (!res.ok) {
         throw new Error("Không thể sửa bọ sưu tập");
@@ -78,9 +75,8 @@ export const boSuuTapService = {
 
   async xoaBoSuuTap(id: number): Promise<void> {
     try {
-      const res = await fetch(`${API_URL}/Delete/${id}`, {
+      const res = await fetchWithAuth(`${API_URL}/Delete/${id}`, {
         method: "DELETE",
-        cache: "no-store",
       });
       if (!res.ok) {
         throw new Error("Không thể xóa bộ sưu tập");

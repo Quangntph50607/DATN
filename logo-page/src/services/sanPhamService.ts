@@ -6,6 +6,7 @@ import {
   SanPham,
 } from "@/components/types/product.type";
 import { ProductData } from "@/lib/sanphamschema";
+import { fetchWithAuth } from "./fetchWithAuth";
 
 const API_URL = "http://localhost:8080/api";
 
@@ -13,9 +14,7 @@ const API_URL = "http://localhost:8080/api";
 export const sanPhamService = {
   async getSanPhams(): Promise<SanPham[]> {
     try {
-      const res = await fetch(`${API_URL}/sanpham/ReadAll`, {
-        cache: "no-store",
-      });
+      const res = await fetchWithAuth(`${API_URL}/sanpham/ReadAll`);
       if (!res.ok) {
         throw new Error("Không tìm thấy danh sách sản phẩm");
       }
@@ -29,9 +28,7 @@ export const sanPhamService = {
   //SPCT
   async getSanPhamID(id: number): Promise<SanPham> {
     try {
-      const res = await fetch(`${API_URL}/sanpham/ReadOne/${id}`, {
-        cache: "no-store",
-      });
+      const res = await fetchWithAuth(`${API_URL}/sanpham/ReadOne/${id}`);
       if (!res.ok) {
         throw new Error(`Không tìm thấy sản phẩm với ID ${id}`);
       }
@@ -81,9 +78,8 @@ export const sanPhamService = {
       formData.append("files", file);
     });
 
-    const res = await fetch(`${API_URL}/sanpham/CreateWithFileImages`, {
+    const res = await fetchWithAuth(`${API_URL}/sanpham/CreateWithFileImages`, {
       method: "POST",
-      credentials: "include",
       body: formData,
     });
 
@@ -104,13 +100,12 @@ export const sanPhamService = {
       boSuuTap: { id: data.boSuuTapId },
     };
     try {
-      const res = await fetch(`${API_URL}/sanpham/Update/${id}`, {
+      const res = await fetchWithAuth(`${API_URL}/sanpham/Update/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(payload),
-        cache: "no-store",
       });
       if (!res.ok) {
         throw new Error("Không thể sửa sản phẩm");
@@ -125,9 +120,8 @@ export const sanPhamService = {
   //Xóa
   async xoaSanPham(id: number): Promise<void> {
     try {
-      const res = await fetch(`${API_URL}/sanpham/Delete/${id}`, {
+      const res = await fetchWithAuth(`${API_URL}/sanpham/Delete/${id}`, {
         method: "DELETE",
-        cache: "no-store",
       });
       if (!res.ok) {
         throw new Error("Không thể xóa sản phẩm");

@@ -87,7 +87,9 @@ export function useHistoryKhuyenMai(id: number) {
   return useQuery<ChiTietKhuyenMai>({
     queryKey: ["chiTietKhuyenMai", id],
     queryFn: async () => {
+      console.log("useHistoryKhuyenMai - calling API with id:", id);
       const result = await khuyenMaiService.historyChitietKhuyenMai(id);
+      console.log("useHistoryKhuyenMai - API result:", result);
       return result;
     },
     enabled: !!id,

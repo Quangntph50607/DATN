@@ -46,19 +46,18 @@ export default function LoginForm() {
     setIsLoading(true);
     try {
       const res = await authenService.login(data.email, data.matKhau);
-      // lấy thông tin người dùng bao gồm roleId
-      const { id, ten, email, roleId, message } = res;
-      setUser({ id, ten, email, roleId, message });
-
+      // lấy thông tin người dùng bao gồm roleId và token
+      const { id, ten, email, roleId, message, token } = res;
+      setUser({ id, ten, email, roleId, message, token });
+      if (token) {
+        localStorage.setItem("access_token", token);
+      }
       // Phân quyền dựa trên roleId
       if (roleId === 1 || roleId === 2) {
-        // Role 1 và 2: Admin/Staff - chuyển đến dashboard
         router.push("/admin");
       } else if (roleId === 3) {
-        // Role 3: User thường - chuyển đến trang chủ
         router.push("/");
       } else {
-        // Role không xác định - chuyển đến trang chủ
         router.push("/");
       }
     } catch (error: unknown) {

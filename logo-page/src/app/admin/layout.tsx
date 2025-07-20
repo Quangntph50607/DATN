@@ -1,7 +1,6 @@
 "use client";
 import AdminSidebar from "@/components/layout/(components)/(pages)/Adminsidebar";
 import HeaderAdmin from "@/components/layout/(components)/(pages)/HeaderAdmin";
-// import HeaderAdmin from "@/components/layout/(components)/(pages)/HeaderAdmin";
 import { Toaster } from "sonner";
 import { useUserStore } from "@/context/authStore.store";
 import { useEffect, useState } from "react";
@@ -24,19 +23,16 @@ export default function AdminLayout({
     if (!hydrated) return;
 
     if (!user) {
-      // Chưa đăng nhập, chuyển về trang login
       router.push("/auth/login");
       return;
     }
 
     if (user.roleId !== 1 && user.roleId !== 2) {
-      // Không có quyền admin, chuyển về trang chủ
       router.push("/");
       return;
     }
   }, [user, hydrated, router]);
 
-  // Hiển thị loading hoặc redirect nếu chưa hydrate hoặc không có quyền
   if (!hydrated || !user || (user.roleId !== 1 && user.roleId !== 2)) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -49,15 +45,20 @@ export default function AdminLayout({
   }
 
   return (
-    <div className="flex min-h-screen w-full">
-      <AdminSidebar />
-      <div className="flex-1 flex flex-col">
-        <HeaderAdmin />
-        <main className="flex-1 p-6 bg-gray-50 dark:bg-gray-900">
-          {children}
-          <Toaster position="top-right" />
-        </main>
+    <div>
+      {/* Sidebar cố định bên trái */}
+      <div className="fixed left-0 top-0 h-screen w-64 bg-[#1a2233] z-30">
+        <AdminSidebar />
       </div>
+      {/* Header cố định trên cùng, bên phải sidebar */}
+      <div className="fixed top-0 left-64 right-0 h-16 bg-[#232b3e] z-40">
+        <HeaderAdmin />
+      </div>
+      {/* Nội dung chính cuộn được */}
+      <main className="ml-64 mt-16 h-[calc(100vh-4rem)] overflow-y-auto p-6 bg-gray-50 dark:bg-gray-900">
+        {children}
+        <Toaster position="top-right" />
+      </main>
     </div>
   );
 }
