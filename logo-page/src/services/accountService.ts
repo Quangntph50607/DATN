@@ -1,4 +1,5 @@
 import { DTOUser, Role } from "@/components/types/account.type";
+import { fetchWithAuth } from "./fetchWithAuth";
 
 type RawUserFromApi = Omit<DTOUser, "role_id"> & {
   role_id?: number | string;
@@ -21,18 +22,15 @@ export const accountService = {
     const url = keyword
       ? `${API_URL}/paging?keyword=${encodeURIComponent(keyword)}`
       : `${API_URL}/paging`;
-
-    const res = await fetch(url, { cache: "no-store" });
+    const res = await fetchWithAuth(url, { cache: "no-store" });
     if (!res.ok) throw new Error("Không thể tải danh sách tài khoản");
-
     const data: RawUserFromApi[] = await res.json();
-
     return data.map(normalizeAccount);
   },
 
   // Lấy account theo role
   async getAccountsByRole(roleId: string): Promise<DTOUser[]> {
-    const res = await fetch(`${API_URL}/getTheoRole?roleId=${roleId}`, {
+    const res = await fetchWithAuth(`${API_URL}/getTheoRole?roleId=${roleId}`, {
       cache: "no-store",
     });
     if (!res.ok) throw new Error("Không thể lọc theo vai trò");
@@ -43,7 +41,7 @@ export const accountService = {
   },
 
   async getRoles(): Promise<Role[]> {
-    const res = await fetch(`${API_URL}/getRole`, { cache: "no-store" });
+    const res = await fetchWithAuth(`${API_URL}/getRole`, { cache: "no-store" });
     if (!res.ok) throw new Error("Không thể tải danh sách vai trò");
 
     const result = await res.json();
@@ -52,7 +50,7 @@ export const accountService = {
   },
 
   async addAccount(data: Partial<DTOUser>): Promise<DTOUser> {
-    const res = await fetch(`${API_URL}/register`, {
+    const res = await fetchWithAuth(`${API_URL}/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
@@ -66,7 +64,7 @@ export const accountService = {
   },
 
   async createUser(data: DTOUser): Promise<DTOUser> {
-    const res = await fetch(`${API_URL}/createUser`, {
+    const res = await fetchWithAuth(`${API_URL}/createUser`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
@@ -93,7 +91,7 @@ export const accountService = {
   },
 
   async updateAccount(id: number, data: Partial<DTOUser>): Promise<DTOUser> {
-    const res = await fetch(`${API_URL}/update/${id}`, {
+    const res = await fetchWithAuth(`${API_URL}/update/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       credentials: "include",

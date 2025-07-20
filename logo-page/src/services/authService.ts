@@ -4,6 +4,7 @@ interface LoginResponse {
   email: string;
   roleId: number;
   message: string;
+  token?: string; // Thêm dòng này
 }
 
 interface RegisterResponse {
@@ -55,6 +56,11 @@ export const authenService = {
       body: JSON.stringify({ email, matKhau }),
     });
 
-    return handleResponse<LoginResponse>(res);
+    const data = await handleResponse<LoginResponse>(res);
+    // Nếu có token, lưu vào localStorage để các API khác dùng Bearer token
+    if (data.token) {
+      localStorage.setItem("access_token", data.token);
+    }
+    return data;
   },
 };

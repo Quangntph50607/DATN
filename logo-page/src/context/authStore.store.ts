@@ -7,6 +7,7 @@ interface User {
   email: string;
   roleId: number;
   message: string;
+  token?: string; // Thêm dòng này
 }
 interface UserStore {
   user: User | null;

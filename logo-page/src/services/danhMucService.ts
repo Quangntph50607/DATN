@@ -1,10 +1,11 @@
 import { DanhMuc } from "@/components/types/product.type";
+import { fetchWithAuth } from "./fetchWithAuth";
 
 const API_URL = "http://localhost:8080/api/danhmuc";
 export const danhMucService = {
   async getDanhMuc(): Promise<DanhMuc[]> {
     try {
-      const res = await fetch(`${API_URL}/ReadAll`, { cache: "no-store" });
+      const res = await fetchWithAuth(`${API_URL}/ReadAll`);
       if (!res.ok) {
         throw new Error("Không tìm thấy danh mục");
       }
@@ -17,9 +18,7 @@ export const danhMucService = {
   //Danh mục chi tiết
   async getDanhMucId(id: number): Promise<DanhMuc> {
     try {
-      const res = await fetch(`${API_URL}/ReadOne/${id}`, {
-        cache: "no-store",
-      });
+      const res = await fetchWithAuth(`${API_URL}/ReadOne/${id}`);
       if (!res.ok) {
         throw new Error("Không tìm thấy danh mục");
       }
@@ -32,13 +31,12 @@ export const danhMucService = {
   //Add
   async addDanhmuc(data: DanhMuc): Promise<DanhMuc> {
     try {
-      const res = await fetch(`${API_URL}/Create`, {
+      const res = await fetchWithAuth(`${API_URL}/Create`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(data),
-        cache: "no-store",
       });
       if (!res.ok) {
         throw new Error("Không thể thêm sản phẩm");
@@ -53,13 +51,12 @@ export const danhMucService = {
   // Sửa
   async editDanhmuc(id: number, data: DanhMuc): Promise<DanhMuc> {
     try {
-      const res = await fetch(`${API_URL}/Update/${id}`, {
+      const res = await fetchWithAuth(`${API_URL}/Update/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(data),
-        cache: "no-store",
       });
       if (!res.ok) {
         throw new Error("Không thể sửa danh muc");
@@ -74,9 +71,8 @@ export const danhMucService = {
   // Xóa
   async xoaDanhMuc(id: number): Promise<void> {
     try {
-      const res = await fetch(`${API_URL}/Delete/${id}`, {
+      const res = await fetchWithAuth(`${API_URL}/Delete/${id}`, {
         method: "DELETE",
-        cache: "no-store",
       });
       if (!res.ok) {
         throw new Error("Không thể xóa danh múc");
