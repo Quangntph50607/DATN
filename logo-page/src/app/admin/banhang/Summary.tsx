@@ -27,7 +27,6 @@ import { BadgePercent } from 'lucide-react';
 import Image from 'next/image';
 import { CartItem } from '@/components/types/order.type';
 import { PhieuGiamGia } from '@/components/types/phieugiam.type';
-import { toast } from 'sonner';
 
 interface Props {
   customerName: string;
@@ -84,6 +83,7 @@ const Summary: React.FC<Props> = ({
   // XÓA local state qrCodeUrl ở đây, dùng prop thay thế
   const [loadingQR, setLoadingQR] = React.useState(false);
   const qrCodeRef = React.useRef<string | null>(null);
+  const [showConfirmReceived, setShowConfirmReceived] = React.useState(false);
 
   const handleGenerateQR = async () => {
     setLoadingQR(true);
@@ -139,7 +139,7 @@ const Summary: React.FC<Props> = ({
               <span className="font-semibold">Email:</span> {customerEmail || "-"}
             </div>
             <div>
-              <span className="font-semibold">SĐT:</span> {customerPhone || "-"}
+              <span className="font-semibold">SĐT:</span> {customerPhone && customerPhone.trim().length > 0 ? customerPhone : ""}
             </div>
             <ScrollArea className="h-48 pr-4 my-2">
               <div className="space-y-2">
@@ -220,11 +220,11 @@ const Summary: React.FC<Props> = ({
             </DialogClose>
             <Button
               onClick={async () => {
-                // Nếu là khách lẻ (không chọn khách hàng) và chưa nhập SĐT
-                if (paymentMethod === "transfer" && (!customerPhone || customerPhone.trim() === "")) {
-                  toast.error("Vui lòng nhập số điện thoại khách hàng!");
-                  return;
-                }
+                // BỎ validation bắt buộc nhập SĐT khi chuyển khoản
+                // if (paymentMethod === "transfer" && (!customerPhone || customerPhone.trim() === "")) {
+                //   toast.error("Vui lòng nhập số điện thoại khách hàng!");
+                //   return;
+                // }
                 if (paymentMethod === "transfer") {
                   await handleGenerateQR();
                   setOpen(false); // Đóng dialog xác nhận, mở dialog QR
@@ -275,9 +275,7 @@ const Summary: React.FC<Props> = ({
               <Button
                 onClick={() => {
                   setShowQR(false);
-                  // ĐẢM BẢO truyền đúng prop qrCodeUrl ra ngoài
-                  console.log("QR gửi sang createOrder:", qrCodeRef.current);
-                  onCheckout(qrCodeRef.current || undefined);
+                  setShowConfirmReceived(true); // Mở dialog xác nhận đã nhận tiền
                 }}
                 disabled={loadingQR}
               >
@@ -287,6 +285,30 @@ const Summary: React.FC<Props> = ({
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Dialog xác nhận đã nhận tiền */}
+      <Dialog open={showConfirmReceived} onOpenChange={setShowConfirmReceived}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Xác nhận đã nhận tiền</DialogTitle>
+            <DialogDescription>Bạn đã nhận được tiền từ khách chưa?</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowConfirmReceived(false)}>
+              Hủy
+            </Button>
+            <Button
+              variant="default"
+              onClick={() => {
+                setShowConfirmReceived(false);
+                onCheckout(qrCodeRef.current || undefined);
+              }}
+            >
+              Xác nhận
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <div className="space-y-2 text-sm mb-4">
         <div className="flex justify-between text-gray-300">

@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Edit, Trash2 } from "lucide-react";
+import { Edit, SwitchCameraIcon } from "lucide-react";
 import { DTOUser, Role } from "@/components/types/account.type";
 import { parseBackendDate } from "@/utils/dateUtils";
 
@@ -53,9 +53,9 @@ const AccountTable: React.FC<AccountTableProps> = ({
             <TableHead>Họ tên</TableHead>
             <TableHead>Email</TableHead>
             <TableHead>SĐT</TableHead>
-            <TableHead>Ngày tạo</TableHead>
             <TableHead>Địa chỉ</TableHead>
             <TableHead>Vai trò</TableHead>
+            <TableHead>Ngày tạo</TableHead>
             <TableHead>Trạng thái</TableHead>
             <TableHead className="text-right">Thao tác</TableHead>
           </TableRow>
@@ -67,12 +67,7 @@ const AccountTable: React.FC<AccountTableProps> = ({
               <TableCell>{idx + 1}</TableCell>
               <TableCell>{acc.ten}</TableCell>
               <TableCell>{acc.email}</TableCell>
-              <TableCell>{acc.sdt}</TableCell>
-              <TableCell>
-                {acc.ngayTao
-                  ? parseBackendDate(acc.ngayTao)?.toLocaleString("vi-VN") ?? "-"
-                  : "-"}
-              </TableCell>
+              <TableCell>{acc.sdt}</TableCell>             
               <TableCell>{acc.diaChi}</TableCell>
 
               {/* TÊN VAI TRÒ */}
@@ -87,6 +82,13 @@ const AccountTable: React.FC<AccountTableProps> = ({
                 ) : (
                   <Badge variant="destructive">Sai role ID: {String(acc.role_id)}</Badge>
                 )}
+              </TableCell>
+
+              {/* Ngày tạo */}
+              <TableCell>
+                {acc.ngayTao
+                  ? parseBackendDate(acc.ngayTao)?.toLocaleString("vi-VN") ?? "-"
+                  : "-"}
               </TableCell>
 
               {/* Trạng thái */}
@@ -115,9 +117,9 @@ const AccountTable: React.FC<AccountTableProps> = ({
                   className="hover:opacity-80 transition"
                   onClick={() => onDelete(acc)}
                   disabled={acc.trangThai === 0}
-                  title="Xóa"
+                  title="Chuyển trạng thái"
                 >
-                  <Trash2 className="h-4 w-4 text-red-500" />
+                  <SwitchCameraIcon className="h-4 w-4 text-red-500" />
                 </Button>
               </TableCell>
             </TableRow>

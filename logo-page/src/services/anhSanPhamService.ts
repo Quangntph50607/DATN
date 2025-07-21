@@ -1,13 +1,11 @@
 import { AnhSanPhamChiTiet } from "@/components/types/product.type";
+import { fetchWithAuth } from "./fetchWithAuth";
 
 const API_URL = "http://localhost:8080/api/anhsp";
 export const anhSanPhamSevice = {
   async getAnhSanPham(): Promise<AnhSanPhamChiTiet[]> {
     try {
-      const res = await fetch(`${API_URL}/ReadAll`, {
-        cache: "no-store",
-        credentials: "include",
-      });
+      const res = await fetchWithAuth(`${API_URL}/ReadAll`);
       if (!res.ok) {
         throw new Error("Không tìm thấy danh sách ảnh sản phẩm");
       }
@@ -20,10 +18,7 @@ export const anhSanPhamSevice = {
   //  Ảnh chi tiết
   async getAnhSanPhamID(id: number): Promise<AnhSanPhamChiTiet> {
     try {
-      const res = await fetch(`${API_URL}/Readone/${id}`, {
-        cache: "no-store",
-        credentials: "include",
-      });
+      const res = await fetchWithAuth(`${API_URL}/Readone/${id}`);
       if (!res.ok) {
         throw new Error(`Không tìm thấy ảnh sản phẩm với ${id}`);
       }
@@ -51,10 +46,9 @@ export const anhSanPhamSevice = {
       if (data.moTa) {
         formData.append("moTa", data.moTa);
       }
-      const res = await fetch(`${API_URL}/upload-images`, {
+      const res = await fetchWithAuth(`${API_URL}/upload-images`, {
         method: "POST",
         body: formData,
-        credentials: "include",
       });
       if (!res.ok) {
         const errorData = await res.json();
@@ -84,10 +78,9 @@ export const anhSanPhamSevice = {
     formData.append("anhChinh", data.anhChinh.toString());
     formData.append("sanpham", data.sanPhamId.toString());
 
-    const res = await fetch(`${API_URL}/update-image/${id}`, {
+    const res = await fetchWithAuth(`${API_URL}/update-image/${id}`, {
       method: "PUT",
       body: formData,
-      credentials: "include",
     });
 
     if (!res.ok) throw new Error("Không thể sửa ảnh");
@@ -97,10 +90,8 @@ export const anhSanPhamSevice = {
   //   Xóa
   async deleteAnhSanPham(id: number): Promise<void> {
     try {
-      const res = await fetch(`${API_URL}/Delete/${id}`, {
+      const res = await fetchWithAuth(`${API_URL}/Delete/${id}`, {
         method: "DELETE",
-        cache: "no-store",
-        credentials: "include",
       });
       if (!res.ok) {
         throw new Error("Không thể xóa");
@@ -114,9 +105,7 @@ export const anhSanPhamSevice = {
 
   // Lấy danh sách ảnh theo sản phẩm
   async getAnhSanPhamTheoSanPhamId(id: number): Promise<AnhSanPhamChiTiet[]> {
-    const res = await fetch(`${API_URL}/sanpham/${id}`, {
-      credentials: "include",
-    });
+    const res = await fetchWithAuth(`${API_URL}/sanpham/${id}`);
 
     if (!res.ok) throw new Error("Không thể tải ảnh theo sản phẩm");
     return res.json();
@@ -125,9 +114,7 @@ export const anhSanPhamSevice = {
 
 export async function getAnhByFileName(fileName: string): Promise<Blob> {
   try {
-    const response = await fetch(`${API_URL}/images/${fileName}`, {
-      credentials: "include",
-    });
+    const response = await fetchWithAuth(`${API_URL}/images/${fileName}`);
 
     if (!response.ok) {
       throw new Error(`Không tìm thấy ảnh: ${fileName}`);
