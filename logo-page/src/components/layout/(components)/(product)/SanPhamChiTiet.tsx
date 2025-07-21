@@ -13,7 +13,12 @@ import { useAddToCart } from "@/hooks/useCart";
 import { useUserStore } from "@/context/authStore.store";
 import { useCart } from "@/hooks/useCart";
 
-import { useDanhGia, useAddDanhGia, useUploadDanhGiaImages, useUploadDanhGiaVideo } from "@/hooks/useDanhGia";
+import {
+  useDanhGia,
+  useAddDanhGia,
+  useUploadDanhGiaImages,
+  useUploadDanhGiaVideo,
+} from "@/hooks/useDanhGia";
 import { danhGiaService } from "@/services/danhGiaService";
 
 export default function SanPhaChitiet() {
@@ -31,9 +36,14 @@ export default function SanPhaChitiet() {
   const userId = user?.id || 0;
   const { data: cartData } = useCart(userId);
 
-  const totalQuantity = cartData?.gioHangChiTiets?.reduce((sum: number, item: any) => sum + item.soLuong, 0) || 0;
+  const totalQuantity =
+    cartData?.gioHangChiTiets?.reduce(
+      (sum: number, item: any) => sum + item.soLuong,
+      0
+    ) || 0;
 
-  const { data: binhLuanData, isLoading: loadingBinhLuan } = useDanhGia(sanPhamID);
+  const { data: binhLuanData, isLoading: loadingBinhLuan } =
+    useDanhGia(sanPhamID);
   const addBinhLuan = useAddDanhGia(sanPhamID);
   // Nếu muốn kiểm tra đã mua hàng, cần tự định nghĩa hook useUserOrderDetail
   // Hiện tại cho phép user đã đăng nhập đều được đánh giá
@@ -111,7 +121,11 @@ export default function SanPhaChitiet() {
           if (videoFile) {
             uploadVideo.mutate({ danhGiaId: res.id, file: videoFile });
           }
-          setTieuDe(""); setTextDanhGia(""); setSoSao(5); setFiles([]); setVideoFile(null);
+          setTieuDe("");
+          setTextDanhGia("");
+          setSoSao(5);
+          setFiles([]);
+          setVideoFile(null);
           toast.success("Đánh giá thành công!");
         },
         onError: (err: any) => {
@@ -150,10 +164,10 @@ export default function SanPhaChitiet() {
   const discountPercent =
     sanPhamChiTiet.giaKhuyenMai && sanPhamChiTiet.gia
       ? Math.round(
-        ((sanPhamChiTiet.gia - sanPhamChiTiet.giaKhuyenMai) /
-          sanPhamChiTiet.gia) *
-        100
-      )
+          ((sanPhamChiTiet.gia - sanPhamChiTiet.giaKhuyenMai) /
+            sanPhamChiTiet.gia) *
+            100
+        )
       : 0;
   const tangSoLuong = () => {
     if (soLuong < sanPhamChiTiet.soLuongTon) {
@@ -185,7 +199,7 @@ export default function SanPhaChitiet() {
   };
   const handleThumbnailClick = (fileName: string) => {
     setImageUrls((prev) => ({ ...prev, main: fileName }));
-  }
+  };
   const handleAddToCart = () => {
     addToCart.mutate(
       { sanPhamId: sanPhamID, soLuong },
@@ -268,22 +282,28 @@ export default function SanPhaChitiet() {
               ))}
             </div>
           )}
-          <section className="max-w-2xl mx-auto mt-8 bg-white rounded-lg shadow-lg p-6" aria-labelledby="binh-luan-san-pham">
-            <h2 className="text-2xl font-bold mb-4 text-gray-900" id="binh-luan-san-pham">
+          <section
+            className="max-w-2xl mx-auto mt-8 bg-white rounded-lg shadow-lg p-6"
+            aria-labelledby="binh-luan-san-pham"
+          >
+            <h2
+              className="text-2xl font-bold mb-4 text-gray-900"
+              id="binh-luan-san-pham"
+            >
               Bình luận sản phẩm
             </h2>
             {hdct_id ? (
               <form onSubmit={handleAddDanhGia} className="mb-6">
                 <input
                   value={tieuDe}
-                  onChange={e => setTieuDe(e.target.value)}
+                  onChange={(e) => setTieuDe(e.target.value)}
                   placeholder="Tiêu đề"
                   required
                   className="w-full border rounded p-2 mb-2"
                 />
                 <textarea
                   value={textDanhGia}
-                  onChange={e => setTextDanhGia(e.target.value)}
+                  onChange={(e) => setTextDanhGia(e.target.value)}
                   placeholder="Nội dung đánh giá"
                   required
                   className="w-full border rounded p-2 mb-2"
@@ -293,7 +313,11 @@ export default function SanPhaChitiet() {
                     <Star
                       key={i}
                       size={28}
-                      className={i <= soSao ? "text-yellow-400 cursor-pointer" : "text-gray-300 cursor-pointer"}
+                      className={
+                        i <= soSao
+                          ? "text-yellow-400 cursor-pointer"
+                          : "text-gray-300 cursor-pointer"
+                      }
                       fill={i <= soSao ? "#facc15" : "none"}
                       onClick={() => setSoSao(i)}
                     />
@@ -311,7 +335,10 @@ export default function SanPhaChitiet() {
                   onChange={(e) => setVideoFile(e.target.files?.[0] || null)}
                   className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                 />
-                <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded">
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-600 text-white rounded"
+                >
                   Gửi đánh giá
                 </button>
               </form>
@@ -321,7 +348,9 @@ export default function SanPhaChitiet() {
               </div>
             )}
             {loadingBinhLuan || loadingDanhGia ? (
-              <div className="text-center text-gray-500 py-8">Đang tải bình luận...</div>
+              <div className="text-center text-gray-500 py-8">
+                Đang tải bình luận...
+              </div>
             ) : (
               <>
                 {binhLuanData && binhLuanData.length > 0 ? (
@@ -329,26 +358,42 @@ export default function SanPhaChitiet() {
                     {binhLuanData.map((bl) => (
                       <li key={bl.id} className="py-4">
                         <div className="flex items-center mb-1">
-                          <span className="font-semibold text-blue-700 mr-2">{bl.tenNguoiDung}</span>
-                          <span className="text-xs text-gray-400">{new Date(bl.createdAt).toLocaleString()}</span>
+                          <span className="font-semibold text-blue-700 mr-2">
+                            {bl.tenNguoiDung}
+                          </span>
+                          <span className="text-xs text-gray-400">
+                            {new Date(bl.createdAt).toLocaleString()}
+                          </span>
                         </div>
-                        <div className="text-gray-800 ml-1">{bl.textDanhGia}</div>
+                        <div className="text-gray-800 ml-1">
+                          {bl.textDanhGia}
+                        </div>
                         {bl.textPhanHoi && (
                           <div className="mt-2 ml-4 p-2 bg-gray-50 border-l-4 border-blue-400 text-sm text-gray-600 rounded">
-                            <span className="font-medium text-blue-600">Phản hồi từ shop:</span> {bl.textPhanHoi}
+                            <span className="font-medium text-blue-600">
+                              Phản hồi từ shop:
+                            </span>{" "}
+                            {bl.textPhanHoi}
                           </div>
                         )}
                         {bl.images && bl.images.length > 0 && (
                           <div className="mt-2 flex flex-wrap gap-2">
-                            {bl.images.map(img => (
-                              <img key={img} src={danhGiaService.getImageUrl(img)} alt="Ảnh đánh giá" className="w-20 h-20 object-cover rounded-md" />
+                            {bl.images.map((img) => (
+                              <img
+                                key={img}
+                                src={danhGiaService.getImageUrl(img)}
+                                alt="Ảnh đánh giá"
+                                className="w-20 h-20 object-cover rounded-md"
+                              />
                             ))}
                           </div>
                         )}
                         {bl.video && (
                           <div className="mt-2">
                             <video controls width={200} className="rounded-md">
-                              <source src={danhGiaService.getImageUrl(bl.video)} />
+                              <source
+                                src={danhGiaService.getImageUrl(bl.video)}
+                              />
                             </video>
                           </div>
                         )}
@@ -357,7 +402,8 @@ export default function SanPhaChitiet() {
                   </ul>
                 ) : (
                   <div className="text-center text-gray-400 py-8 italic">
-                    Chưa có bình luận nào cho sản phẩm này. Hãy là người đầu tiên bình luận!
+                    Chưa có bình luận nào cho sản phẩm này. Hãy là người đầu
+                    tiên bình luận!
                   </div>
                 )}
               </>

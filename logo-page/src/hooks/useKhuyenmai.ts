@@ -29,7 +29,7 @@ export function useKhuyenMaiID(id: number) {
 
 export function useAddKhuyenMai() {
   const queryClient = useQueryClient();
-  return useMutation<KhuyenMaiDTO, Error, KhuyenMaiPayLoad>({
+  return useMutation<KhuyenMaiPayLoad, Error, KhuyenMaiPayLoad>({
     mutationFn: (data) => khuyenMaiService.addKhuyenMai(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["khuyenmais"] });
@@ -88,7 +88,7 @@ export function useHistoryKhuyenMai(id: number) {
     queryKey: ["chiTietKhuyenMai", id],
     queryFn: async () => {
       console.log("useHistoryKhuyenMai - calling API with id:", id);
-      const result = await khuyenMaiService.historyChitietKhuyenMai(id);
+      const result = await khuyenMaiService.getChiTietKhuyenMai(id);
       console.log("useHistoryKhuyenMai - API result:", result);
       return result;
     },

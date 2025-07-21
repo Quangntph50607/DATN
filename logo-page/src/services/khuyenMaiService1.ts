@@ -101,25 +101,21 @@ export const khuyenMaiService = {
       throw error;
     }
   },
-  async historyChitietKhuyenMai(id: number): Promise<ChiTietKhuyenMai> {
-    console.log("historyChitietKhuyenMai - calling API with id:", id);
-    const res = await fetch(`${API_URL}/getDetail/${id}`, {
+  async getChiTietKhuyenMai(id: number): Promise<ChiTietKhuyenMai> {
+    console.log("getChiTietKhuyenMai - calling API with id:", id);
+
+    const res = await fetchWithAuth(`${API_URL}/getDetail/${id}`, {
       cache: "no-store",
     });
-    console.log("historyChitietKhuyenMai - response status:", res.status);
-    console.log("historyChitietKhuyenMai - response ok:", res.ok);
 
     if (!res.ok) {
-      console.error(
-        "historyChitietKhuyenMai - API error:",
-        res.status,
-        res.statusText
-      );
+      const errorText = await res.text();
+      console.error("getChiTietKhuyenMai - API error:", res.status, errorText);
       throw new Error("Không thể lấy chi tiết khuyến mãi");
     }
 
     const data = await res.json();
-    console.log("historyChitietKhuyenMai - response data:", data);
+    console.log("getChiTietKhuyenMai - response data:", data);
     return data;
   },
 };

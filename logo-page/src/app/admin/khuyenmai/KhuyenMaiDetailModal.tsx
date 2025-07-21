@@ -187,17 +187,17 @@ export default function KhuyenMaiDetailModal({ data, isLoading }: Props) {
                   className="flex justify-between items-center p-3 border  border-gray-800 rounded-lg"
                 >
                   <div>
-                    <div className="font-medium">{sanPham.tenSanPham}</div>
+                    <div className="font-medium">Mã: {sanPham[0]}</div>
                     <div className="text-sm text-gray-500">
-                      Mã: {sanPham.maSanPham}
+                      Tên: {sanPham[1]}
                     </div>
                   </div>
                   <div className="text-right">
                     <div className="text-sm text-gray-500 line-through">
-                      {formatCurrency(sanPham.giaGoc)}
+                      {formatCurrency(sanPham[2])}
                     </div>
                     <div className="font-bold text-green-600">
-                      {formatCurrency(sanPham.giaSauGiam)}
+                      {formatCurrency(sanPham[3])}
                     </div>
                   </div>
                 </div>
