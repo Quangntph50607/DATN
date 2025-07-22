@@ -45,7 +45,6 @@ export default function OrderTable({
                             <TableHead className="text-white text-center text-sm font-semibold bg-blue-500">STT</TableHead>
                             <TableHead className="text-white text-center text-sm font-semibold bg-blue-500">Mã HĐ</TableHead>
                             <TableHead className="text-white text-center text-sm font-semibold bg-blue-500">Tên khách hàng</TableHead>
-                            <TableHead className="text-white text-center text-sm font-semibold bg-blue-500">Email</TableHead>
                             <TableHead className="text-white text-center text-sm font-semibold bg-blue-500">SĐT</TableHead>
                             <TableHead className="text-white text-center text-sm font-semibold bg-blue-500">Tổng tiền</TableHead>
                             <TableHead className="text-white text-center text-sm font-semibold bg-blue-500">Ngày tạo</TableHead>
@@ -67,9 +66,7 @@ export default function OrderTable({
                                 <TableCell className="text-white text-center">
                                     {hd.ten || (hd.user && hd.user.ten) || "N/A"}
                                 </TableCell>
-                                <TableCell className="text-white text-center">
-                                    {hd.email || (hd.user && hd.user.email) || "N/A"}
-                                </TableCell>
+
                                 <TableCell className="text-white text-center">
                                     {hd.sdt || (hd.user && hd.user.sdt) || "N/A"}
                                 </TableCell>
