@@ -12,11 +12,16 @@ export interface CreateHoaDonDTO {
   loaiHD: number;
   sdt: string;
   diaChiGiaoHang: string;
-  phuongThucThanhToan: keyof typeof PaymentMethods;
+  phuongThucThanhToan: string; // Thay đổi thành string để linh hoạt hơn
   cartItems: CartItemDTO[];
   idPhieuGiam?: number;
   nvId?: number;
-  maVanChuyen: string;
+  maVanChuyen?: string; // Optional vì backend tự generate
+  phiShip?: number;
+  loaiVanChuyen?: number; // 1 = nhanh, 2 = chậm
+  isFast?: number; // Thêm field isFast cho backend (1 = nhanh, 0 = chậm)
+  ngayDatHang?: string; // Ngày đặt hàng với giờ cụ thể
+  ngayGiaoHangDuKien?: string; // Ngày giao hàng dự kiến
   qrCodeUrl?: string;
 }
 
@@ -54,9 +59,8 @@ export enum TrangThaiHoaDon {
 }
 
 export enum PaymentMethods {
-  CASH = "Tiền mặt",
-  BANK_TRANSFER = "Chuyển khoản",
-  CASH_ON_DELIVERY = "COD",
+  COD = "COD",
+  BANK = "BANK"
 }
 
 export interface HoaDonDTO {
@@ -71,7 +75,7 @@ export interface HoaDonDTO {
   ngayGiao: string | null;
   ngayTao: string;
   trangThai: TrangThaiHoaDon | string;
-  phuongThucThanhToan: keyof typeof PaymentMethods | null;
+  phuongThucThanhToan: PaymentMethods | string | null;
   sdt: string;
   user: DTOUser;
   ten: string;
@@ -79,6 +83,8 @@ export interface HoaDonDTO {
   nvName?: string;
   phieuGiamGia?: PhieuGiamGia;
   qrCodeUrl?: string;
+  phiShip?: number; // Thêm phí vận chuyển
+  hoaDonChiTiet?: HoaDonChiTietDTO[]; // Thêm danh sách chi tiết hóa đơn
 }
 
 export interface HoaDonChiTietDTO {

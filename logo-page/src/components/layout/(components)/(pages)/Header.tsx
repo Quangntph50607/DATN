@@ -8,12 +8,27 @@ import { useRouter, usePathname } from "next/navigation";
 import { useSearchStore } from "@/context/useSearch.store";
 import { useUserStore } from "@/context/authStore.store";
 import UserDropDown from "./UserDropDown";
+import { useState, useEffect } from "react";
 
 export default function Header() {
   const { keyword, setKeyword } = useSearchStore();
   const router = useRouter();
   const pathname = usePathname();
   const user = useUserStore((state) => state.user);
+  const [cartCount, setCartCount] = useState(0);
+
+  useEffect(() => {
+    // Hàm lấy tổng số lượng sản phẩm trong giỏ
+    const getCartCount = () => {
+      const cart = JSON.parse(localStorage.getItem("cartItems") || "[]");
+      setCartCount(cart.length);
+    };
+    getCartCount();
+
+    // Lắng nghe sự thay đổi của localStorage (khi thêm/xóa sản phẩm)
+    window.addEventListener("storage", getCartCount);
+    return () => window.removeEventListener("storage", getCartCount);
+  }, []);
 
   const handleSearch = () => {
     if (pathname !== "/product") {
@@ -64,9 +79,18 @@ export default function Header() {
             </Button>
           </div>
 
-          <Button className="lego-login-button">
-            <ShoppingCart />
-          </Button>
+          {pathname !== "/cart" && (
+            <Button className="lego-login-button" onClick={() => router.push("/cart")}>
+              <div className="relative">
+                <ShoppingCart />
+                {cartCount > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5">
+                    {cartCount}
+                  </span>
+                )}
+              </div>
+            </Button>
+          )}
           {user ? (
             <UserDropDown />
           ) : (
