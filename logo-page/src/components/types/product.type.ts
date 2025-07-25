@@ -21,6 +21,20 @@ export interface BoSuuTap {
   ngayTao?: string;
 }
 
+export interface XuatXu {
+  id: number;
+  ten: string;
+  moTa?: string;
+  sanPhams?: SanPham[];
+}
+
+export interface ThuongHieu {
+  id: number;
+  ten: string;
+  moTa?: string;
+  sanPhams?: SanPham[];
+}
+
 export interface SanPham {
   id: number;
   tenSanPham: string;
@@ -40,6 +54,9 @@ export interface SanPham {
   danhMucId: number;
   boSuuTapId: number;
   anhSps?: AnhSanPhamChiTiet[];
+  noiBat?: boolean | number;
+  xuatXuId: number;
+  thuongHieuId: number;
 }
 export interface ProductData {
   tenSanPham: string;
@@ -50,6 +67,9 @@ export interface ProductData {
   doTuoi: number;
   danhMucId: number;
   boSuuTapId: number;
+  xuatXuId: number;
+  thuongHieuId: number;
+  noiBat?: boolean;
   files: FileList;
 }
 

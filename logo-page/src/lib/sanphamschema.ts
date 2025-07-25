@@ -9,8 +9,11 @@ export const productSchema = z.object({
   moTa: z.string().nonempty("Mô tả không để trống").max(1000),
   doTuoi: z.number().min(6).max(50),
   trangThai: z.string().nonempty(),
+  noiBat: z.boolean().optional(),
   danhMucId: z.number({ required_error: "Phải chọn danh mục" }),
   boSuuTapId: z.number({ required_error: "Phải chọn bộ sưu tập" }),
+  xuatXuId: z.number({ required_error: "Phải chọn xuất xứ" }),
+  thuongHieuId: z.number({ required_error: "Phải chọn thương hiệu" }),
   // danhMucId: z.string().nonempty("Không để trống"),
   // boSuuTapId: z.string().nonempty('Không để trống'),
   files: z
