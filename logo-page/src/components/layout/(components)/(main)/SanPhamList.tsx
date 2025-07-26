@@ -14,8 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 
 import { KhuyenMaiTheoSanPham } from "@/components/types/khuyenmai-type";
-import { getAnhByFileName } from "@/services/anhSanPhamService";
-import { ShoppingCart, ChevronLeft, ChevronRight, Heart } from "lucide-react";
+import { ShoppingCart, ChevronLeft, ChevronRight, Heart, Star } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { useDanhMucID } from "@/hooks/useDanhMuc";
@@ -28,19 +27,44 @@ interface SanPhamListProps {
 function CategoryName({ danhMucId }: { danhMucId: number | null }) {
   const { data: danhMuc } = useDanhMucID(danhMucId || 0);
   if (!danhMucId || !danhMuc) {
-    return <div className="text-sm font-bold text-gray-400 uppercase tracking-wide mb-1"></div>;
+    return <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1"></div>;
   }
   return (
-    <div className="text-sm font-bold text-gray-400 uppercase tracking-wide mb-1">
+    <div className="text-xs font-medium text-blue-600 uppercase tracking-wider mb-1">
       {danhMuc.tenDanhMuc}
     </div>
   );
 }
 
+// Hàm lấy ảnh chính từ danh sách ảnh
+const getMainImageUrl = (product: KhuyenMaiTheoSanPham) => {
+  // Kiểm tra anhUrls thay vì anhSps
+  const anhUrls = product.anhUrls;
+
+  if (!anhUrls || anhUrls.length === 0) {
+    return '/images/placeholder-product.png';
+  }
+
+  // Tìm ảnh chính (anhChinh: true)
+  const mainImg = anhUrls.find((img) => img.anhChinh === true);
+  const imgToUse = mainImg || anhUrls[0];
+
+  if (imgToUse && imgToUse.url) {
+    return `http://localhost:8080/api/anhsp/images/${imgToUse.url}`;
+  }
+
+  return '/images/placeholder-product.png';
+};
+
 export default function SanPhamList({ ps }: SanPhamListProps) {
-  const [imageUrls, setImageUrls] = useState<Record<string, string | null>>({});
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const [isClient, setIsClient] = useState(false);
+  const itemsPerPage = 6;
+
+  // Fix hydration mismatch
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   // Memoize pagination calculations
   const totalPages = useMemo(() => Math.ceil(ps.length / itemsPerPage), [ps.length]);
@@ -52,94 +76,80 @@ export default function SanPhamList({ ps }: SanPhamListProps) {
     ), [ps, currentPage, itemsPerPage]
   );
 
-  const loadImages = async (products: KhuyenMaiTheoSanPham[]) => {
-    const urls: Record<string, string | null> = {};
-    for (const product of products) {
-      if (product.anhSps && Array.isArray(product.anhSps) && product.anhSps.length > 0) {
-        try {
-          const mainImage = typeof product.anhSps[0] === 'string'
-            ? product.anhSps[0]
-            : product.anhSps[0]?.url;
-          if (!mainImage) {
-            throw new Error('Không tìm thấy URL ảnh hợp lệ');
-          }
-          console.log("Đang tải ảnh:", mainImage);
-          const imageBlob = await getAnhByFileName(mainImage);
-          urls[product.id] = URL.createObjectURL(imageBlob);
-        } catch (error) {
-          console.error(`Lỗi tải ảnh cho sản phẩm ID ${product.id}:`, error);
-          urls[product.id] = null;
-        }
-      } else {
-        urls[product.id] = null;
-      }
-    }
-    setImageUrls(urls);
-  };
-
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      if (paginatedProducts.length > 0) {
-        loadImages(paginatedProducts);
-      }
-    }, 100);
-
-    return () => clearTimeout(timeoutId);
-  }, [paginatedProducts]);
-
-  useEffect(() => {
-    return () => {
-      // Cleanup object URLs to prevent memory leaks
-      Object.values(imageUrls).forEach(url => {
-        if (url) URL.revokeObjectURL(url);
-      });
-    };
-  }, []);
-
   // Hàm thêm vào giỏ hàng localStorage
   const addToCartLocal = (sp: KhuyenMaiTheoSanPham) => {
+    if (!isClient) return;
+
     const cart: Array<{ id: number, name: string, image: string, price: number, quantity: number }> = JSON.parse(localStorage.getItem("cartItems") || "[]");
     const index = cart.findIndex((item: { id: number }) => item.id === sp.id);
     if (index !== -1) {
       cart[index].quantity += 1;
     } else {
+      // Sửa lại để lấy từ anhUrls
+      const mainImage = sp.anhUrls?.find(img => img.anhChinh) || sp.anhUrls?.[0];
       cart.push({
         id: sp.id,
         name: sp.tenSanPham,
-        image: sp.anhSps?.[0]?.url || "",
+        image: mainImage?.url || "",
         price: sp.giaKhuyenMai || sp.gia,
         quantity: 1,
       });
     }
     localStorage.setItem("cartItems", JSON.stringify(cart));
-    toast.success("Đã thêm vào giỏ hàng!");
+    toast.success("🛒 Đã thêm vào giỏ hàng!", {
+      description: `${sp.tenSanPham} đã được thêm vào giỏ hàng`,
+      duration: 3000,
+    });
   };
 
-  // Badge logic giống NoBox
+  // Badge logic cải tiến
   const getProductBadge = (product: KhuyenMaiTheoSanPham) => {
     if (product.giaKhuyenMai && product.giaKhuyenMai < product.gia) {
-      return "Khuyến mãi";
+      const discountPercent = Math.round(((product.gia - product.giaKhuyenMai) / product.gia) * 100);
+      return { text: `-${discountPercent}%`, color: "bg-red-500" };
     }
     const price = product.giaKhuyenMai || product.gia;
     if (price >= 3000000) {
-      return "Hàng hiếm";
+      return { text: "Premium", color: "bg-purple-600" };
     }
     if (product.noiBat) {
-      return "Nổi bật";
+      return { text: "Hot", color: "bg-orange-500" };
     }
-    return "Hàng mới";
+    return { text: "New", color: "bg-green-500" };
   };
 
+  // Render loading state during hydration
+  if (!isClient) {
+    return (
+      <div className="min-h-screen">
+        <div className="mb-8">
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">Sản phẩm nổi bật</h2>
+          <p className="text-gray-600">Khám phá những sản phẩm tuyệt vời nhất của chúng tôi</p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6 mb-8">
+          {Array.from({ length: 6 }).map((_, idx) => (
+            <div key={idx} className="animate-pulse">
+              <div className="bg-gray-200 rounded-2xl h-80"></div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen flex flex-col">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 p-6 bg-gray-50 rounded-2xl flex-grow">
+    <div className="min-h-screen">
+      {/* Header */}
+      <div className="mb-8">
+        <h2 className="text-3xl font-bold text-gray-900 mb-2">Sản phẩm nổi bật</h2>
+        <p className="text-gray-600">Khám phá những sản phẩm tuyệt vời nhất của chúng tôi</p>
+      </div>
+
+      {/* Product Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6 mb-8">
         {paginatedProducts.map((p, idx) => {
-          let anhChinh = null;
-          if (p.anhSps && Array.isArray(p.anhSps) && p.anhSps.length > 0) {
-            const mainImg = p.anhSps.find(img => img.anhChinh);
-            anhChinh = mainImg ? mainImg.url : p.anhSps[0].url;
-          }
           const badge = getProductBadge(p);
+          const mainImageUrl = getMainImageUrl(p);
 
           // Tính phần trăm giảm giá
           const discountPercent = p.giaKhuyenMai && p.giaKhuyenMai < p.gia
@@ -148,162 +158,171 @@ export default function SanPhamList({ ps }: SanPhamListProps) {
 
           return (
             <motion.div
-              key={p.id}
-              className="flex-shrink-0 w-full"
-              initial={{ opacity: 0, y: 40 }}
+              key={`product-${p.id}-${currentPage}`}
+              initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: idx * 0.08 }}
+              transition={{ duration: 0.5, delay: idx * 0.1 }}
+              viewport={{ once: true }}
             >
-              <Link href={`/product/${p.id}`} className="block">
-                <Card className="overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl border border-gray-100 bg-white transition-all duration-200 group relative w-full mx-auto">
-                  <CardHeader className="p-0">
-                    <div className="relative w-full h-52">
-                      {/* Badge */}
-                      <div className="absolute top-3 left-3 z-10">
-                        <span className="bg-blue-600 text-white px-2 py-1 rounded-full text-xs font-bold">
-                          {badge}
-                        </span>
+              <Card className="group overflow-hidden rounded-2xl shadow-md hover:shadow-xl border-0 bg-white transition-all duration-300 hover:-translate-y-1">
+                <CardHeader className="p-0 relative">
+                  <div className="relative w-full h-64 overflow-hidden">
+                    {/* Badge */}
+                    <div className="absolute top-3 left-3 z-20">
+                      <span className={`${badge.color} text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg`}>
+                        {badge.text}
+                      </span>
+                    </div>
+
+                    {/* Heart Icon */}
+                    <div className="absolute top-3 right-3 z-20">
+                      <Button
+                        className="bg-white/90 hover:bg-white rounded-full shadow-lg backdrop-blur-sm transition-all duration-200 hover:scale-110 w-10 h-10 flex items-center justify-center"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                        }}
+                        type="button"
+                      >
+                        <Heart className="w-4 h-4 text-gray-600 hover:text-red-500 transition-colors" />
+                      </Button>
+                    </div>
+
+                    {/* Product Image */}
+                    <Link href={`/product/${p.id}`} className="block w-full h-full">
+                      <div className="relative w-full h-full bg-gradient-to-br from-gray-50 to-gray-100 group-hover:from-blue-50 group-hover:to-blue-100 transition-all duration-300">
+                        <Image
+                          src={mainImageUrl}
+                          alt={p.tenSanPham}
+                          fill
+                          className="object-contain p-4 group-hover:scale-105 transition-transform duration-300"
+                          loading="lazy"
+                        />
                       </div>
-                      {/* Heart Icon - Top Right */}
-                      <div className="absolute top-3 right-3 z-10">
-                        <Button className="bg-white bg-opacity-80 hover:bg-opacity-100 rounded-full p-2 transition-all duration-200 shadow-md">
-                          <Heart className="w-4 h-4 text-gray-400 hover:text-red-500" />
-                        </Button>
+                    </Link>
+                  </div>
+                </CardHeader>
+
+                <CardContent className="p-5">
+                  <div className="mb-3">
+                    <CategoryName danhMucId={p.danhMucId} />
+                    <div className="flex items-center justify-between">
+                      <div className="text-xs text-gray-400 font-mono">
+                        #{p.maSanPham}
                       </div>
-                      <div className="relative w-full h-52 bg-gray-100">
-                        {imageUrls[p.id] ? (
-                          <Image
-                            src={imageUrls[p.id]!}
-                            alt={p.tenSanPham}
-                            width={320}
-                            height={208}
-                            className="object-contain w-full h-full p-3"
-                            loading="lazy"
-                          />
-                        ) : anhChinh ? (
-                          <Image
-                            src={`http://localhost:8080/api/anhsp/images/${anhChinh}`}
-                            alt={p.tenSanPham}
-                            width={320}
-                            height={208}
-                            className="object-contain w-full h-full p-3"
-                            loading="lazy"
-                          />
-                        ) : (
-                          <Image
-                            src="/fallback-image.jpg"
-                            alt="Không có ảnh"
-                            width={320}
-                            height={208}
-                            className="object-contain w-full h-full p-3"
-                            loading="lazy"
-                          />
-                        )}
+                      <div className="flex items-center gap-1">
+                        <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                        <span className="text-xs text-gray-500">4.8</span>
                       </div>
                     </div>
-                  </CardHeader>
-                  <CardContent className="p-4 pb-1">
-                    <div className="mb-2">
-                      <div className="flex items-center justify-between">
-                        <CategoryName danhMucId={p.danhMucId} />
-                        <div className="text-xs text-gray-400">
-                          {p.maSanPham}
-                        </div>
-                      </div>
-                    </div>
-                    <CardTitle className="text-base font-bold line-clamp-2 h-[44px] text-gray-900 group-hover:text-blue-700 transition mb-2">
+                  </div>
+
+                  <Link href={`/product/${p.id}`}>
+                    <CardTitle className="text-lg font-bold line-clamp-2 h-[56px] text-gray-900 group-hover:text-blue-700 transition-colors duration-200 mb-3 leading-tight">
                       {p.tenSanPham}
                     </CardTitle>
-                    <div className="text-xs text-gray-600 mb-2">
-                      Độ tuổi: {p.doTuoi}+
-                    </div>
-                    <div className="flex items-center justify-between mb-0 pb-0">
-                      <div className="text-lg font-bold text-blue-800">
+                  </Link>
+
+                  <div className="flex items-center gap-2 mb-4">
+                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">
+                      {p.doTuoi}+ tuổi
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex flex-col">
+                      <div className="text-xl font-bold text-blue-600">
                         {(p.giaKhuyenMai || p.gia).toLocaleString("vi-VN")}₫
                       </div>
                       {p.giaKhuyenMai && p.giaKhuyenMai < p.gia && (
-                        <div className="text-xs text-gray-400 line-through">
+                        <div className="text-sm text-gray-400 line-through">
                           {p.gia.toLocaleString("vi-VN")}₫
                         </div>
                       )}
                     </div>
-                  </CardContent>
-                </Card>
-              </Link>
-              <CardFooter className="p-1 pt-0">
-                <div className="flex gap-2 w-full justify-center">
-                  <Button
-                    className="w-60 bg-yellow-400 text-blue-800 hover:bg-yellow-500 rounded-xl font-bold text-base h-9 min-h-0"
-                    style={{ marginTop: 0, paddingTop: 0, paddingBottom: 0 }}
-                    onClick={e => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      addToCartLocal(p);
-                    }}
-                  >
-                    <ShoppingCart className="w-4 h-4 mr-1" />
-                    Thêm vào giỏ hàng
-                  </Button>
-                  <Button
-                    size="icon"
-                    variant="outline"
-                    className="h-9 w-9 border-gray-300 hover:bg-red-50 hover:border-red-300"
-                    onClick={e => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                    }}
-                  >
-                    <Heart className="w-4 h-4 text-gray-600" />
-                  </Button>
-                </div>
-              </CardFooter>
+                    {discountPercent > 0 && (
+                      <div className="text-sm font-bold text-red-500">
+                        Tiết kiệm {discountPercent}%
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+
+                <CardFooter className="p-5 pt-0">
+                  <div className="flex gap-3 w-full">
+                    <button
+                      className="flex-1 bg-gradient-to-r from-violet-50-50 bg-yellow-400 text-blue-800 hover:bg-yellow-500 text-white rounded-xl font-semibold h-11 shadow-lg hover:shadow-xl transition-all duration-200 inline-flex items-center justify-center gap-2"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        addToCartLocal(p);
+                      }}
+                      type="button"
+                    >
+                      <ShoppingCart className="w-4 h-4" />
+                      Thêm vào giỏ
+                    </button>
+                    <Button
+                      className="h-11 w-11 border border-gray-200 hover:bg-red-50 hover:border-red-300 rounded-xl transition-all duration-200 inline-flex items-center justify-center"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                      }}
+                      type="button"
+                    >
+                      <Heart className="w-4 h-4 text-gray-600" />
+                    </Button>
+                  </div>
+                </CardFooter>
+              </Card>
             </motion.div>
           );
         })}
       </div>
-      {/* Pagination giữ nguyên */}
+
+      {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex justify-center items-center gap-2 mt-6 pb-6">
-          <Button
+        <div className="flex justify-center items-center gap-3 mt-12 pb-8">
+          <button
             onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
             disabled={currentPage === 1}
-            variant="outline"
-            size="sm"
-            className="px-3 py-1"
+            className="px-4 py-2 rounded-xl border border-gray-200 hover:bg-blue-50 hover:border-blue-300 disabled:opacity-50 inline-flex items-center gap-1 transition-colors"
+            type="button"
           >
             <ChevronLeft className="w-4 h-4" />
             Trước
-          </Button>
-          <div className="flex gap-1">
+          </button>
+
+          <div className="flex gap-2">
             {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-              <Button
+              <button
                 key={page}
                 onClick={() => setCurrentPage(page)}
-                variant={currentPage === page ? "default" : "outline"}
-                size="sm"
-                className="px-3 py-1"
+                className={`w-10 h-10 rounded-xl transition-colors ${currentPage === page
+                  ? "bg-blue-600 text-white shadow-lg"
+                  : "border border-gray-200 hover:bg-blue-50 hover:border-blue-300"
+                  }`}
+                type="button"
               >
                 {page}
-              </Button>
+              </button>
             ))}
           </div>
-          <Button
+
+          <button
             onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
             disabled={currentPage === totalPages}
-            variant="outline"
-            size="sm"
-            className="px-3 py-1"
+            className="px-4 py-2 rounded-xl border border-gray-200 hover:bg-blue-50 hover:border-blue-300 disabled:opacity-50 inline-flex items-center gap-1 transition-colors"
+            type="button"
           >
             Sau
             <ChevronRight className="w-4 h-4" />
-          </Button>
+          </button>
         </div>
       )}
     </div>
   );
 }
-
-
 
 
 
