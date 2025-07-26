@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Edit, Eye, SwitchCameraIcon } from "lucide-react";
 
-import { SanPham } from "@/components/types/product.type";
 import {
   Table,
   TableBody,
@@ -12,18 +11,25 @@ import {
 } from "@/components/ui/table";
 import { useXuatXu } from "@/hooks/useXuatXu";
 import { useThuongHieu } from "@/hooks/useThuongHieu";
+import { KhuyenMaiTheoSanPham } from "@/components/types/khuyenmai-type";
 
 interface Props {
-  sanPhams: SanPham[];
-  onEdit: (product: SanPham) => void;
+  sanPhams: KhuyenMaiTheoSanPham[];
+  onEdit: (product: KhuyenMaiTheoSanPham) => void;
   onDelete: (id: number) => void;
 }
 
 export default function SanPhamTable({ sanPhams, onDelete, onEdit }: Props) {
   const { data: xuatXuList = [] } = useXuatXu();
   const { data: thuongHieuList = [] } = useThuongHieu();
-  const getTenXuatXu = (id: number) => xuatXuList.find((x) => x.id === id)?.ten || "Không rõ";
-  const getTenThuongHieu = (id: number) => thuongHieuList.find((t) => t.id === id)?.ten || "Không rõ";
+  const getTenXuatXu = (id: number) => {
+    if (!id) return "Không rõ";
+    return xuatXuList.find((x) => x.id === id)?.ten || "Không rõ";
+  };
+  const getTenThuongHieu = (id: number) => {
+    if (!id) return "Không rõ";
+    return thuongHieuList.find((t) => t.id === id)?.ten || "Không rõ";
+  };
   // const getTenDanhMuc = (id: number) =>
   //   danhMucs.find((dm) => dm.id === id)?.tenDanhMuc || "Không rõ";
 
@@ -42,6 +48,8 @@ export default function SanPhamTable({ sanPhams, onDelete, onEdit }: Props) {
             <TableHead className="whitespace-nowrap">Độ tuổi</TableHead>
             <TableHead className="whitespace-nowrap">Giá</TableHead>
             <TableHead className="whitespace-nowrap">SL Tồn</TableHead>
+            <TableHead className="whitespace-nowrap">% Khuyến mãi</TableHead>
+            <TableHead className="whitespace-nowrap">Giá khuyến mãi</TableHead>
             <TableHead className="whitespace-nowrap">Trạng Thái</TableHead>
             <TableHead className="whitespace-nowrap">Xuất xứ</TableHead>
             <TableHead className="whitespace-nowrap">Thương hiệu</TableHead>
@@ -65,6 +73,15 @@ export default function SanPhamTable({ sanPhams, onDelete, onEdit }: Props) {
                 <TableCell>{sp.doTuoi}</TableCell>
                 <TableCell>{sp.gia.toLocaleString()}đ</TableCell>
                 <TableCell>{sp.soLuongTon}</TableCell>
+
+                <TableCell>
+                  {sp.phanTramKhuyenMai ? `${sp.phanTramKhuyenMai}%` : "-"}
+                </TableCell>
+                <TableCell>
+                  {sp.giaKhuyenMai
+                    ? `${sp.giaKhuyenMai.toLocaleString()} đ`
+                    : "-"}
+                </TableCell>
                 <TableCell>
                   {sp.trangThai === "Đang kinh doanh" ? (
                     <span className="text-green-600 font-semibold">Đang kinh doanh</span>
@@ -74,8 +91,8 @@ export default function SanPhamTable({ sanPhams, onDelete, onEdit }: Props) {
                     <span className="text-red-400 font-semibold">Hết hàng</span>
                   )}
                 </TableCell>
-                <TableCell>{getTenXuatXu(sp.xuatXuId)}</TableCell>
-                <TableCell>{getTenThuongHieu(sp.thuongHieuId)}</TableCell>
+                <TableCell>{getTenXuatXu(sp.xuatXuId ?? 0)}</TableCell>
+                <TableCell>{getTenThuongHieu(sp.thuongHieuId ?? 0)}</TableCell>
                 <TableCell>
                   {sp.noiBat === 1 || sp.noiBat === true ? (
                     <span className="text-yellow-500 font-bold">★</span>

@@ -12,3 +12,12 @@ export interface DanhGia {
     images?: string[]; // tên file ảnh
     video?: string;    // tên file video
 }
+
+export interface CreateDanhGiaDTO {
+    tieuDe: string;
+    textDanhGia: string;
+    soSao: number;
+    user_id: number;
+    sp_id: number;
+    hdct_id: number;
+}

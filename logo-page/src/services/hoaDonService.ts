@@ -3,6 +3,28 @@ import { fetchWithAuth } from "./fetchWithAuth";
 
 const API_URL = "http://localhost:8080/api/lego-store/hoa-don";
 
+// Đặt ngoài object HoaDonService
+export async function getCurrentUserId(): Promise<number | null> {
+    // Ưu tiên lấy từ 'lego-store', sau đó thử 'auth', sau đó 'state'
+    let state = localStorage.getItem('lego-store');
+    if (!state) state = localStorage.getItem('auth');
+    if (!state) state = localStorage.getItem('state');
+    if (state) {
+        try {
+            const parsedState = JSON.parse(state);
+            // Ưu tiên lấy từ .state.user.id nếu có, sau đó user.id, sau đó id
+            const id = parsedState.state?.user?.id || parsedState.user?.id || parsedState.id || null;
+            console.log('Lấy id nhân viên từ localStorage:', id);
+            return id;
+        } catch (error) {
+            console.error('Lỗi khi phân tích cú pháp localStorage:', error);
+            return null;
+        }
+    }
+    console.error('Không tìm thấy thông tin user trong localStorage');
+    return null;
+}
+
 export const HoaDonService = {
     // Create new order
     async createHoaDon(orderData: CreateHoaDonDTO): Promise<HoaDonDTO> {
@@ -87,14 +109,22 @@ export const HoaDonService = {
     },
 
     async updateTrangThai(id: number, trangThai: string): Promise<HoaDonDTO> {
+        const nvId = await getCurrentUserId();
+        if (!nvId) {
+            throw new Error('Không tìm thấy thông tin nhân viên đăng nhập');
+        }
         const res = await fetchWithAuth(
-            `${API_URL}/${id}/trang-thai?trangThai=${encodeURIComponent(trangThai)}`,
+            `${API_URL}/${id}/trang-thai?trangThai=${encodeURIComponent(trangThai)}&idNV=${nvId}`,
             {
                 method: "PUT",
             }
         );
-        if (!res.ok) throw new Error("Không thể cập nhật trạng thái");
-        return res.json();
+        const data = await res.json();
+        if (!res.ok) {
+            console.error("Lỗi cập nhật trạng thái hóa đơn:", data);
+            throw new Error(data?.message || "Không thể cập nhật trạng thái");
+        }
+        return data;
     },
 
     async getStatusCounts(): Promise<Record<string, number>> {

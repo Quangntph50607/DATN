@@ -1,3 +1,4 @@
+import { AnhSanPhamChiTiet } from "./product.type";
 
 export interface KhuyenMaiDTO {
   id: number;
@@ -18,22 +19,50 @@ export interface KhuyenMaiSanPhamDTO {
 export interface KhuyenMaiTheoSanPham {
   id: number;
   tenSanPham: string;
-  maSanPham: string;
+  maSanPham?: string;
   doTuoi: number;
-  moTa: string | null;
+  moTa?: string;
   gia: number;
-  soLuongManhGhep: number | null;
+  soLuongManhGhep?: number;
   soLuongTon: number;
-  soLuongVote: number;
-  danhGiaTrungBinh: number;
-  danhMucId: number | null;
-  boSuuTapId: number | null;
+  soLuongVote?: number;
+  danhGiaTrungBinh?: number;
+  ngayTao?: number | string;
+  ngaySua?: number | string;
+  khuyenMaiId?: number | null;
   trangThai: string;
-  trangThaiKM: string;
-  anhUrls: { url: string; anhChinh: boolean }[];
+  danhMucId: number;
+  boSuuTapId: number;
+  anhSps?: AnhSanPhamChiTiet[];
   giaKhuyenMai: number | null;
   phanTramKhuyenMai: number | null;
   noiBat?: number | boolean;
   xuatXuId?: number;
   thuongHieuId?: number;
+}
+export interface SanPhamApDungTuple extends Array<string | number> {
+  0: string; // maSanPham
+  1: string; // tenSanPham
+  2: string; // trangThai
+  3: number; // giaGoc
+  4: number; // giaSauGiam
+}
+
+export interface ChiTietKhuyenMai {
+  id: number;
+  tenKhuyenMai: string;
+  phanTramKhuyenMai: number;
+
+  // Ngày theo dạng [năm, tháng, ngày, giờ, phút, giây?]
+  ngayBatDau: number[];
+  ngayKetThuc: number[];
+
+  soSanPhamApDung: number;
+  tongSoLuongBan: number;
+  tongTienTruocGiam: number;
+  tongSoTienGiam: number;
+  tongTienSauGiam: number;
+  soHoaDon: number;
+
+  sanPhamDaApDung: SanPhamApDungTuple[];
 }

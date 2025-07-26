@@ -74,8 +74,8 @@ export default function PhieuGiamGia({ editing, setEditing, onSucess }: Props) {
   function onSubmit(data: PhieuGiamGiaData) {
     const payload: PhieuGiamGiaCreate = {
       ...data,
-      ngayBatDau: format(data.ngayBatDau, "dd-MM-yyyy"),
-      ngayKetThuc: format(data.ngayKetThuc, "dd-MM-yyyy"),
+      ngayBatDau: format(data.ngayBatDau, "dd-MM-yyyy HH:mm:ss"),
+      ngayKetThuc: format(data.ngayKetThuc, "dd-MM-yyyy HH:mm:ss"),
       giamToiDa:
         data.loaiPhieuGiam === "Theo %" ? data.giamToiDa ?? 0 : undefined,
     };
@@ -254,6 +254,7 @@ export default function PhieuGiamGia({ editing, setEditing, onSucess }: Props) {
             )}
           />
 
+          {/* Ngày bắt đầu - kết thúc */}
           <div className="flex gap-3">
             <FormField
               control={form.control}
@@ -265,7 +266,6 @@ export default function PhieuGiamGia({ editing, setEditing, onSucess }: Props) {
                     <DateTimePicker
                       value={field.value}
                       onChange={field.onChange}
-                      mode="date"
                     />
                   </FormControl>
                   <FormMessage />
@@ -283,7 +283,6 @@ export default function PhieuGiamGia({ editing, setEditing, onSucess }: Props) {
                     <DateTimePicker
                       value={field.value}
                       onChange={field.onChange}
-                      mode="date"
                     />
                   </FormControl>
                   <FormMessage />

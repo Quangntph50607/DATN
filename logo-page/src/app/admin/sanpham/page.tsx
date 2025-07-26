@@ -4,7 +4,6 @@ import { ProductData } from "@/lib/sanphamschema";
 import SanPhamForm from "./SanPhamForm";
 import SanPhamTable from "./SanPhamTable";
 import {
-  useSanPham,
   useAddSanPham,
   useXoaSanPham,
   useEditSanPham,
@@ -23,9 +22,14 @@ import { Modal } from "@/components/layout/(components)/(pages)/Modal";
 import { PlusIcon } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ConfirmDialog } from "@/shared/ConfirmDialog";
+import { useListKhuyenMaiTheoSanPham } from "@/hooks/useKhuyenmai";
 
 export default function SanPhamPage() {
-  const { data: sanPhams = [], isLoading, refetch } = useSanPham();
+  const {
+    data: sanPhams = [],
+    isLoading,
+    refetch,
+  } = useListKhuyenMaiTheoSanPham();
   const { data: danhMucs = [] } = useDanhMuc();
   const { data: boSuuTaps = [] } = useBoSuutap();
   const [activedTabs, setActivetedTabs] = useState<
@@ -205,7 +209,13 @@ export default function SanPhamPage() {
                         sanPhams={paginated}
                         onDelete={(id) => confirmDelete(id)}
                         onEdit={(product) => {
-                          setEditSanPham({ ...product });
+                          // Convert product to SanPham type with default values
+                          const sanPham: SanPham = {
+                            ...product,
+                            xuatXuId: product.xuatXuId ?? 0,
+                            thuongHieuId: product.thuongHieuId ?? 0,
+                          };
+                          setEditSanPham(sanPham);
                           setIsModalOpen(true);
                         }}
                       />

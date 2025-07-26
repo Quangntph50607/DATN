@@ -129,10 +129,21 @@ export default function SanPhamList({ ps }: SanPhamListProps) {
                 </div>
               </CardHeader>
               <CardContent className="p-5">
-                <CardTitle className="text-lg font-bold line-clamp-2 h-12 text-gray-900 group-hover:text-blue-700 transition">
-                  {p.tenSanPham}
-                </CardTitle>
-                <div className="flex items-center justify-between text-base font-semibold mt-3">
+                {/* Tên và số lượng trên cùng 1 hàng */}
+                <div className="flex items-center justify-between mb-2">
+                  <CardTitle className="text-lg font-bold line-clamp-2 text-gray-900 group-hover:text-blue-700 transition">
+                    {p.tenSanPham}
+                  </CardTitle>
+                  <span className="text-sm text-gray-500 font-semibold ml-2">
+                    SL Mảnh ghép: {p.soLuongManhGhep ?? 0}
+                  </span>
+                </div>
+                {/* Mô tả trên 1 hàng */}
+                <div className="text-gray-500 text-sm mb-2 line-clamp-1">
+                  {p.moTa || "Không có mô tả"}
+                </div>
+                {/* Giá trên 1 hàng */}
+                <div className="flex items-center justify-between text-base font-semibold">
                   <span className="text-red-500">
                     {p.giaKhuyenMai?.toLocaleString("vi-VN")}₫
                   </span>

@@ -1,4 +1,5 @@
 import {
+  ChitietPhieuGiamGia,
   PhieuGiamGia,
   PhieuGiamGiaCreate,
 } from "@/components/types/phieugiam.type";
@@ -47,5 +48,16 @@ export function useXoaPhieuGiamGia() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: PHIEU_GIAM_QUERY_KEY });
     },
+  });
+}
+
+export function useHistoryPhieuGiamGia(id: number) {
+  return useQuery<ChitietPhieuGiamGia>({
+    queryKey: ["chitietPhieuGiam", id],
+    queryFn: async () => {
+      const result = await phieuGiamGiaService.getChitietPhieuGiamGia(id);
+      return result;
+    },
+    enabled: !!id,
   });
 }
