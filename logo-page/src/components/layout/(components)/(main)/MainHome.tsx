@@ -44,13 +44,13 @@ export default function MainHome() {
         ...p,
         maSanPham: p.maSanPham ?? "",
         moTa: p.moTa ?? "",
-        soLuongManhGhep: p.soLuongManhGhep ?? null,
+        soLuongManhGhep: p.soLuongManhGhep ?? undefined,
         soLuongVote: p.soLuongVote ?? 0,
         danhGiaTrungBinh: p.danhGiaTrungBinh ?? 0,
         trangThaiKM: "",
         anhUrls: anhUrls
-          ? anhUrls.map(img => ({ url: img.url, anhChinh: !!img.anhChinh }))
-          : (anhSps ? anhSps.map(img => ({ url: img.url, anhChinh: !!img.anhChinh })) : []),
+          ? anhUrls.map(img => ({ id: 0, url: img.url, anhChinh: !!img.anhChinh, moTa: '' }))
+          : (anhSps ? anhSps.map(img => ({ id: 0, url: img.url, anhChinh: !!img.anhChinh, moTa: '' })) : []),
         phanTramKhuyenMai: null,
         giaKhuyenMai: p.giaKhuyenMai ?? null,
       };
@@ -105,7 +105,7 @@ export default function MainHome() {
                 <div className="flex justify-center mb-3 group-hover:scale-110 transition-transform">
                   {getCategoryIcon(cat.tenDanhMuc, idx)}
                 </div>
-                <h3 className="font-bold text-gray-800 mb-1">{cat.tenDanhMuc}</h3>
+                <h3 className="font-bold text-gray-800 mb-1 truncate w-full">{cat.tenDanhMuc}</h3>
                 <p className="text-sm text-gray-600">{products ? products.filter(p => p.danhMucId === cat.id && p.trangThai === "Đang kinh doanh").length : "?"} sản phẩm</p>
               </motion.div>
             ))}
