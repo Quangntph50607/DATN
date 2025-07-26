@@ -1,5 +1,6 @@
 import { fetchWithAuth } from "./fetchWithAuth";
 import {
+  ChitietPhieuGiamGia,
   PhieuGiamGia,
   PhieuGiamGiaCreate,
 } from "@/components/types/phieugiam.type";
@@ -8,7 +9,9 @@ const API_URL = "http://localhost:8080/api/phieugiamgia";
 
 export const phieuGiamGiaService = {
   async getPhieuGiamGia(): Promise<PhieuGiamGia[]> {
-    const res = await fetchWithAuth(`${API_URL}/ReadAll`, { cache: "no-store" });
+    const res = await fetchWithAuth(`${API_URL}/ReadAll`, {
+      cache: "no-store",
+    });
     if (!res.ok) throw new Error("Không tìm thấy phiếu giảm giá");
     return res.json();
   },
@@ -43,5 +46,22 @@ export const phieuGiamGiaService = {
       cache: "no-store",
     });
     if (!res.ok) throw new Error("Không thể xóa phiếu giảm giá");
+  },
+
+  async getChitietPhieuGiamGia(id: number): Promise<ChitietPhieuGiamGia> {
+    const res = await fetchWithAuth(`${API_URL}/getDetail/${id}`, {
+      cache: "no-store",
+    });
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error(
+        "getChiTietPhieuKhuyenMai - API error:",
+        res.status,
+        errorText
+      );
+      throw new Error("Không thể lấy chi tiết phiếu giảm giá");
+    }
+    const data = await res.json();
+    return data;
   },
 };

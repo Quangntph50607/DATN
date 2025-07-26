@@ -40,8 +40,9 @@ export interface KhuyenMaiTheoSanPham {
 export interface SanPhamApDungTuple extends Array<string | number> {
   0: string; // maSanPham
   1: string; // tenSanPham
-  2: number; // giaGoc
-  3: number; // giaSauGiam
+  2: string; // trangThai
+  3: number; // giaGoc
+  4: number; // giaSauGiam
 }
 
 export interface ChiTietKhuyenMai {

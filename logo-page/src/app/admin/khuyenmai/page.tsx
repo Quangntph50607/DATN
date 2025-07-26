@@ -3,12 +3,7 @@ import React, { useState } from "react";
 import KhuyenMaiForm from "./KhuyenMaiForm";
 import KhuyenMaiTable from "./KhuyenMaiTable";
 import KhuyenMaiDetailModal from "./KhuyenMaiDetailModal";
-import {
-  useDeleteKhuyenMai,
-  useHistoryKhuyenMai,
-  useKhuyenMai,
-} from "@/hooks/useKhuyenmai";
-import { toast } from "sonner";
+import { useHistoryKhuyenMai, useKhuyenMai } from "@/hooks/useKhuyenmai";
 import { KhuyenMaiDTO } from "@/components/types/khuyenmai-type";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -17,6 +12,7 @@ import { Modal } from "@/components/layout/(components)/(pages)/Modal";
 import { PlusIcon } from "lucide-react";
 import { useSearchStore } from "@/context/useSearch.store";
 import KhuyenMaiFilter from "./KhuyenMaiFilter";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function KhuyenMaiPage() {
   const { data: khuyenMai = [], isLoading, refetch } = useKhuyenMai();
@@ -28,30 +24,26 @@ export default function KhuyenMaiPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const { keyword, setKeyword } = useSearchStore();
   const [viewingId, setViewingId] = useState<number | null>(null);
+  const [activedTabs, setActivetedTabs] = useState<
+    "Đang hoạt động" | "Chưa bắt đầu" | "Đã hết hạn"
+  >("Đang hoạt động");
 
   const { data: chiTietData, isLoading: isLoadingDetail } = useHistoryKhuyenMai(
     viewingId ?? 0
   );
-  const itemPerPage = 10;
-  const totalPages = Math.ceil(khuyenMai.length / itemPerPage);
 
-  const filtered = khuyenMai.filter((km) => {
-    const lowerKeyword = keyword.toLowerCase();
-    const matchKeyword =
-      km.maKhuyenMai?.toLowerCase().includes(lowerKeyword) ||
-      km.tenKhuyenMai.toLowerCase().includes(lowerKeyword);
-    const from = fromDate ? new Date(fromDate) : null;
-    const to = toDate ? new Date(toDate) : null;
-    const startDate = new Date(km.ngayBatDau);
-
-    const matchDate = (!from || startDate >= from) && (!to || startDate <= to);
-    return matchKeyword && matchDate;
-  });
-  const paginatedData = filtered.slice(
-    (currentPage - 1) * itemPerPage,
-    currentPage * itemPerPage
-  );
-
+  const convertStatus = (status: string) => {
+    switch (status) {
+      case "active":
+        return "Đang hoạt động";
+      case "inactive":
+        return "Chưa bắt đầu";
+      case "expired":
+        return "Đã hết hạn";
+      default:
+        return "Không xác định";
+    }
+  };
   const handleEdit = (data: KhuyenMaiDTO) => {
     setEditing(data);
     setIsModalOpen(true);
@@ -142,30 +134,82 @@ export default function KhuyenMaiPage() {
           <p className="text-muted-foreground">Đang tải khuyến mại</p>
         ) : (
           <>
-            <KhuyenMaiTable
-              khuyenMai={paginatedData}
-              onEdit={handleEdit}
-              onView={handleView}
-            />
-            <div className="flex flex-wrap gap-2 justify-center items-center">
-              <Button
-                variant="outline"
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage((prev) => prev - 1)}
-              >
-                Trang trước
-              </Button>
-              <span className="text-sm font-medium">
-                Trang {currentPage} / {totalPages}
-              </span>
-              <Button
-                variant="outline"
-                disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage((prev) => prev + 1)}
-              >
-                Trang sau
-              </Button>
-            </div>
+            <Tabs
+              defaultValue="Đang hoạt động"
+              value={activedTabs}
+              onValueChange={(value) => {
+                setActivetedTabs(
+                  value as "Đang hoạt động" | "Chưa bắt đầu" | "Đã hết hạn"
+                );
+                setCurrentPage(1);
+              }}
+            >
+              <TabsList className="gap-2 border-gray-200 border-1">
+                <TabsTrigger value="Đang hoạt động">
+                  <span>Đang hoạt động</span>
+                </TabsTrigger>
+                <TabsTrigger value="Chưa bắt đầu">
+                  <span>Chưa bắt đầu</span>
+                </TabsTrigger>
+                <TabsTrigger value="Đã hết hạn">
+                  <span>Đã hết hạn</span>
+                </TabsTrigger>
+              </TabsList>
+              {/* TabsContent cho trạng thái */}
+              {["Đang hoạt động", "Chưa bắt đầu", "Đã hết hạn"].map(
+                (trangThai) => {
+                  const itemPerPage = 10;
+                  const filtered = khuyenMai.filter((km) => {
+                    const lowerKeyword = keyword.toLowerCase();
+                    const matchKeyword =
+                      km.maKhuyenMai?.toLowerCase().includes(lowerKeyword) ||
+                      km.tenKhuyenMai.toLowerCase().includes(lowerKeyword);
+                    const from = fromDate ? new Date(fromDate) : null;
+                    const to = toDate ? new Date(toDate) : null;
+                    const startDate = new Date(km.ngayBatDau);
+
+                    const matchDate =
+                      (!from || startDate >= from) && (!to || startDate <= to);
+                    const matchTrangThai =
+                      convertStatus(km.trangThai) === trangThai;
+                    return matchKeyword && matchDate && matchTrangThai;
+                  });
+                  const totalPages = Math.ceil(filtered.length / itemPerPage);
+                  const paginatedData = filtered.slice(
+                    (currentPage - 1) * itemPerPage,
+                    currentPage * itemPerPage
+                  );
+                  return (
+                    <TabsContent key={trangThai} value={trangThai}>
+                      <KhuyenMaiTable
+                        khuyenMai={paginatedData}
+                        onEdit={handleEdit}
+                        onView={handleView}
+                      />
+                      <div className="flex flex-wrap gap-2 justify-center items-center mt-4">
+                        <Button
+                          variant="outline"
+                          disabled={currentPage === 1}
+                          onClick={() => setCurrentPage((prev) => prev - 1)}
+                        >
+                          Trang trước
+                        </Button>
+                        <span className="text-sm font-medium">
+                          Trang {currentPage} / {totalPages}
+                        </span>
+                        <Button
+                          variant="outline"
+                          disabled={currentPage === totalPages}
+                          onClick={() => setCurrentPage((prev) => prev + 1)}
+                        >
+                          Trang sau
+                        </Button>
+                      </div>
+                    </TabsContent>
+                  );
+                }
+              )}
+            </Tabs>
           </>
         )}
       </div>

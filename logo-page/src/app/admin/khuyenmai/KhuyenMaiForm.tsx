@@ -2,7 +2,7 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { format, parse } from "date-fns";
+import { format } from "date-fns";
 import { toast } from "sonner";
 import {
   Form,
@@ -123,42 +123,58 @@ export default function KhuyenMaiForm({
     } else {
       addKhuyenMai.mutate(payload, {
         onSuccess: (res) => {
-          if (res?.id && selectedIds.length > 0) {
-            addKhuyenMaiVaoSp.mutate(
-              {
-                khuyenMaiId: res.id,
-                listSanPhamId: selectedIds,
-              },
-              {
-                onSuccess: (res: any) => {
-                  if (res.trangThai === "SUCCESS") {
-                    toast.success("Áp dụng khuyến mãi thành công!");
-                  } else if (
-                    res.trangThai === "FAILED" &&
-                    res.sanPhamTrung?.length > 0
-                  ) {
-                    const tenSp = res.sanPhamTrung
-                      .map((sp: any) => sp.tenSanPham)
-                      .join(", ");
+          if (res?.id) {
+            if (selectedIds.length > 0) {
+              addKhuyenMaiVaoSp.mutate(
+                {
+                  khuyenMaiId: res.id,
+                  listSanPhamId: selectedIds,
+                },
+                {
+                  onSuccess: (res: any) => {
+                    if (res.trangThai === "SUCCESS") {
+                      toast.success("Áp dụng khuyến mãi thành công!");
+                    } else if (
+                      res.trangThai === "FAILED" &&
+                      res.sanPhamTrung?.length > 0
+                    ) {
+                      const tenSp = res.sanPhamTrung
+                        .map((sp: any) => sp.tenSanPham)
+                        .join(", ");
+                      toast.error(
+                        `Không thể áp dụng cho: ${tenSp}. Các sản phẩm này đã có khuyến mãi trùng thời gian.`
+                      );
+                    } else {
+                      toast.error(res.message || "Áp dụng khuyến mãi thất bại");
+                    }
+                    // Chỉ reset khi kết quả rõ ràng
+                    form.reset();
+                    setSelectedIds([]);
+                    onSucess?.();
+                  },
+                  onError: (err: any) => {
                     toast.error(
-                      `Không thể áp dụng cho: ${tenSp}. Các sản phẩm này đã có khuyến mãi trùng thời gian.`
+                      err?.response?.data?.message ||
+                        "Áp dụng khuyến mãi thất bại"
                     );
-                  } else {
-                    toast.error(res.message || "Áp dụng khuyến mãi thất bại");
-                  }
-                },
-                onError: (err: any) => {
-                  toast.error(
-                    err?.response?.data?.message ||
-                      "Áp dụng khuyến mãi thất bại"
-                  );
-                },
-              }
-            );
+                  },
+                }
+              );
+            } else {
+              // Trường hợp không có selectedIds => chỉ tạo khuyến mãi thôi
+              toast.success(
+                "Tạo khuyến mãi thành công (chưa áp dụng cho sản phẩm)"
+              );
+              form.reset();
+              setSelectedIds([]);
+              onSucess?.();
+            }
           }
-          form.reset();
-          setSelectedIds([]);
-          onSucess?.();
+        },
+        onError: (err: any) => {
+          toast.error(
+            err?.response?.data?.message || "Tạo khuyến mãi thất bại"
+          );
         },
       });
     }

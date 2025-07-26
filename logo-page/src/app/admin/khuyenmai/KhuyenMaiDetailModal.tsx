@@ -1,210 +1,162 @@
-import React from "react";
-import { ChiTietKhuyenMai } from "@/components/types/khuyenmai-type";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { formatDateFlexible } from "./formatDateFlexible";
 import {
-  Calendar,
-  Package,
   DollarSign,
-  TrendingDown,
+  Package,
   Receipt,
   ShoppingCart,
+  TrendingDown,
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { ChiTietKhuyenMai } from "@/components/types/khuyenmai-type";
+import { formatDateFlexible } from "./formatDateFlexible";
+import { cn } from "@/lib/utils";
 
 interface Props {
   data: ChiTietKhuyenMai | null;
   isLoading: boolean;
 }
 
-export default function KhuyenMaiDetailModal({ data, isLoading }: Props) {
-  console.log("KhuyenMaiDetailModal - data:", data);
-  console.log("KhuyenMaiDetailModal - isLoading:", isLoading);
-  console.log("KhuyenMaiDetailModal - data type:", typeof data);
-  console.log(
-    "KhuyenMaiDetailModal - data keys:",
-    data ? Object.keys(data) : "null"
-  );
+const formatCurrency = (amount: number) =>
+  new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
+  }).format(amount);
 
-  if (isLoading) {
-    return (
-      <div className="space-y-4">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
-          <div className="space-y-3">
-            <div className="h-4 bg-gray-200 rounded"></div>
-            <div className="h-4 bg-gray-200 rounded w-5/6"></div>
-            <div className="h-4 bg-gray-200 rounded w-4/6"></div>
+// Hàm xử lý màu trạng thái sản phẩm
+const getTrangThaiColor = (trangThai: string) => {
+  switch (trangThai) {
+    case "Đang kinh doanh":
+      return "text-green-600 bg-green-100";
+    case "Ngừng kinh doanh":
+      return "text-yellow-600 bg-yellow-100";
+    case "Hết hàng":
+      return "text-red-600 bg-red-100";
+    default:
+      return "text-gray-600 bg-gray-100";
+  }
+};
+
+export default function KhuyenMaiDetailModal({ data, isLoading }: Props) {
+  if (isLoading)
+    return <div className="text-sm text-gray-500">Đang tải...</div>;
+  if (!data)
+    return <div className="text-sm text-gray-500">Không có dữ liệu</div>;
+
+  return (
+    <div className="space-y-4 text-sm max-h-[80vh]  p-2 text-white">
+      {/* THÔNG TIN CƠ BẢN */}
+      <div className="flex items-center gap-2">
+        <Package className="w-4 h-4" />
+        <span className="font-semibold">Thông tin khuyến mãi</span>
+      </div>
+      <div className="text-base font-bold flex items-center gap-2">
+        Tên Khuyến Mãi: {data.tenKhuyenMai} -{" "}
+        <Badge variant="destructive">{data.phanTramKhuyenMai}%</Badge>
+      </div>
+      <div className="text-sm font-medium text-white space-y-1">
+        <p>Ngày bắt đầu: {formatDateFlexible(data.ngayBatDau)}</p>
+        <p>Ngày kết thúc: {formatDateFlexible(data.ngayKetThuc)}</p>
+      </div>
+
+      {/* THỐNG KÊ */}
+      <div className="font-semibold flex items-center gap-2 text-sm mb-2">
+        <TrendingDown className="w-5 h-5" />
+        Thống kê tổng quan
+      </div>
+      <div className="grid grid-cols-4 gap-2 text-center">
+        {[
+          {
+            icon: Package,
+            label: "Sản phẩm",
+            value: data.soSanPhamApDung,
+            color: "bg-green-300",
+          },
+          {
+            icon: ShoppingCart,
+            label: "Lượt bán",
+            value: data.tongSoLuongBan,
+            color: "bg-red-300",
+          },
+          {
+            icon: Receipt,
+            label: "Hóa đơn",
+            value: data.soHoaDon,
+            color: "bg-amber-300",
+          },
+          {
+            icon: DollarSign,
+            label: "Tiền giảm",
+            value: formatCurrency(data.tongSoTienGiam),
+            color: "bg-white",
+          },
+        ].map(({ icon: Icon, label, value, color }, i) => (
+          <div key={i} className={cn("p-2 rounded text-xs", color)}>
+            <Icon className="w-4 h-4 mx-auto text-black mb-1" />
+            <div className="font-bold text-black text-[13px]">{value}</div>
+            <div className="text-black">{label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* DOANH THU */}
+      <div className="space-y-1">
+        <div className="font-semibold flex items-center gap-2 text-sm mb-2">
+          <DollarSign className="w-4 h-4" />
+          Chi tiết doanh thu
+        </div>
+        <div className="bg-gray-100 text-black p-2 rounded">
+          <div className="flex justify-between text-sm font-medium">
+            <span>Trước giảm:</span>
+            <span>{formatCurrency(data.tongTienTruocGiam)}</span>
+          </div>
+          <div className="flex justify-between text-sm text-red-600">
+            <span>Tiền giảm:</span>
+            <span>-{formatCurrency(data.tongSoTienGiam)}</span>
+          </div>
+          <div className="flex justify-between text-sm font-semibold text-green-600">
+            <span>Sau giảm:</span>
+            <span>{formatCurrency(data.tongTienSauGiam)}</span>
           </div>
         </div>
       </div>
-    );
-  }
 
-  if (!data) {
-    return (
-      <div className="text-center py-8">
-        <p className="text-gray-500">Không có dữ liệu chi tiết</p>
-        <p className="text-sm text-gray-400 mt-2">
-          Có thể khuyến mãi chưa có lịch sử hoặc API chưa trả về dữ liệu
-        </p>
-      </div>
-    );
-  }
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-    }).format(amount);
-  };
-  console.log("data:", data.sanPhamDaApDung);
-
-  return (
-    <div className="space-y-6">
-      {/* Thông tin chính */}
-      <Card className="bg-gray-200  text-black">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Package className="w-5 h-5" />
-            Thông tin khuyến mãi
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex flex-col gap-4">
-            <div>
-              <h3 className="font-semibold text-lg">
-                Tên khuyến mãi: {data.tenKhuyenMai}
-              </h3>
-              <Badge variant="destructive" className="mt-2">
-                Phần trăm giảm: {data.phanTramKhuyenMai}% giảm giá
-              </Badge>
-            </div>
-            <div className="space-y-2 ">
-              <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-blue-500" />
-                <span className="text-sm text-gray-900">
-                  {formatDateFlexible(data.ngayBatDau)}
-                  {formatDateFlexible(data.ngayKetThuc)}
-                </span>
-              </div>
-            </div>
+      {/* SẢN PHẨM ĐÃ ÁP DỤNG */}
+      {data.sanPhamDaApDung?.length > 0 && (
+        <div>
+          <div className="font-semibold flex items-center gap-2 text-sm mb-2">
+            <TrendingDown className="w-4 h-4" />
+            Sản phẩm áp dụng ({data.sanPhamDaApDung.length})
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Thống kê tổng quan */}
-      <Card className="bg-gray-200 text-black">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <TrendingDown className="w-5 h-5" />
-            Thống kê tổng quan
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="text-center p-3 bg-blue-200 rounded-lg">
-              <Package className="w-6 h-6 text-blue-500 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-blue-600">
-                {data.soSanPhamApDung}
-              </div>
-              <div className="text-sm text-gray-600">Sản phẩm áp dụng</div>
-            </div>
-
-            <div className="text-center p-3 bg-green-200 rounded-lg">
-              <ShoppingCart className="w-6 h-6 text-green-500 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-green-600">
-                {data.tongSoLuongBan}
-              </div>
-              <div className="text-sm text-gray-600">Lượt bán</div>
-            </div>
-
-            <div className="text-center p-3 bg-orange-200 rounded-lg">
-              <DollarSign className="w-6 h-6 text-orange-500 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-orange-600">
-                {formatCurrency(data.tongSoTienGiam)}
-              </div>
-              <div className="text-sm text-gray-600">Tổng tiền giảm</div>
-            </div>
-
-            <div className="text-center p-3 bg-purple-200 rounded-lg">
-              <Receipt className="w-6 h-6 text-purple-500 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-purple-600">
-                {data.soHoaDon}
-              </div>
-              <div className="text-sm text-gray-600">Hóa đơn</div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Chi tiết doanh thu */}
-      <Card className="bg-gray-200">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-black">
-            <DollarSign className="w-5 h-5 " />
-            Chi tiết doanh thu
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            <div className="flex justify-between items-center p-3 bg-gray-500 rounded">
-              <span className="font-medium">Tổng tiền trước giảm:</span>
-              <span className="font-bold text-white">
-                {formatCurrency(data.tongTienTruocGiam)}
-              </span>
-            </div>
-            <div className="flex justify-between items-center p-3 bg-red-500 rounded">
-              <span className="font-medium">Tổng tiền giảm:</span>
-              <span className="font-bold text-white">
-                -{formatCurrency(data.tongSoTienGiam)}
-              </span>
-            </div>
-            <div className="flex justify-between items-center p-3 bg-green-500 rounded">
-              <span className="font-medium">Tổng tiền sau giảm:</span>
-              <span className="font-bold  text-white">
-                {formatCurrency(data.tongTienSauGiam)}
-              </span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Danh sách sản phẩm đã áp dụng */}
-      {data.sanPhamDaApDung && data.sanPhamDaApDung.length > 0 && (
-        <Card className="bg-gray-200 text-black">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Package className="w-5 h-5" />
-              Sản phẩm đã áp dụng ({data.sanPhamDaApDung.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {data.sanPhamDaApDung.map((sanPham, index) => (
+          <div className="space-y-2  ">
+            {data.sanPhamDaApDung.map(
+              ([ma, ten, trangThai, giaGoc, giaSauGiam], i) => (
                 <div
-                  key={index}
-                  className="flex justify-between items-center p-3 border  border-gray-800 rounded-lg"
+                  key={i}
+                  className="flex justify-between items-center px-2 py-2 border border-gray-300 rounded bg-white text-black"
                 >
                   <div>
-                    <div className="font-medium">Mã: {sanPham[0]}</div>
-                    <div className="text-sm text-gray-500">
-                      Tên: {sanPham[1]}
+                    <div className="font-medium text-lg">Tên SP : {ten}</div>
+                    <div className="text-xs text-gray-800">Mã: {ma}</div>
+                    <div
+                      className={`text-xs mt-1 inline-block px-2 py-0.5 rounded ${getTrangThaiColor(
+                        trangThai
+                      )}`}
+                    >
+                      {trangThai}
                     </div>
                   </div>
-                  <div className="text-right">
-                    <div className="text-sm text-gray-500 line-through">
-                      {formatCurrency(sanPham[2])}
+                  <div className="text-right text-sm">
+                    <div className="line-through text-xs text-gray-400">
+                      {formatCurrency(giaGoc)}
                     </div>
                     <div className="font-bold text-green-600">
-                      {formatCurrency(sanPham[3])}
+                      {formatCurrency(giaSauGiam)}
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+              )
+            )}
+          </div>
+        </div>
       )}
     </div>
   );

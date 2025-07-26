@@ -29,7 +29,7 @@ export function useKhuyenMaiID(id: number) {
 
 export function useAddKhuyenMai() {
   const queryClient = useQueryClient();
-  return useMutation<KhuyenMaiPayLoad, Error, KhuyenMaiPayLoad>({
+  return useMutation<KhuyenMaiDTO, Error, KhuyenMaiPayLoad>({
     mutationFn: (data) => khuyenMaiService.addKhuyenMai(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["khuyenmais"] });

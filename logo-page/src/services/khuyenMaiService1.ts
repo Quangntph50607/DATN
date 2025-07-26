@@ -31,7 +31,7 @@ export const khuyenMaiService = {
     return res.json();
   },
 
-  async addKhuyenMai(data: KhuyenMaiPayLoad): Promise<KhuyenMaiPayLoad> {
+  async addKhuyenMai(data: KhuyenMaiPayLoad): Promise<KhuyenMaiDTO> {
     try {
       const res = await fetchWithAuth(`${API_URL}/Create`, {
         method: "POST",
