@@ -15,6 +15,10 @@ import { Card } from "@/components/ui/card";
 import HoaDonChiTiet from "./HoaDonChiTiet";
 import HoaDonTable from "./HoaDonTable";
 import HoaDonFilter from "./hoaDonFilter";
+import { Button } from "@/components/ui/button";
+import { Modal } from "@/components/layout/(components)/(pages)/Modal";
+import LichSuLogTimeline from "@/shared/LichSuLogTimeline";
+import { PlusIcon } from "lucide-react";
 
 const PAGE_SIZE = 5;
 
@@ -87,6 +91,7 @@ const HoaDonManagement = () => {
   const [open, setOpen] = useState(false);
   const [detail, setDetail] = useState<HoaDonDTO | null>(null);
   const [chiTietSanPham, setChiTietSanPham] = useState<HoaDonChiTietDTO[]>([]);
+  const [isOpenLog, setIsOpenLog] = useState(false);
 
   const {
     data: sanPhams = [],
@@ -228,6 +233,23 @@ const HoaDonManagement = () => {
               hoaDons={data?.content || []}
             />
 
+            <Button
+              onClick={() => setIsOpenLog(true)}
+              variant="destructive"
+              className="w-[150px] "
+            >
+              <PlusIcon />
+              Xem lịch sử
+            </Button>
+            {/* Modal xem lịch sử log */}
+            <Modal
+              open={isOpenLog}
+              onOpenChange={() => setIsOpenLog(false)}
+              title="Lịch sử thay đổi"
+              className="max-w-6xl"
+            >
+              <LichSuLogTimeline bang="hoaDon" title="Lịch sử user log" />
+            </Modal>
             <HoaDonTable
               data={data}
               page={page}

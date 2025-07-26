@@ -18,6 +18,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { PlusIcon } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { Modal } from "@/components/layout/(components)/(pages)/Modal";
+import LichSuLogTimeline from "@/shared/LichSuLogTimeline";
 
 export default function LegoCollectionPage() {
   const { data: collections = [], isLoading } = useBoSuutap();
@@ -25,6 +27,7 @@ export default function LegoCollectionPage() {
   const editMutation = useEditBoSuuTap();
   const deleteMutation = useXoaBoSuuTap();
   const [currentPage, setCurrentPage] = useState(1);
+  const [isOpenLog, setIsOpenLog] = useState(false);
 
   const [collectionToEdit, setCollectionToEdit] = useState<BoSuuTap | null>(
     null
@@ -116,6 +119,14 @@ export default function LegoCollectionPage() {
             <PlusIcon />
             Thêm Bộ Sưu Tập
           </Button>
+          <Button
+            className=" shadow-lg "
+            onClick={() => setIsOpenLog(true)}
+            variant="destructive"
+          >
+            <PlusIcon />
+            Xem lịch xử
+          </Button>
         </div>
 
         {/* Bảng dữ liệu */}
@@ -129,6 +140,16 @@ export default function LegoCollectionPage() {
               onEdit={handleEdit}
               onDelete={handleDelete}
             />
+
+            {/* Modal xem lịch sử log */}
+            <Modal
+              open={isOpenLog}
+              onOpenChange={() => setIsOpenLog(false)}
+              title="Lịch sử  thay đổi"
+              className="max-w-6xl"
+            >
+              <LichSuLogTimeline bang="boSuutap" title="Lịch sử user log" />
+            </Modal>
           </>
         )}
 
