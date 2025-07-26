@@ -65,7 +65,7 @@ export default function MainHome() {
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
       >
-        <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
+        <h2 className="text-4xl lg:text-4xl font-black mb-4 text-blue-900">
           Sản phẩm nổi bật
         </h2>
         <p className="text-lg text-gray-600 max-w-2xl mx-auto">
@@ -86,7 +86,7 @@ export default function MainHome() {
       >
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">Danh mục sản phẩm</h2>
+            <h2 className="text-4xl lg:text-4xl font-black mb-4 text-blue-900">Danh mục sản phẩm</h2>
             <p className="text-lg text-gray-600">Khám phá các bộ sưu tập LEGO đa dạng</p>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
