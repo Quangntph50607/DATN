@@ -231,14 +231,20 @@ const Cart: React.FC<Props> = ({ cart, updateQuantity, removeFromCart, customerN
                   </div>
                   <div>
                     <h4 className="text-base font-semibold text-white line-clamp-2">{item.tenSanPham}</h4>
-                    <p className="text-xs text-gray-400">
-                      {item.giaKhuyenMai != null && item.giaKhuyenMai > 0 ? (
+                    <p className="text-xs">
+                      {item.giaKhuyenMai != null && item.giaKhuyenMai > 0 && item.giaKhuyenMai < item.gia ? (
                         <>
-                          {formatCurrency(item.giaKhuyenMai)}
-                          <span className="ml-1 line-through text-xs text-gray-500">{formatCurrency(item.gia)}</span>
+                          <span className="text-yellow-400 font-bold">
+                            {formatCurrency(item.giaKhuyenMai)}
+                          </span>
+                          <span className="ml-1 line-through text-xs text-gray-500">
+                            {formatCurrency(item.gia)}
+                          </span>
                         </>
                       ) : (
-                        formatCurrency(item.gia)
+                        <span className="text-yellow-400 font-bold">
+                          {formatCurrency(item.gia)}
+                        </span>
                       )}
                     </p>
                   </div>
