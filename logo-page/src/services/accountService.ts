@@ -118,5 +118,43 @@ export const accountService = {
 
     const result = await res.json();
     return normalizeAccount(result);
+  },
+
+  // API đổi mật khẩu
+  async changePassword(userId: number, newPassword: string): Promise<{ message: string }> {
+    const res = await fetchWithAuth(`${API_URL}/doiMatKhau/${userId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({
+        matKhauMoi: newPassword
+      }),
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("❌ Change password error:", errorText);
+
+      if (errorText.includes("Khong tim thay id user")) {
+        throw new Error("Không tìm thấy tài khoản");
+      }
+      if (errorText.includes("Mat khau khong hop le")) {
+        throw new Error("Mật khẩu không hợp lệ");
+      }
+
+      throw new Error("Không thể đổi mật khẩu: " + errorText);
+    }
+
+    // Xử lý response - có thể là text hoặc JSON
+    const contentType = res.headers.get("content-type");
+    if (contentType && contentType.includes("application/json")) {
+      return res.json();
+    } else {
+      // Nếu là text, wrap thành object
+      const textResponse = await res.text();
+      return { message: textResponse };
+    }
   }
 };
+
+

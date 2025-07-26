@@ -4,7 +4,6 @@ import { ProductData } from "@/lib/sanphamschema";
 import SanPhamForm from "./SanPhamForm";
 import SanPhamTable from "./SanPhamTable";
 import {
-  useSanPham,
   useAddSanPham,
   useXoaSanPham,
   useEditSanPham,
@@ -210,7 +209,13 @@ export default function SanPhamPage() {
                         sanPhams={paginated}
                         onDelete={(id) => confirmDelete(id)}
                         onEdit={(product) => {
-                          setEditSanPham({ ...product });
+                          // Convert product to SanPham type with default values
+                          const sanPham: SanPham = {
+                            ...product,
+                            xuatXuId: product.xuatXuId ?? 0,
+                            thuongHieuId: product.thuongHieuId ?? 0,
+                          };
+                          setEditSanPham(sanPham);
                           setIsModalOpen(true);
                         }}
                       />

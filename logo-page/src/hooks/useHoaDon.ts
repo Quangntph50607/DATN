@@ -61,3 +61,13 @@ export function useChiTietSanPhamHoaDon(id: number) {
     enabled: !!id,
   });
 }
+
+// Lấy lịch sử mua hàng theo user ID
+export function useHoaDonByUserId(userId: number) {
+  return useQuery<HoaDonDTO[]>({
+    queryKey: ["hoaDon", "user", userId],
+    queryFn: () => HoaDonService.getHoaDonByUserId(userId),
+    enabled: !!userId,
+  });
+}
+

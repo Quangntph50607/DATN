@@ -140,4 +140,31 @@ export const HoaDonService = {
         if (!res.ok) throw new Error("Không thể lấy chi tiết sản phẩm hóa đơn");
         return res.json();
     },
+
+    // Lấy lịch sử mua hàng của user
+    async getHoaDonByUserId(userId: number): Promise<HoaDonDTO[]> {
+        try {
+            const res = await fetchWithAuth(`${API_URL}/user/${userId}`, {
+                cache: 'no-store',
+            });
+
+            if (!res.ok) {
+                throw new Error('Không thể tải lịch sử mua hàng');
+            }
+
+            return await res.json();
+        } catch (error) {
+            console.error('Lỗi:', error);
+            throw error;
+        }
+    },
 };
+
+
+
+
+
+
+
+
+

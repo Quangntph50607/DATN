@@ -36,6 +36,9 @@ export interface KhuyenMaiTheoSanPham {
   anhSps?: AnhSanPhamChiTiet[];
   giaKhuyenMai: number | null;
   phanTramKhuyenMai: number | null;
+  noiBat?: number | boolean;
+  xuatXuId?: number;
+  thuongHieuId?: number;
 }
 export interface SanPhamApDungTuple extends Array<string | number> {
   0: string; // maSanPham

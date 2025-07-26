@@ -73,10 +73,15 @@ export const sanPhamService = {
     formData.append("doTuoi", data.doTuoi.toString());
     formData.append("danhMucId", data.danhMucId.toString());
     formData.append("boSuuTapId", data.boSuuTapId.toString());
+    formData.append("xuatXuId", data.xuatXuId.toString());
+    formData.append("thuongHieuId", data.thuongHieuId.toString());
+    formData.append("noiBat", data.noiBat ? "1" : "0");
 
-    Array.from(data.files).forEach((file) => {
-      formData.append("files", file);
-    });
+    if (data.files) {
+      Array.from(data.files).forEach((file) => {
+        formData.append("files", file);
+      });
+    }
 
     const res = await fetchWithAuth(`${API_URL}/sanpham/CreateWithFileImages`, {
       method: "POST",
@@ -94,21 +99,34 @@ export const sanPhamService = {
 
   // Sửa
   async editSanPham(id: number, data: ProductData): Promise<SanPham> {
-    const payload = {
-      ...data,
-      danhMuc: { id: data.danhMucId },
-      boSuuTap: { id: data.boSuuTapId },
-    };
+    const formData = new FormData();
+    formData.append("tenSanPham", data.tenSanPham);
+    formData.append("gia", data.gia.toString());
+    formData.append("soLuongTon", data.soLuongTon.toString());
+    formData.append("soLuongManhGhep", data.soLuongManhGhep.toString());
+    formData.append("moTa", data.moTa);
+    formData.append("doTuoi", data.doTuoi.toString());
+    formData.append("danhMucId", data.danhMucId.toString());
+    formData.append("boSuuTapId", data.boSuuTapId.toString());
+    formData.append("xuatXuId", data.xuatXuId.toString());
+    formData.append("thuongHieuId", data.thuongHieuId.toString());
+    formData.append("noiBat", data.noiBat ? "1" : "0");
+
+    if (data.files) {
+      Array.from(data.files).forEach((file) => {
+        formData.append("files", file);
+      });
+    }
+
     try {
       const res = await fetchWithAuth(`${API_URL}/sanpham/Update/${id}`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
+        body: formData,
       });
       if (!res.ok) {
-        throw new Error("Không thể sửa sản phẩm");
+        const resData = await res.json();
+        const errorMsg = resData.message || "Không thể sửa sản phẩm";
+        throw new Error(errorMsg);
       }
       return await res.json();
     } catch (error) {

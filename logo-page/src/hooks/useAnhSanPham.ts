@@ -49,6 +49,8 @@ export function useAddAnhSanPham() {
     },
     onError: (error: Error) => {
       console.error("Lỗi thêm ảnh: ", error.message);
+      // Không hiển thị toast lỗi vì có thể ảnh đã được thêm thành công
+      // Chỉ log để debug
     },
   });
 }
