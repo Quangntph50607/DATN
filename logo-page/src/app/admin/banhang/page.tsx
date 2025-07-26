@@ -17,6 +17,7 @@ import { PhieuGiamGia } from '@/components/types/phieugiam.type';
 import PendingOrders from './PendingOrders';
 import { KhuyenMaiTheoSanPham } from '@/components/types/khuyenmai-type';
 import { PendingOrder } from '@/components/types/order.type';
+import { AnhSanPhamChiTiet } from '@/components/types/product.type';
 
 // const getValidImageName = (filenameOrObj: string | { url: string }) => {
 //   let filename = '';
@@ -34,11 +35,10 @@ import { PendingOrder } from '@/components/types/order.type';
 //   return filename;
 // };
 
-type AnhUrl = { url: string; anhChinh: boolean };
-const getMainImageUrl = (anhUrls: AnhUrl[]) => {
-  if (!anhUrls || anhUrls.length === 0) return '/no-image.png';
-  const mainImg = anhUrls.find((img) => img.anhChinh);
-  const imgToUse = mainImg || anhUrls[0];
+const getMainImageUrl = (anhSps: AnhSanPhamChiTiet[]) => {
+  if (!anhSps || anhSps.length === 0) return '/no-image.png';
+  const mainImg = anhSps.find((img) => img.anhChinh);
+  const imgToUse = mainImg || anhSps[0];
   if (imgToUse && imgToUse.url) {
     return `http://localhost:8080/api/anhsp/images/${imgToUse.url}`;
   }
@@ -94,7 +94,7 @@ const OrderPage = () => {
 
   const addToCart = (product: KhuyenMaiTheoSanPham) => {
     const existingItem = cart.find((item) => item.id === product.id);
-    const firstImage = getMainImageUrl(product.anhUrls);
+    const firstImage = getMainImageUrl(product.anhSps || []);
     if (existingItem) {
       if (existingItem.quantity < (product.soLuongTon ?? 0)) {
         setCart(cart.map((item) => item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item));
@@ -102,19 +102,20 @@ const OrderPage = () => {
         toast.error(`Chỉ còn ${product.soLuongTon ?? 0} sản phẩm trong kho`);
       }
     } else {
-      setCart([
-        ...cart,
-        {
-          ...product,
-          quantity: 1,
-          anhDaiDien: firstImage,
-          danhMucId: typeof product['danhMucId'] === 'number' ? product['danhMucId'] : 0,
-          boSuuTapId: typeof product['boSuuTapId'] === 'number' ? product['boSuuTapId'] : 0,
-          doTuoi: typeof product.doTuoi === 'number' ? product.doTuoi : 0,
-          moTa: typeof product.moTa === 'string' ? product.moTa : '',
-          soLuongManhGhep: typeof product.soLuongManhGhep === 'number' ? product.soLuongManhGhep : 0,
-        },
-      ]);
+      // Convert KhuyenMaiTheoSanPham to CartItem with proper type handling
+      const cartItem: CartItem = {
+        ...product,
+        quantity: 1,
+        anhDaiDien: firstImage,
+        danhMucId: typeof product['danhMucId'] === 'number' ? product['danhMucId'] : 0,
+        boSuuTapId: typeof product['boSuuTapId'] === 'number' ? product['boSuuTapId'] : 0,
+        doTuoi: typeof product.doTuoi === 'number' ? product.doTuoi : 0,
+        moTa: typeof product.moTa === 'string' ? product.moTa : '',
+        soLuongManhGhep: typeof product.soLuongManhGhep === 'number' ? product.soLuongManhGhep : 0,
+        xuatXuId: product.xuatXuId ?? 0,
+        thuongHieuId: product.thuongHieuId ?? 0,
+      };
+      setCart([...cart, cartItem]);
     }
   };
 

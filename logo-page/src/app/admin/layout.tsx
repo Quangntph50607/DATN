@@ -55,7 +55,7 @@ export default function AdminLayout({
         <HeaderAdmin />
       </div>
       {/* Nội dung chính cuộn được */}
-      <main className="ml-64 mt-16  overflow-y-auto p-6 bg-gray-50 dark:bg-gray-900">
+      <main className="ml-64 mt-16 overflow-y-auto p-6 bg-gray-50 dark:bg-gray-900">
         {children}
         <Toaster position="top-right" />
       </main>

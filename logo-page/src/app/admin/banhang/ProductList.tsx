@@ -104,7 +104,7 @@ const ProductList: React.FC<Props> = ({ products, searchTerm, onSearch, onAddToC
                     </div>
                     <h3 className="text-sm font-bold text-white line-clamp-2 mb-1">{product.tenSanPham}</h3>
                     <p className="text-xs text-primary font-bold mb-1">
-                      {product.giaKhuyenMai != null && product.giaKhuyenMai > 0 ? (
+                      {product.giaKhuyenMai != null && product.giaKhuyenMai > 0 && product.giaKhuyenMai < product.gia ? (
                         <>
                           <span className="text-sm text-yellow-400 font-extrabold">
                             {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(product.giaKhuyenMai)}
@@ -114,7 +114,7 @@ const ProductList: React.FC<Props> = ({ products, searchTerm, onSearch, onAddToC
                           </span>
                         </>
                       ) : (
-                        <span className="text-sm">
+                        <span className="text-sm text-yellow-400 font-extrabold">
                           {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(product.gia)}
                         </span>
                       )}
