@@ -57,6 +57,7 @@ export interface SanPham {
   noiBat?: boolean | number;
   xuatXuId: number;
   thuongHieuId: number;
+  anhUrls?: (AnhSanPhamChiTiet | string)[];
 }
 export interface ProductData {
   tenSanPham: string;
@@ -71,6 +72,7 @@ export interface ProductData {
   thuongHieuId: number;
   noiBat?: boolean;
   files: FileList;
+  anhConLai?: string[];
 }
 
 export interface CreateSanPhamResponse {

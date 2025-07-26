@@ -33,4 +33,7 @@ export interface KhuyenMaiTheoSanPham {
   anhUrls: { url: string; anhChinh: boolean }[];
   giaKhuyenMai: number | null;
   phanTramKhuyenMai: number | null;
+  noiBat?: number | boolean;
+  xuatXuId?: number;
+  thuongHieuId?: number;
 }

@@ -2,6 +2,29 @@ import { AnhSanPhamChiTiet } from "@/components/types/product.type";
 import { fetchWithAuth } from "./fetchWithAuth";
 
 const API_URL = "http://localhost:8080/api/anhsp";
+
+// Helper function để xử lý lỗi response
+async function handleErrorResponse(res: Response, defaultMessage: string): Promise<never> {
+  let errorMessage = defaultMessage;
+
+  // Clone response để có thể đọc body nhiều lần
+  const clonedRes = res.clone();
+
+  try {
+    const errorData = await clonedRes.json();
+    errorMessage = errorData.message || errorData || errorMessage;
+  } catch {
+    try {
+      // Nếu không parse được JSON, lấy text
+      const errorText = await clonedRes.text();
+      errorMessage = errorText || errorMessage;
+    } catch {
+      // Nếu cả hai đều fail, dùng default message
+      errorMessage = defaultMessage;
+    }
+  }
+  throw new Error(`HTTP ${res.status}: ${errorMessage}`);
+}
 export const anhSanPhamSevice = {
   async getAnhSanPham(): Promise<AnhSanPhamChiTiet[]> {
     try {
@@ -51,12 +74,18 @@ export const anhSanPhamSevice = {
         body: formData,
       });
       if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(
-          `HTTP ${res.status}: ${errorData || "Không thể thêm ảnh"}`
-        );
+        console.log("Response status:", res.status);
+        console.log("Response headers:", Object.fromEntries(res.headers.entries()));
+        await handleErrorResponse(res, "Không thể thêm ảnh");
       }
-      return await res.json();
+
+      // Chỉ đọc response body một lần khi thành công
+      try {
+        return await res.json();
+      } catch (error) {
+        console.error("Lỗi parse response:", error);
+        throw new Error("Không thể parse response từ server");
+      }
     } catch (error) {
       console.error("Lỗi thêm ảnh: ", error);
       throw error;
@@ -83,8 +112,16 @@ export const anhSanPhamSevice = {
       body: formData,
     });
 
-    if (!res.ok) throw new Error("Không thể sửa ảnh");
-    return res.json();
+    if (!res.ok) {
+      await handleErrorResponse(res, "Không thể sửa ảnh");
+    }
+
+    try {
+      return await res.json();
+    } catch (error) {
+      console.error("Lỗi parse response:", error);
+      throw new Error("Không thể parse response từ server");
+    }
   },
 
   //   Xóa
@@ -107,8 +144,16 @@ export const anhSanPhamSevice = {
   async getAnhSanPhamTheoSanPhamId(id: number): Promise<AnhSanPhamChiTiet[]> {
     const res = await fetchWithAuth(`${API_URL}/sanpham/${id}`);
 
-    if (!res.ok) throw new Error("Không thể tải ảnh theo sản phẩm");
-    return res.json();
+    if (!res.ok) {
+      await handleErrorResponse(res, "Không thể tải ảnh theo sản phẩm");
+    }
+
+    try {
+      return await res.json();
+    } catch (error) {
+      console.error("Lỗi parse response:", error);
+      throw new Error("Không thể parse response từ server");
+    }
   },
 };
 
