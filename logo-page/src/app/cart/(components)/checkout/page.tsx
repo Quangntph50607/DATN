@@ -9,9 +9,132 @@ import { HoaDonService } from "@/services/hoaDonService";
 import { useUserStore } from "@/context/authStore.store";
 import type { CreateHoaDonDTO, PaymentMethods } from "@/components/types/hoaDon-types";
 import type { DTOUser } from "@/components/types/account.type";
+import { useThongTinNguoiNhan, useCreateThongTin } from "@/hooks/useThongTinTaiKhoan";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Select } from "@/components/ui/select";
+import ReusableCombobox from "@/shared/ReusableCombobox";
 
 export default function CheckoutPage() {
     const { user } = useUserStore();
+    const currentUserId = user?.id;
+
+    // Lấy danh sách địa chỉ
+    const { data: thongTinList = [], refetch } = useThongTinNguoiNhan(currentUserId || 0);
+    const createMutation = useCreateThongTin();
+    const defaultAddress = thongTinList.find(item => item.isMacDinh === 1);
+
+    // Thêm state loading cho form
+    const [isAddingAddress, setIsAddingAddress] = useState(false);
+
+    // Validate form thêm địa chỉ
+    const validateNewAddress = () => {
+        if (!currentUserId) {
+            toast.error("Vui lòng đăng nhập để thực hiện chức năng này");
+            return false;
+        }
+
+        if (!newAddressData.hoTen.trim()) {
+            toast.error("Vui lòng nhập họ tên");
+            return false;
+        }
+
+        if (!newAddressData.sdt.trim()) {
+            toast.error("Vui lòng nhập số điện thoại");
+            return false;
+        }
+
+        if (!newAddressData.duong.trim()) {
+            toast.error("Vui lòng nhập địa chỉ đường");
+            return false;
+        }
+
+        if (!newAddressData.xa.trim() || !newAddressData.thanhPho.trim()) {
+            toast.error("Vui lòng chọn tỉnh/thành phố và xã/phường");
+            return false;
+        }
+
+        return true;
+    };
+
+    // Xử lý thêm địa chỉ mới
+    const handleAddNewAddress = async () => {
+        if (!validateNewAddress()) return;
+
+        setIsAddingAddress(true);
+
+        try {
+            const addressData = {
+                hoTen: newAddressData.hoTen.trim(),
+                sdt: newAddressData.sdt.trim(),
+                duong: newAddressData.duong.trim(),
+                xa: newAddressData.xa.trim(),
+                thanhPho: newAddressData.thanhPho.trim(),
+                isMacDinh: 0, // Không đặt mặc định
+                idUser: currentUserId || 0
+            };
+
+            console.log("Thêm địa chỉ mới:", addressData);
+
+            // Gọi API tạo địa chỉ
+            const newAddress = await createMutation.mutateAsync(addressData);
+
+            toast.success("✅ Thêm địa chỉ thành công!");
+
+            // Refresh danh sách địa chỉ
+            await refetch();
+
+            // Tự động chọn địa chỉ vừa thêm làm địa chỉ giao hàng
+            setSelectedAddress(newAddress);
+            setDeliveryInfo({
+                hoTen: newAddress.hoTen,
+                sdt: newAddress.sdt,
+                diaChi: `${newAddress.duong}, ${newAddress.xa}, ${newAddress.thanhPho}`
+            });
+
+            // Cập nhật thông tin người nhận
+            setTenNguoiNhan(newAddress.hoTen);
+            setPhoneNumber(newAddress.sdt);
+
+            // Reset form và chuyển về tab đầu
+            setNewAddressData({
+                hoTen: "",
+                sdt: "",
+                duong: "",
+                xa: "",
+                thanhPho: "",
+                selectedProvince: "",
+                selectedWard: ""
+            });
+            setActiveTab("existing");
+            setShowAddressForm(false);
+
+        } catch (error: any) {
+            console.error("Lỗi thêm địa chỉ:", error);
+            toast.error(error.message || "Không thể thêm địa chỉ mới");
+        } finally {
+            setIsAddingAddress(false);
+        }
+    };
+
+    // State cho địa chỉ giao hàng
+    const [showAddressForm, setShowAddressForm] = useState(false);
+    const [showNewAddressForm, setShowNewAddressForm] = useState(false);
+    const [activeTab, setActiveTab] = useState("existing");
+    const [newAddressData, setNewAddressData] = useState({
+        hoTen: "",
+        sdt: "",
+        duong: "",
+        xa: "",
+        thanhPho: "",
+        selectedProvince: "",
+        selectedWard: ""
+    });
+    const [selectedAddress, setSelectedAddress] = useState(null);
+    const [deliveryInfo, setDeliveryInfo] = useState({
+        hoTen: "",
+        sdt: "",
+        diaChi: ""
+    });
 
     // State mẫu cho thông tin nhận hàng
     const [address, setAddress] = useState("");
@@ -47,6 +170,75 @@ export default function CheckoutPage() {
             });
     }, []);
 
+    // Set địa chỉ mặc định khi load
+    useEffect(() => {
+        if (defaultAddress && provinces.length > 0 && Object.keys(allWards).length > 0) {
+            setSelectedAddress(defaultAddress);
+            setDeliveryInfo({
+                hoTen: defaultAddress.hoTen,
+                sdt: defaultAddress.sdt,
+                diaChi: `${defaultAddress.duong}, ${defaultAddress.xa}, ${defaultAddress.thanhPho}`
+            });
+            // Cập nhật thông tin người nhận
+            setTenNguoiNhan(defaultAddress.hoTen);
+            setPhoneNumber(defaultAddress.sdt);
+
+            // Cập nhật các trường địa chỉ
+            setAddress(defaultAddress.duong);
+
+            // Tìm và set province từ tên
+            const foundProvince = provinces.find(p => p.name === defaultAddress.thanhPho);
+            if (foundProvince) {
+                setProvince(foundProvince.code);
+
+                // Tìm ward từ allWards
+                const wardsForProvince = Object.entries(allWards as Record<string, any>)
+                    .filter(([_, info]) => (info as any).parent_code === foundProvince.code)
+                    .map(([code, info]) => ({ code, ...(info as any) }));
+
+                const foundWard = wardsForProvince.find(w => w.name === defaultAddress.xa);
+                if (foundWard) {
+                    setWard(foundWard.code);
+                }
+            }
+        }
+    }, [defaultAddress, provinces, allWards]);
+
+    // Cập nhật khi chọn địa chỉ khác
+    const handleSelectAddress = (item) => {
+        setSelectedAddress(item);
+        setDeliveryInfo({
+            hoTen: item.hoTen,
+            sdt: item.sdt,
+            diaChi: `${item.duong}, ${item.xa}, ${item.thanhPho}`
+        });
+        // Cập nhật thông tin người nhận
+        setTenNguoiNhan(item.hoTen);
+        setPhoneNumber(item.sdt);
+
+        // Cập nhật các trường địa chỉ
+        setAddress(item.duong);
+
+        // Tìm và set province từ tên
+        const foundProvince = provinces.find(p => p.name === item.thanhPho);
+        if (foundProvince) {
+            setProvince(foundProvince.code);
+
+            // Tìm ward từ allWards
+            const wardsForProvince = Object.entries(allWards as Record<string, any>)
+                .filter(([_, info]) => (info as any).parent_code === foundProvince.code)
+                .map(([code, info]) => ({ code, ...(info as any) }));
+
+            const foundWard = wardsForProvince.find(w => w.name === item.xa);
+            if (foundWard) {
+                setWard(foundWard.code);
+            }
+        }
+
+        // Đóng modal sau khi chọn
+        setShowAddressForm(false);
+    };
+
     // Khi chọn tỉnh, cập nhật danh sách xã/phường theo parent_code
     useEffect(() => {
         if (province) {
@@ -60,6 +252,33 @@ export default function CheckoutPage() {
         }
         setWard("");
     }, [province, allWards]);
+
+    // Thêm useEffect để cập nhật wards khi chọn tỉnh trong form thêm mới
+    useEffect(() => {
+        if (newAddressData.selectedProvince) {
+            // Lọc các xã có parent_code === selectedProvince
+            const wardsArr = Object.entries(allWards as Record<string, any>)
+                .filter(([_, info]) => (info as any).parent_code === newAddressData.selectedProvince)
+                .map(([code, info]) => ({ code, ...(info as any) }));
+            setWards(wardsArr);
+        } else {
+            setWards([]);
+        }
+        // Reset ward khi đổi tỉnh
+        setNewAddressData(prev => ({ ...prev, selectedWard: "" }));
+    }, [newAddressData.selectedProvince, allWards]);
+
+    // Cập nhật tên tỉnh và xã vào newAddressData
+    useEffect(() => {
+        const selectedProvinceData = provinces.find(p => p.code === newAddressData.selectedProvince);
+        const selectedWardData = wards.find(w => w.code === newAddressData.selectedWard);
+
+        setNewAddressData(prev => ({
+            ...prev,
+            thanhPho: selectedProvinceData?.name || "",
+            xa: selectedWardData?.name || "",
+        }));
+    }, [newAddressData.selectedProvince, newAddressData.selectedWard, provinces, wards]);
 
     // State mẫu cho sản phẩm
     const [products, setProducts] = useState<any[]>([]);
@@ -569,42 +788,216 @@ export default function CheckoutPage() {
                     <div className="border-b pb-4 mb-2">
                         <div className="flex items-center justify-between mb-2">
                             <span className="text-orange-600 font-semibold">📍 Địa Chỉ Nhận Hàng</span>
-                            <button className="text-blue-600 text-sm font-semibold">Thay Đổi</button>
+                            <button
+                                onClick={() => setShowAddressForm(true)}
+                                className="text-blue-600 text-sm font-semibold hover:underline"
+                            >
+                                Thay Đổi
+                            </button>
                         </div>
-                        <div className="flex flex-col gap-2 text-black">
-                            <div className="flex gap-2">
-                                <select
-                                    className="border rounded px-3 py-2 w-1/2"
-                                    value={province}
-                                    onChange={e => setProvince(e.target.value)}
-                                    aria-label="Chọn tỉnh/thành phố"
-                                >
-                                    <option value="">Chọn tỉnh/thành phố</option>
-                                    {provinces.map((p) => (
-                                        <option key={p.code} value={p.code}>{p.name}</option>
-                                    ))}
-                                </select>
-                                <select
-                                    className="border rounded px-3 py-2 w-1/2"
-                                    value={ward}
-                                    onChange={e => setWard(e.target.value)}
-                                    disabled={!province}
-                                    aria-label="Chọn xã/phường"
-                                >
-                                    <option value="">Chọn xã/phường</option>
-                                    {wards.map((w) => (
-                                        <option key={w.code} value={w.code}>{w.name}</option>
-                                    ))}
-                                </select>
+
+                        <div className="space-y-3">
+                            {/* Tỉnh/Thành phố */}
+                            <div>
+                                <label className="block text-sm font-medium mb-1 text-black">Tỉnh/Thành phố</label>
+                                <ReusableCombobox
+                                    items={provinces.map(p => ({ id: p.code, label: p.name }))}
+                                    selectedId={province || null}
+                                    onSelect={(id) => setProvince(id || "")}
+                                    placeholder="Chọn tỉnh/thành phố"
+                                    showAllOption={false}
+                                    className="w-full text-black"
+                                />
                             </div>
-                            <input
-                                className="border rounded px-3 py-2 w-full"
-                                placeholder="Địa chỉ chi tiết (số nhà, tên đường...)"
-                                value={address}
-                                onChange={e => setAddress(e.target.value)}
-                            />
+
+                            {/* Xã/Phường */}
+                            <div>
+                                <label className="block text-sm font-medium mb-1 text-black">Xã/Phường</label>
+                                <ReusableCombobox
+                                    items={wards.map(w => ({ id: w.code, label: w.name }))}
+                                    selectedId={ward || null}
+                                    onSelect={(id) => setWard(id || "")}
+                                    placeholder="Chọn xã/phường"
+                                    showAllOption={false}
+                                    className="w-full text-black"
+                                />
+                            </div>
+
+                            {/* Địa chỉ chi tiết */}
+                            <div>
+                                <label className="block text-sm font-medium mb-1 text-black">Địa chỉ chi tiết</label>
+                                <input
+                                    type="text"
+                                    placeholder="Số nhà, tên đường..."
+                                    value={address}
+                                    onChange={(e) => setAddress(e.target.value)}
+                                    className="w-full border border-gray-300 rounded px-3 py-2 focus:border-orange-500 focus:outline-none bg-white text-black placeholder-gray-400"
+                                />
+                            </div>
                         </div>
                     </div>
+
+                    {/* Modal chọn/thêm địa chỉ */}
+                    {showAddressForm && (
+                        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                            <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h2 className="text-xl font-bold">Chọn Địa Chỉ Giao Hàng</h2>
+                                    <button
+                                        onClick={() => setShowAddressForm(false)}
+                                        className="text-gray-400 hover:text-black text-2xl"
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+
+                                {/* Tabs */}
+                                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                                    <TabsList className="grid w-full grid-cols-2 mb-6 bg-gray-100">
+                                        <TabsTrigger
+                                            value="existing"
+                                            className="data-[state=active]:bg-white data-[state=active]:text-black data-[state=active]:shadow-sm text-gray-700"
+                                        >
+                                            📍 Địa chỉ có sẵn
+                                        </TabsTrigger>
+                                        <TabsTrigger
+                                            value="new"
+                                            className="data-[state=active]:bg-white data-[state=active]:text-black data-[state=active]:shadow-sm text-gray-700"
+                                        >
+                                            ➕ Thêm địa chỉ mới
+                                        </TabsTrigger>
+                                    </TabsList>
+
+                                    {/* Tab 1: Danh sách địa chỉ có sẵn */}
+                                    <TabsContent value="existing" className="space-y-0">
+                                        <div className="space-y-3 max-h-80 overflow-y-auto">
+                                            {thongTinList.map((item) => (
+                                                <div
+                                                    key={item.id}
+                                                    className={`p-4 border rounded-lg cursor-pointer transition-all bg-white ${selectedAddress?.id === item.id
+                                                        ? "border-orange-500 bg-orange-50"
+                                                        : "border-gray-200 hover:border-blue-300 hover:bg-gray-50"
+                                                        }`}
+                                                    onClick={() => handleSelectAddress(item)}
+                                                >
+                                                    <div className="flex items-center gap-2 mb-2">
+                                                        <span className="font-bold text-black">{item.hoTen}</span>
+                                                        {item.isMacDinh === 1 && (
+                                                            <span className="bg-yellow-400 text-black text-xs px-2 py-1 rounded font-semibold">
+                                                                ⭐ Mặc định
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <p className="text-gray-700 mb-1">📞 {item.sdt}</p>
+                                                    <p className="text-gray-600">📍 {item.duong}, {item.xa}, {item.thanhPho}</p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </TabsContent>
+
+                                    {/* Tab 2: Form thêm địa chỉ mới */}
+                                    <TabsContent value="new" className="space-y-0">
+                                        <div className="bg-white p-4 rounded-lg">
+                                            <form className="space-y-4">
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <div>
+                                                        <label className="block text-sm font-medium mb-1 text-black">Họ tên</label>
+                                                        <input
+                                                            type="text"
+                                                            placeholder="Nhập họ tên"
+                                                            value={newAddressData.hoTen}
+                                                            onChange={(e) => setNewAddressData({ ...newAddressData, hoTen: e.target.value })}
+                                                            className="w-full border border-gray-300 rounded px-3 py-2 focus:border-green-500 focus:outline-none bg-white text-black placeholder-gray-400"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-sm font-medium mb-1 text-black">Số điện thoại</label>
+                                                        <input
+                                                            type="text"
+                                                            placeholder="Nhập SĐT"
+                                                            value={newAddressData.sdt}
+                                                            onChange={(e) => setNewAddressData({ ...newAddressData, sdt: e.target.value })}
+                                                            className="w-full border border-gray-300 rounded px-3 py-2 focus:border-green-500 focus:outline-none bg-white text-black placeholder-gray-400"
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                <div>
+                                                    <label className="block text-sm font-medium mb-1 text-black">Tỉnh/Thành phố</label>
+                                                    <ReusableCombobox
+                                                        items={provinces.map(p => ({ id: p.code, label: p.name }))}
+                                                        selectedId={newAddressData.selectedProvince || null}
+                                                        onSelect={(id) => setNewAddressData({ ...newAddressData, selectedProvince: id || "" })}
+                                                        placeholder="Chọn tỉnh/thành phố"
+                                                        showAllOption={false}
+                                                        className="w-full text-black"
+                                                    />
+                                                </div>
+
+                                                <div>
+                                                    <label className="block text-sm font-medium mb-1 text-black">Xã/Phường</label>
+                                                    <ReusableCombobox
+                                                        items={wards.map(w => ({ id: w.code, label: w.name }))}
+                                                        selectedId={newAddressData.selectedWard || null}
+                                                        onSelect={(id) => setNewAddressData({ ...newAddressData, selectedWard: id || "" })}
+                                                        placeholder="Chọn xã/phường"
+                                                        showAllOption={false}
+                                                        className="w-full text-black"
+                                                    />
+                                                </div>
+
+                                                <div>
+                                                    <label className="block text-sm font-medium mb-1 text-black">Địa chỉ chi tiết</label>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Số nhà, tên đường..."
+                                                        value={newAddressData.duong}
+                                                        onChange={(e) => setNewAddressData({ ...newAddressData, duong: e.target.value })}
+                                                        className="w-full border border-gray-300 rounded px-3 py-2 focus:border-green-500 focus:outline-none bg-white text-black placeholder-gray-400"
+                                                    />
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </TabsContent>
+                                </Tabs>
+
+                                {/* Buttons */}
+                                <div className="flex justify-end gap-2 mt-6 pt-4 border-t">
+                                    <button
+                                        onClick={() => setShowAddressForm(false)}
+                                        className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100"
+                                    >
+                                        Hủy
+                                    </button>
+
+                                    {activeTab === "existing" ? (
+                                        <button
+                                            onClick={() => setShowAddressForm(false)}
+                                            className="px-6 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
+                                            disabled={!selectedAddress}
+                                        >
+                                            Xác nhận
+                                        </button>
+                                    ) : (
+                                        <button
+                                            onClick={handleAddNewAddress}
+                                            className="px-6 py-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                                            disabled={isAddingAddress}
+                                        >
+                                            {isAddingAddress ? (
+                                                <>
+                                                    <span className="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"></span>
+                                                    Đang thêm...
+                                                </>
+                                            ) : (
+                                                "➕ Thêm địa chỉ"
+                                            )}
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    )}
                     {/* Phương thức vận chuyển */}
                     <div>
                         <label className="block font-semibold mb-1 text-gray-800 flex items-center gap-2">
@@ -781,3 +1174,17 @@ export default function CheckoutPage() {
         </div>
     );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -34,7 +34,7 @@ export default function UserDropDown() {
       </DropdownMenuTrigger>
       <DropdownMenuContent sideOffset={8} align="end">
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => route.push("profile")}>
+        <DropdownMenuItem onClick={() => route.push("/account")}>
           Tài khoản
         </DropdownMenuItem>
         <DropdownMenuItem onClick={handleLogout} className="text-red-50">
