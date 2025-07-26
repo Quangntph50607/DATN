@@ -85,8 +85,9 @@ export default function SanPhamForm({
         doTuoi: edittingSanPham.doTuoi,
         soLuongManhGhep: edittingSanPham.soLuongManhGhep,
         trangThai: edittingSanPham.trangThai,
+        anhSps: edittingSanPham.anhSps,
       };
-
+      console.log("Ảnh", edittingSanPham);
       form.reset(formData);
       setTimeout(() => {
         if (form.getValues("danhMucId") !== edittingSanPham.danhMucId) {
@@ -121,8 +122,7 @@ export default function SanPhamForm({
     { name: "soLuongTon", label: "Số lượng tồn" },
     { name: "soLuongManhGhep", label: "Số lượng mảnh ghép" },
   ] as const;
-  console.log("Current danhMucId:", form.watch("danhMucId"));
-  console.log("Current boSuuTapId:", form.watch("boSuuTapId"));
+  console.log("sp1", edittingSanPham);
 
   return (
     <Form {...form}>
@@ -323,7 +323,6 @@ export default function SanPhamForm({
           name="files"
           render={({ field }) => {
             const currentFiles = Array.from(field.value ?? []);
-
             const handleRemove = (index: number) => {
               const newFiles = currentFiles.filter((_, i) => i !== index);
               const dt = new DataTransfer();
@@ -358,6 +357,7 @@ export default function SanPhamForm({
                           ].forEach((f) => dt.items.add(f));
                           field.onChange(dt.files);
                         }
+                        console.log("Selectt:", selectedFiles);
                       }}
                       disabled={currentFiles.length >= 5}
                     />
@@ -377,6 +377,7 @@ export default function SanPhamForm({
                               height={96}
                               className="w-full h-full object-cover"
                             />
+
                             {/* Gắn nhãn Ảnh chính cho ảnh đầu */}
                             {idx === 0 && (
                               <span className="absolute top-0 left-0 bg-green-600 text-white text-xs px-1 rounded-br">
