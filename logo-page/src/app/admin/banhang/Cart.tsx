@@ -218,7 +218,7 @@ const Cart: React.FC<Props> = ({ cart, updateQuantity, removeFromCart, customerN
           <p className="text-center text-gray-400 py-10">Giỏ hàng trống</p>
         ) : (
           cart.map(item => {
-            const image = item.anhDaiDien || '/no-image.png';
+            const image = item.anhDaiDien || '/images/avatar-admin.png';
             return (
               <motion.div
                 key={item.id}
@@ -226,8 +226,15 @@ const Cart: React.FC<Props> = ({ cart, updateQuantity, removeFromCart, customerN
                 className="flex items-center justify-between py-4 px-3 mb-3 bg-gradient-to-r from-slate-800 to-slate-700 rounded-xl shadow-md border border-white/10 hover:scale-[1.01] transition-transform"
               >
                 <div className="flex items-center">
-                  <div className="w-14 h-14 rounded-lg overflow-hidden mr-4 bg-white/10 border border-primary/30">
-                    <Image src={image} alt={item.tenSanPham} width={56} height={56} className="w-full h-full object-cover" unoptimized />
+                  <div className="w-14 h-14 rounded-lg overflow-hidden mr-4 bg-white/10 border border-primary/30 flex-shrink-0">
+                    <Image
+                      src={image}
+                      alt={item.tenSanPham}
+                      width={56}
+                      height={56}
+                      className="w-full h-full object-cover object-center"
+                      unoptimized
+                    />
                   </div>
                   <div>
                     <h4 className="text-base font-semibold text-white line-clamp-2">{item.tenSanPham}</h4>

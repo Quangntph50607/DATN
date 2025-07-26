@@ -35,14 +35,26 @@ import { AnhSanPhamChiTiet } from '@/components/types/product.type';
 //   return filename;
 // };
 
-const getMainImageUrl = (anhSps: AnhSanPhamChiTiet[]) => {
-  if (!anhSps || anhSps.length === 0) return '/no-image.png';
-  const mainImg = anhSps.find((img) => img.anhChinh);
-  const imgToUse = mainImg || anhSps[0];
-  if (imgToUse && imgToUse.url) {
-    return `http://localhost:8080/api/anhsp/images/${imgToUse.url}`;
+const getMainImageUrl = (anhUrls: AnhSanPhamChiTiet[]) => {
+  console.log("getMainImageUrl input:", anhUrls);
+
+  if (!anhUrls || anhUrls.length === 0) {
+    console.log("Không có ảnh, trả về placeholder");
+    return '/images/avatar-admin.png';
   }
-  return '/no-image.png';
+
+  const mainImg = anhUrls.find((img) => img.anhChinh);
+  const imgToUse = mainImg || anhUrls[0];
+  console.log("imgToUse:", imgToUse);
+
+  if (imgToUse && imgToUse.url) {
+    const imageUrl = `http://localhost:8080/api/anhsp/images/${imgToUse.url}`;
+    console.log("Generated image URL:", imageUrl);
+    return imageUrl;
+  }
+
+  console.log("Không có URL, trả về placeholder");
+  return '/images/avatar-admin.png';
 };
 
 const OrderPage = () => {
@@ -93,8 +105,13 @@ const OrderPage = () => {
   );
 
   const addToCart = (product: KhuyenMaiTheoSanPham) => {
+    console.log("Thêm sản phẩm vào giỏ hàng:", product.tenSanPham);
+    console.log("anhUrls:", product.anhUrls);
+
     const existingItem = cart.find((item) => item.id === product.id);
-    const firstImage = getMainImageUrl(product.anhSps || []);
+    const firstImage = getMainImageUrl(product.anhUrls || []);
+    console.log("firstImage:", firstImage);
+
     if (existingItem) {
       if (existingItem.quantity < (product.soLuongTon ?? 0)) {
         setCart(cart.map((item) => item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item));
@@ -115,6 +132,7 @@ const OrderPage = () => {
         xuatXuId: product.xuatXuId ?? 0,
         thuongHieuId: product.thuongHieuId ?? 0,
       };
+      console.log("cartItem.anhDaiDien:", cartItem.anhDaiDien);
       setCart([...cart, cartItem]);
     }
   };
