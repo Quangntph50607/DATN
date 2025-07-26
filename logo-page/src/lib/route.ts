@@ -7,6 +7,8 @@ export const adminRoutes = [
       { label: "Sản phẩm", href: "/admin/sanpham" },
       { label: "Danh mục", href: "/admin/danhmuc" },
       { label: "Bộ sưu tập", href: "/admin/bosuutap" },
+      { label: "Xuất xứ", href: "/admin/xuatxu" },
+      { label: "Thương hiệu", href: "/admin/thuonghieu" },
     ],
   },
   {

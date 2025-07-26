@@ -88,7 +88,7 @@ export default function LegoCollectionPage() {
   );
   const itemPerPage = 10;
   const totalPages = Math.ceil(filteredCollections.length / itemPerPage);
-  const paginatedData = collections.slice(
+  const paginatedData = filteredCollections.slice(
     (currentPage - 1) * itemPerPage,
     currentPage * itemPerPage
   );
