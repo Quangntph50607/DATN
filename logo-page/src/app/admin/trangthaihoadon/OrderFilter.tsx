@@ -31,6 +31,7 @@ function OrderFilter({
   setFilterPayment,
   setPage,
   orders,
+  PAGE_SIZE,
 }: OrderFilterProps) {
   const STATUS = Object.entries(TrangThaiHoaDon).map(([key, label]) => ({
     value: key.toUpperCase(),
@@ -48,8 +49,10 @@ function OrderFilter({
     CANCELLED: "text-gray-400",
   };
 
-  const paymentMethods = Object.entries(PaymentMethods).map(([_, label]) => ({
+  // Lọc đúng theo value của PaymentMethods (giá trị là label)
+  const paymentMethods = Object.entries(PaymentMethods).map(([key, label]) => ({
     value: label,
+    label,
   }));
 
   return (

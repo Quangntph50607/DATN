@@ -10,6 +10,7 @@ export interface CartItemDTO {
 export interface CreateHoaDonDTO {
   userId?: number;
   loaiHD: number;
+  tenNguoiNhan: string;
   sdt: string;
   diaChiGiaoHang: string;
   phuongThucThanhToan: string; // Thay đổi thành string để linh hoạt hơn
@@ -30,7 +31,7 @@ export interface HoaDonDTOOld {
   id: number;
   maHD: string;
   loaiHD: number;
-  tamTinh: number;
+  tamTinh: number; Đan
   tongTien: number;
   soTienGiam: number;
   diaChiGiaoHang: string;
@@ -59,8 +60,9 @@ export enum TrangThaiHoaDon {
 }
 
 export enum PaymentMethods {
+  BANK = "Chuyển khoản",
   COD = "COD",
-  BANK = "BANK"
+  CASH = "Tiền mặt",
 }
 
 export interface HoaDonDTO {

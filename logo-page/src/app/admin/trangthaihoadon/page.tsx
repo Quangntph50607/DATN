@@ -5,9 +5,37 @@ import { HoaDonService } from "@/services/hoaDonService";
 import { HoaDonDTO, TrangThaiHoaDon } from "@/components/types/hoaDon-types";
 import OrderFilter from "./OrderFilter";
 import StatusCardList from "./StatusCardList";
-import OrderTable from "./OrderTable";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { format } from "date-fns";
+import { formatDateFlexible } from "../khuyenmai/formatDateFlexible";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogFooter,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog";
+import OrderTable from "./OrderTable";
 
 export default function TrangThaiHoaDonPage() {
   const [search, setSearch] = useState("");

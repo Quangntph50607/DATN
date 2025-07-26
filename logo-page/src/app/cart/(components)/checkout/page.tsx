@@ -81,6 +81,7 @@ export default function CheckoutPage() {
     const [shippingFee, setShippingFee] = useState(0);
     const [soNgayGiao, setSoNgayGiao] = useState(0);
     const [phoneNumber, setPhoneNumber] = useState("");
+    const [tenNguoiNhan, setTenNguoiNhan] = useState("");
     const [vnpayUrl, setVnpayUrl] = useState<string | null>(null);
 
     // Hàm helper để xóa sản phẩm đã đặt hàng khỏi giỏ hàng
@@ -108,6 +109,13 @@ export default function CheckoutPage() {
         setProducts(items);
         loadImages(items);
     }, []);
+
+    useEffect(() => {
+        if (user) {
+            setTenNguoiNhan((user as any)?.ten || "");
+            setPhoneNumber((user as any)?.sdt || "");
+        }
+    }, [user]);
 
     const loadImages = async (products: any[]) => {
         const urls: Record<number, string | null> = {};
@@ -329,6 +337,12 @@ export default function CheckoutPage() {
             return;
         }
 
+        if (!tenNguoiNhan.trim()) {
+            setOrderError("Vui lòng nhập họ và tên người nhận!");
+            toast.error("Vui lòng nhập họ và tên người nhận!");
+            return;
+        }
+
         // Validate user và số điện thoại
         if (!user) {
             setOrderError("Vui lòng đăng nhập để đặt hàng!");
@@ -337,10 +351,7 @@ export default function CheckoutPage() {
         }
 
         // Lấy số điện thoại từ user hoặc input
-        const userSdt = (user as any)?.sdt || phoneNumber || "";
-        console.log("Số điện thoại user:", userSdt);
-
-        if (!userSdt || userSdt.trim() === "") {
+        if (!phoneNumber || phoneNumber.trim() === "") {
             setOrderError("Vui lòng nhập số điện thoại!");
             toast.error("Vui lòng nhập số điện thoại!");
             return;
@@ -348,10 +359,10 @@ export default function CheckoutPage() {
 
         // Validate định dạng số điện thoại (10-11 số)
         const phoneRegex = /^[0-9]{10,11}$/;
-        const cleanPhone = userSdt.replace(/\s/g, '');
+        const cleanPhone = phoneNumber.replace(/\s/g, '');
         if (!phoneRegex.test(cleanPhone)) {
-            setOrderError("Số điện thoại không đúng định dạng (10-11 số)!");
-            toast.error("Số điện thoại không đúng định dạng (10-11 số)!");
+            setOrderError("Số điện thoại không đúng định dạng (10 số)!");
+            toast.error("Số điện thoại không đúng định dạng (10số)!");
             return;
         }
 
@@ -402,6 +413,7 @@ export default function CheckoutPage() {
             const orderData: CreateHoaDonDTO = {
                 userId: user.id,
                 loaiHD: 2,
+                tenNguoiNhan: tenNguoiNhan,
                 sdt: cleanPhone,
                 diaChiGiaoHang,
                 phuongThucThanhToan, // "COD" hoặc "BANK"
@@ -532,21 +544,24 @@ export default function CheckoutPage() {
                     {/* Số điện thoại */}
                     <div className="border-b pb-4 mb-2">
                         <div className="flex items-center justify-between mb-2">
-                            <span className="text-orange-600 font-semibold">📞 Số Điện Thoại</span>
+                            <span className="text-orange-600 font-semibold">👤 Thông tin người nhận</span>
                         </div>
                         <div className="flex flex-col gap-2 text-black">
                             <input
                                 className="border rounded px-3 py-2 w-full"
-                                placeholder="Nhập số điện thoại (10-11 số)"
+                                placeholder="Họ và tên người nhận"
+                                value={tenNguoiNhan}
+                                onChange={e => setTenNguoiNhan(e.target.value)}
+                                type="text"
+                            />
+                            <input
+                                className="border rounded px-3 py-2 w-full"
+                                placeholder="Nhập số điện thoại (10 số)"
                                 value={phoneNumber}
                                 onChange={e => setPhoneNumber(e.target.value)}
                                 type="tel"
+                            // disabled={!!user} // Nếu muốn không cho sửa khi đã đăng nhập, bỏ comment dòng này
                             />
-                            {(user as any)?.sdt && (
-                                <div className="text-sm text-gray-600">
-                                    Số điện thoại hiện tại: {(user as any).sdt}
-                                </div>
-                            )}
                         </div>
                     </div>
 
