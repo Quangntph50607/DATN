@@ -16,7 +16,7 @@ import React from "react";
 interface Props {
   phieuGiamGias: PhieuGiamGia[];
   onEdit: (phieuGiamGia: PhieuGiamGia) => void;
-  onDelete: (id: number) => void;
+  onView: (id: number) => void;
 }
 
 const formatVND = (value?: number) =>
@@ -47,8 +47,8 @@ const formatGiaTriGiam = (value: number, loai: string) => {
 
 export default function PhieuGiamTable({
   phieuGiamGias,
-  onDelete,
   onEdit,
+  onView,
 }: Props) {
   return (
     <div className="border-3 border-blue-500 rounded-2xl mt-3 overflow-x-auto shadow-2xl shadow-blue-500/20">
@@ -113,7 +113,11 @@ export default function PhieuGiamTable({
                       >
                         <Trash2 className="w-4 h-4 text-red-500" />
                       </Button> */}
-                      <Button size="icon" title="Chi tiết">
+                      <Button
+                        size="icon"
+                        title="Chi tiết"
+                        onClick={() => onView?.(pgg.id)}
+                      >
                         <Eye className="w-4 h-4 text-red-500" />
                       </Button>
                     </div>

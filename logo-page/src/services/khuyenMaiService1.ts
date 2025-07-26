@@ -1,5 +1,6 @@
 // services/khuyenMaiService.ts
 import {
+  ChiTietKhuyenMai,
   KhuyenMaiDTO,
   KhuyenMaiSanPhamDTO,
   KhuyenMaiTheoSanPham,
@@ -30,7 +31,7 @@ export const khuyenMaiService = {
     return res.json();
   },
 
-  async addKhuyenMai(data: KhuyenMaiPayLoad): Promise<KhuyenMaiPayLoad> {
+  async addKhuyenMai(data: KhuyenMaiPayLoad): Promise<KhuyenMaiDTO> {
     try {
       const res = await fetchWithAuth(`${API_URL}/Create`, {
         method: "POST",
@@ -99,5 +100,22 @@ export const khuyenMaiService = {
       console.error("Lỗi:", error);
       throw error;
     }
+  },
+  async getChiTietKhuyenMai(id: number): Promise<ChiTietKhuyenMai> {
+    console.log("getChiTietKhuyenMai - calling API with id:", id);
+
+    const res = await fetchWithAuth(`${API_URL}/getDetail/${id}`, {
+      cache: "no-store",
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("getChiTietKhuyenMai - API error:", res.status, errorText);
+      throw new Error("Không thể lấy chi tiết khuyến mãi");
+    }
+
+    const data = await res.json();
+    console.log("getChiTietKhuyenMai - response data:", data);
+    return data;
   },
 };

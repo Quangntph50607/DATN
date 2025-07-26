@@ -10,10 +10,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { KhuyenMaiTheoSanPham } from "@/components/types/khuyenmai-type";
 
 interface Props {
-  sanPhams: SanPham[];
-  onEdit: (product: SanPham) => void;
+  sanPhams: KhuyenMaiTheoSanPham[];
+  onEdit: (product: KhuyenMaiTheoSanPham) => void;
   onDelete: (id: number) => void;
 }
 
@@ -36,6 +37,8 @@ export default function SanPhamTable({ sanPhams, onDelete, onEdit }: Props) {
             <TableHead className="whitespace-nowrap">Độ tuổi</TableHead>
             <TableHead className="whitespace-nowrap">Giá</TableHead>
             <TableHead className="whitespace-nowrap">SL Tồn</TableHead>
+            <TableHead className="whitespace-nowrap">% Khuyến mãi</TableHead>
+            <TableHead className="whitespace-nowrap">Giá khuyến mãi</TableHead>
             <TableHead className="whitespace-nowrap">Trạng Thái</TableHead>
             <TableHead className="whitespace-nowrap text-center">
               Hành động
@@ -62,6 +65,15 @@ export default function SanPhamTable({ sanPhams, onDelete, onEdit }: Props) {
                 <TableCell>{sp.doTuoi}</TableCell>
                 <TableCell>{sp.gia.toLocaleString()}đ</TableCell>
                 <TableCell>{sp.soLuongTon}</TableCell>
+
+                <TableCell>
+                  {sp.phanTramKhuyenMai ? `${sp.phanTramKhuyenMai}%` : "-"}
+                </TableCell>
+                <TableCell>
+                  {sp.giaKhuyenMai
+                    ? `${sp.giaKhuyenMai.toLocaleString()} đ`
+                    : "-"}
+                </TableCell>
                 <TableCell>
                   {sp.trangThai === "Đang kinh doanh" ? (
                     <span className="text-green-600 font-semibold">

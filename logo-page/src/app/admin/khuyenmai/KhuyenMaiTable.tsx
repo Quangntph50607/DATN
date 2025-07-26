@@ -11,14 +11,16 @@ import { Button } from "@/components/ui/button";
 import React from "react";
 import { cn } from "@/lib/utils";
 import { formatDateFlexible } from "./formatDateFlexible";
-import { Edit, Eye, Trash2 } from "lucide-react";
+import { Edit, Eye } from "lucide-react";
 
 interface Props {
   khuyenMai: KhuyenMaiDTO[];
-  onDelete: (id: number) => void;
   onEdit: (data: KhuyenMaiDTO) => void;
+  onView?: (id: number) => void;
 }
-export default function KhuyenMaiTable({ khuyenMai, onDelete, onEdit }: Props) {
+
+export default function KhuyenMaiTable({ khuyenMai, onEdit, onView }: Props) {
+  const sortKhuyenMai = [...khuyenMai].sort((a, b) => b.id - a.id);
   return (
     <div className="border-3 border-blue-500 rounded-2xl mt-3 overflow-x-auto shadow-2xl shadow-blue-500/20">
       <Table>
@@ -36,14 +38,14 @@ export default function KhuyenMaiTable({ khuyenMai, onDelete, onEdit }: Props) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {khuyenMai.length === 0 ? (
+          {sortKhuyenMai.length === 0 ? (
             <TableRow>
               <TableCell colSpan={10} className="text-center">
                 Không có khuyến mãi nào
               </TableCell>
             </TableRow>
           ) : (
-            khuyenMai.map((km, idx) => (
+            sortKhuyenMai.map((km, idx) => (
               <TableRow key={km.maKhuyenMai}>
                 <TableCell>{idx + 1}</TableCell>
                 <TableCell>{km.maKhuyenMai}</TableCell>
@@ -82,8 +84,11 @@ export default function KhuyenMaiTable({ khuyenMai, onDelete, onEdit }: Props) {
                     {/* <Button title="Xóa" onClick={() => onDelete(km.id)}>
                       <Trash2 className="w-4 h-4 text-red-500" />
                     </Button> */}
-                    <Button title="Chi tiết">
-                      <Eye className="w-4 h-4 text-red-500" />
+                    <Button
+                      title="Xem chi tiết"
+                      onClick={() => onView?.(km.id)}
+                    >
+                      <Eye className="w-4 h-4 text-red-600" />
                     </Button>
                   </div>
                 </TableCell>

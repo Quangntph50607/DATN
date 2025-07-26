@@ -14,7 +14,7 @@ export const khuyenMaiSchema = z
         invalid_type_error: "Phần trăm phải là số",
       })
       .min(0, "Phần trăm giảm phải lớn hơn hoặc bằng 0")
-      .max(60, "Phần trăm giảm không được vượt quá 60"),
+      .max(100, "Phần trăm giảm không được vượt quá 100"),
 
     ngayBatDau: z.date({ required_error: "Vui lòng chọn ngày bắt đầu" }),
     ngayKetThuc: z.date({ required_error: "Vui lòng chọn ngày kết thúc" }),
