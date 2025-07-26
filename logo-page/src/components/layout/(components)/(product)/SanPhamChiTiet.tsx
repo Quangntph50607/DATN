@@ -27,48 +27,40 @@ interface SanPhamChiTietWithAnhUrls extends Partial<SanPham> {
   anhUrls: { url: string; anhChinh?: boolean }[];
 }
 
-export default function SanPhaChitiet() {
-  const [soLuong, setSoLuong] = useState(1);
-  const [mainImageIndex, setMainImageIndex] = useState(0);
-  const [mainImageUrl, setMainImageUrl] = useState<string | null>(null);
-  // XÓA hoàn toàn mọi hook, state, effect liên quan đến imageUrls và loadImages
-  // Giữ lại chỉ mainImageUrl, mainImageIndex, loadMainImage, handleThumbnailClick, handleNextImage, handlePrevImage
+export default function SanPhamChitiet() {
   const params = useParams();
-  const router = useRouter();
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
   const sanPhamID = Number(id);
 
+  // Nếu id không hợp lệ, return luôn (KHÔNG gọi bất kỳ hook nào khác)
+  if (isNaN(sanPhamID) || sanPhamID <= 0) return <div>Đang tải ...</div>;
+
+  // Tất cả các hook phải gọi ở đây, không có return phía trên nữa!
+  const [soLuong, setSoLuong] = useState(1);
+  const [mainImageIndex, setMainImageIndex] = useState(0);
+  const [mainImageUrl, setMainImageUrl] = useState<string | null>(null);
+  const router = useRouter();
   const { data: sanPhamChiTietRaw, isLoading, error } = useSanPhamID(sanPhamID);
   const sanPhamChiTiet = sanPhamChiTietRaw as SanPhamChiTietWithAnhUrls;
-  const addToCart = useAddToCart(sanPhamID); // Sử dụng userId thay vì hardcode
-
+  const addToCart = useAddToCart(sanPhamID);
   const { user } = useUserStore();
   const userId = user?.id || 0;
   const { data: cartData } = useCart(userId);
-
-  const totalQuantity =
-    cartData?.gioHangChiTiets?.reduce(
-      (sum: number, item: any) => sum + item.soLuong,
-      0
-    ) || 0;
-
-  const { data: binhLuanData, isLoading: loadingBinhLuan } =
-    useDanhGia(sanPhamID);
+  const totalQuantity = cartData?.gioHangChiTiets?.reduce((sum: number, item: any) => sum + item.soLuong, 0) || 0;
+  const { data: binhLuanData, isLoading: loadingBinhLuan } = useDanhGia(sanPhamID);
   const addBinhLuan = useAddDanhGia(sanPhamID);
-  // Nếu muốn kiểm tra đã mua hàng, cần tự định nghĩa hook useUserOrderDetail
-  // Hiện tại cho phép user đã đăng nhập đều được đánh giá
   const hdct_id = user ? 1 : undefined;
-
   const { data: danhGias, isLoading: loadingDanhGia } = useDanhGia(sanPhamID);
   const addDanhGia = useAddDanhGia(sanPhamID);
   const uploadImages = useUploadDanhGiaImages(sanPhamID);
   const uploadVideo = useUploadDanhGiaVideo(sanPhamID);
-
   const [tieuDe, setTieuDe] = useState("");
   const [textDanhGia, setTextDanhGia] = useState("");
   const [soSao, setSoSao] = useState(5);
   const [files, setFiles] = useState<File[]>([]);
   const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [showDanhGiaForm, setShowDanhGiaForm] = useState(false);
+
   const handleAddBinhLuan = (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) {
@@ -167,19 +159,20 @@ export default function SanPhaChitiet() {
     }
   }, [sanPhamChiTiet]);
 
-  if (isLoading) return <div>Đang tải ....</div>;
+  // Sau khi gọi hết hook, mới return loading/error nếu cần
+  if (isLoading) return <div>Đang tải ...</div>;
   if (error || !sanPhamChiTiet) return <div>Lỗi tải sản phẩm</div>;
 
   const discountPercent =
     sanPhamChiTiet.giaKhuyenMai && sanPhamChiTiet.gia
       ? Math.round(
-          ((sanPhamChiTiet.gia - sanPhamChiTiet.giaKhuyenMai) /
-            sanPhamChiTiet.gia) *
-            100
-        )
+        ((sanPhamChiTiet.gia - sanPhamChiTiet.giaKhuyenMai) /
+          sanPhamChiTiet.gia) *
+        100
+      )
       : 0;
   const tangSoLuong = () => {
-    if (soLuong < sanPhamChiTiet.soLuongTon) {
+    if (soLuong < (sanPhamChiTiet.soLuongTon ?? 1)) {
       setSoLuong(soLuong + 1);
     }
   };
@@ -199,16 +192,14 @@ export default function SanPhaChitiet() {
         description: "Số lượng không vượt quá 50!",
         duration: 2000,
       });
-      setSoLuong(Math.min(50, sanPhamChiTiet.soLuongTon));
-    } else if (value >= 1 && value <= sanPhamChiTiet.soLuongTon) {
+      setSoLuong(Math.min(50, sanPhamChiTiet.soLuongTon ?? 50));
+    } else if (value >= 1 && value <= (sanPhamChiTiet.soLuongTon ?? 1)) {
       setSoLuong(value);
     } else {
-      setSoLuong(sanPhamChiTiet.soLuongTon);
+      setSoLuong(sanPhamChiTiet.soLuongTon ?? 1);
     }
   };
-  const handleThumbnailClick = (fileName: string) => {
-    setImageUrls((prev) => ({ ...prev, main: fileName }));
-  };
+
   const handleThumbnailClick = (idx: number) => {
     setMainImageIndex(idx);
     loadMainImage(sanPhamChiTiet.anhUrls[idx].url);
@@ -288,48 +279,7 @@ export default function SanPhaChitiet() {
     localStorage.setItem("cartItems", JSON.stringify(cart));
   };
 
-  // Thêm lại các hàm bị thiếu
-  // const discountPercent =
-  //   sanPhamChiTiet.giaKhuyenMai && sanPhamChiTiet.gia
-  //     ? Math.round(
-  //       ((sanPhamChiTiet.gia - sanPhamChiTiet.giaKhuyenMai) /
-  //         sanPhamChiTiet.gia) *
-  //       100
-  //     )
-  //     : 0;
-
-  const tangSoLuong = () => {
-    if (soLuong < (sanPhamChiTiet.soLuongTon ?? 1)) {
-      setSoLuong(soLuong + 1);
-    }
-  };
-
-  const giamSoLuong = () => {
-    if (soLuong > 1) {
-      setSoLuong(soLuong - 1);
-    }
-  };
-
-  const handleSoLuongChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(e.target.value) || 0;
-    if (value === 0) {
-      setSoLuong(0);
-    } else if (value > 50) {
-      toast.message("Cảnh báo!", {
-        description: "Số lượng không vượt quá 50!",
-        duration: 2000,
-      });
-      setSoLuong(Math.min(50, sanPhamChiTiet.soLuongTon ?? 50));
-    } else if (value >= 1 && value <= (sanPhamChiTiet.soLuongTon ?? 1)) {
-      setSoLuong(value);
-    } else {
-      setSoLuong(sanPhamChiTiet.soLuongTon ?? 1);
-    }
-  };
-
-  const [showDanhGiaForm, setShowDanhGiaForm] = useState(false);
-
-  if (isLoading) return <div>Đang tải ....</div>;
+  if (isLoading) return <div>Đang tải ...</div>;
   if (error || !sanPhamChiTiet) return <div>Lỗi tải sản phẩm</div>;
 
   return (
@@ -380,9 +330,7 @@ export default function SanPhaChitiet() {
               {sanPhamChiTiet.anhUrls.map((anh, idx) => (
                 <div
                   key={idx}
-                  className={`cursor-pointer w-20 h-20 relative border border-gray-200 rounded-xl overflow-hidden transition hover:ring-2 hover:ring-blue-400 hover:scale-105 ${
-                    mainImageIndex === idx ? "ring-2 ring-blue-500" : ""
-                  }`}
+                  className={`cursor-pointer w-20 h-20 relative border border-gray-200 rounded-xl overflow-hidden transition hover:ring-2 hover:ring-blue-400 hover:scale-105 ${mainImageIndex === idx ? "ring-2 ring-blue-500" : ""}`}
                   onClick={() => handleThumbnailClick(idx)}
                 >
                   <Image
@@ -464,9 +412,8 @@ export default function SanPhaChitiet() {
                 />
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded"
+                  className="px-5 py-2 mt-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-500 shadow transition"
                 >
-                <button type="submit" className="px-5 py-2 mt-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-500 shadow transition">
                   Gửi đánh giá
                 </button>
                 <button
