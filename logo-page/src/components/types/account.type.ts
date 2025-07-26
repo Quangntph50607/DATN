@@ -10,6 +10,7 @@ export interface DTOUser {
   matKhau: string;
   sdt: string;
   diaChi: string;
+  ngaySinh?: string | Date;
   trangThai: number;
   role_id: number;
   ngayTao?: number[];
