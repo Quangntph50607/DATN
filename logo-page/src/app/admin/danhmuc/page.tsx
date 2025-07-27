@@ -17,6 +17,8 @@ import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { PlusIcon } from "lucide-react";
+import { Modal } from "@/components/layout/(components)/(pages)/Modal";
+import LichSuLogTimeline from "@/shared/LichSuLogTimeline";
 
 export default function LegoCategoryPage() {
   const { data: categories = [], isLoading } = useDanhMuc();
@@ -24,6 +26,8 @@ export default function LegoCategoryPage() {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [showForm, setShowForm] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isOpenLog, setIsOpenLog] = useState(false);
+
   const addMutation = useAddSDanhMuc();
   const editMutation = useEditDanhMuc();
   const deleteMutation = useXoaDanhMuc();
@@ -110,6 +114,14 @@ export default function LegoCategoryPage() {
             <PlusIcon />
             Thêm danh mục
           </Button>
+          <Button
+            className=" shadow-lg"
+            onClick={() => setIsOpenLog(true)}
+            variant="destructive"
+          >
+            <PlusIcon />
+            Xem lịch sử
+          </Button>
         </div>
 
         {isLoading ? (
@@ -122,6 +134,15 @@ export default function LegoCategoryPage() {
               onEdit={handleEdit}
               onDelete={handleDelete}
             />
+            {/* Modal xem lịch sử log */}
+            <Modal
+              open={isOpenLog}
+              onOpenChange={() => setIsOpenLog(false)}
+              title="Lịch sử  thay đổi"
+              className="max-w-6xl"
+            >
+              <LichSuLogTimeline bang="danhMuc" title="Lịch sử user log" />
+            </Modal>
           </>
         )}
 

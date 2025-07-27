@@ -13,6 +13,7 @@ import { PlusIcon } from "lucide-react";
 import { useSearchStore } from "@/context/useSearch.store";
 import KhuyenMaiFilter from "./KhuyenMaiFilter";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import LichSuLogTimeline from "@/shared/LichSuLogTimeline";
 
 export default function KhuyenMaiPage() {
   const { data: khuyenMai = [], isLoading, refetch } = useKhuyenMai();
@@ -24,6 +25,8 @@ export default function KhuyenMaiPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const { keyword, setKeyword } = useSearchStore();
   const [viewingId, setViewingId] = useState<number | null>(null);
+  const [isOpenLog, setIsOpenLog] = useState(false);
+
   const [activedTabs, setActivetedTabs] = useState<
     "Đang hoạt động" | "Chưa bắt đầu" | "Đã hết hạn"
   >("Đang hoạt động");
@@ -114,6 +117,23 @@ export default function KhuyenMaiPage() {
           isLoading={isLoadingDetail}
         />
       </Modal>
+      {/* Modal xem lịch sử log */}
+      <Modal
+        open={isOpenLog}
+        onOpenChange={() => setIsOpenLog(false)}
+        title="Lịch sử user thay đổi"
+        className="max-w-6xl"
+        scrollContentOnly
+      >
+        <LichSuLogTimeline
+          bang="khuyenMai"
+          title="Lịch sử log của khuyến mại"
+        />
+        <LichSuLogTimeline
+          bang="khuyenMaiSanPham"
+          title="Lịch sử log khuyến mại theo sản phẩm "
+        />
+      </Modal>
 
       <KhuyenMaiFilter
         fromDate={fromDate}
@@ -125,10 +145,16 @@ export default function KhuyenMaiPage() {
       <div className="space-y-4">
         <div className="flex justify-between">
           <h2 className="text-lg font-bold">Danh sách khuyến mại</h2>
-          <Button onClick={() => setIsModalOpen(true)} className=" px-2">
-            <PlusIcon />
-            Thêm khuyến mại
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={() => setIsOpenLog(true)} variant="destructive">
+              <PlusIcon />
+              Xem lịch sử
+            </Button>
+            <Button onClick={() => setIsModalOpen(true)} className="px-2">
+              <PlusIcon />
+              Thêm khuyến mại
+            </Button>
+          </div>
         </div>
         {isLoading ? (
           <p className="text-muted-foreground">Đang tải khuyến mại</p>

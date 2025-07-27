@@ -13,6 +13,7 @@ import { useSearchStore } from "@/context/useSearch.store";
 import PhieuGiamFilter from "./PhieuGiamFilter";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PhieuGiamGiaModal from "./PhieuGiamGiaModal";
+import LichSuLogTimeline from "@/shared/LichSuLogTimeline";
 
 export default function Page() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -24,6 +25,7 @@ export default function Page() {
   const [viewingId, setViewingId] = useState<number | null>(null);
   const itemPerPage = 5;
   const tableRef = useRef<HTMLDivElement | null>(null);
+  const [isOpenLog, setIsOpenLog] = useState(false);
   const [activedTabs, setActivetedTabs] = useState<
     "Đang hoạt động" | "Chưa bắt đầu" | "Đã hết hạn"
   >("Đang hoạt động");
@@ -99,6 +101,15 @@ export default function Page() {
           onSucess={handleSuccess}
         />
       </Modal>
+      {/* Modal xem lịch sử log */}
+      <Modal
+        open={isOpenLog}
+        onOpenChange={() => setIsOpenLog(false)}
+        title="Lịch sử user thay đổi"
+        className="max-w-6xl"
+      >
+        <LichSuLogTimeline bang="phieuGiamGia" title="Lịch sử user log" />
+      </Modal>
       {/* Modal xem chi tiết phiếu giảm */}
       <Modal
         open={isDetailModalOpen}
@@ -131,10 +142,16 @@ export default function Page() {
       <div ref={tableRef} className="space-y-4">
         <div className="flex justify-between">
           <h2 className="text-lg font-bold">Danh sách phiếu giảm</h2>
-          <Button onClick={() => setIsModalOpen(true)} className="px-2">
-            <PlusIcon />
-            Thêm phiếu giảm giá
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={() => setIsOpenLog(true)} variant="destructive">
+              <PlusIcon />
+              Xem lịch sử
+            </Button>
+            <Button onClick={() => setIsModalOpen(true)} className="px-2">
+              <PlusIcon />
+              Thêm phiếu giảm giá
+            </Button>
+          </div>
         </div>
 
         {isLoading ? (

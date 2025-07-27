@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/popover";
 
 interface DateTimePickerProps {
-  value?: Date;
+  value?: Date | null;
   onChange?: (date: Date | null) => void;
   placeholder?: string;
   mode?: "datetime" | "date";
