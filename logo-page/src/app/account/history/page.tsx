@@ -72,19 +72,17 @@ export default function OrderHistoryPage() {
                 );
                 setOrdersWithDetails(ordersWithDetailsData);
 
-                // Lấy ảnh cho các sản phẩm
-                const imagePromises: Promise<void>[] = [];
+                // Lấy ảnh cho các sản phẩm (đảm bảo fetch cho mọi productId duy nhất)
+                const fetchedProductIds = new Set<number>();
                 ordersWithDetailsData.forEach(order => {
                     order.chiTietSanPham?.forEach((item: any) => {
                         const productId = item.sanPham?.id;
-                        if (productId && !productImages[productId]) {
-                            const promise = fetchProductImage(productId);
-                            imagePromises.push(promise);
+                        if (productId && !productImages[productId] && !fetchedProductIds.has(productId)) {
+                            fetchedProductIds.add(productId);
+                            fetchProductImage(productId);
                         }
                     });
                 });
-
-                await Promise.all(imagePromises);
             };
 
             fetchOrderDetails();
@@ -93,16 +91,20 @@ export default function OrderHistoryPage() {
 
     const fetchProductImage = async (productId: number) => {
         try {
+            // Lấy danh sách ảnh theo id sản phẩm (giống SanPhamList)
             const response = await fetch(`http://localhost:8080/api/anhsp/sanpham/${productId}`);
             if (response.ok) {
                 const images = await response.json();
                 if (images && images.length > 0) {
-                    const imageBlob = await getAnhByFileName(images[0].tenAnh);
-                    const imageUrl = URL.createObjectURL(imageBlob);
-                    setProductImages(prev => ({
-                        ...prev,
-                        [productId]: imageUrl
-                    }));
+                    const mainImage = typeof images[0] === 'string' ? images[0] : images[0]?.tenAnh || images[0]?.url;
+                    if (mainImage) {
+                        const blob = await getAnhByFileName(mainImage);
+                        const imageUrl = URL.createObjectURL(blob);
+                        setProductImages(prev => ({
+                            ...prev,
+                            [productId]: imageUrl
+                        }));
+                    }
                 }
             }
         } catch (error) {
@@ -210,7 +212,7 @@ export default function OrderHistoryPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-100">
             <div className="max-w-7xl mx-auto px-4 py-8">
                 {/* Header với gradient đẹp */}
                 {/* <div className="text-center mb-8">
@@ -220,7 +222,7 @@ export default function OrderHistoryPage() {
                     <p className="text-gray-600">Theo dõi và quản lý tất cả đơn hàng của bạn</p>
                 </div> */}
 
-                <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-8">
+                <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-blue-100 p-8">
                     {/* Status Tabs với số lượng */}
                     <div className="mb-8">
                         <Tabs value={statusFilter} onValueChange={setStatusFilter}>
@@ -229,7 +231,7 @@ export default function OrderHistoryPage() {
                                     value="all"
                                     className="relative data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-blue-600 data-[state=active]:text-white text-sm font-medium rounded-lg transition-all duration-300 hover:scale-105"
                                 >
-                                    <span>🔍 Tất cả</span>
+                                    <span> Tất cả</span>
                                     <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full min-w-[20px] h-5 flex items-center justify-center font-bold shadow-lg">
                                         {ordersWithDetails?.length || 0}
                                     </span>
@@ -238,7 +240,7 @@ export default function OrderHistoryPage() {
                                     value={TrangThaiHoaDon.PENDING}
                                     className="relative data-[state=active]:bg-gradient-to-r data-[state=active]:from-yellow-500 data-[state=active]:to-yellow-600 data-[state=active]:text-white text-sm font-medium rounded-lg transition-all duration-300 hover:scale-105"
                                 >
-                                    <span>⏳ Đang xử lý</span>
+                                    <span> Đang xử lý</span>
                                     <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full min-w-[20px] h-5 flex items-center justify-center font-bold shadow-lg">
                                         {ordersWithDetails?.filter(o => o.trangThai === TrangThaiHoaDon.PENDING).length || 0}
                                     </span>
@@ -247,7 +249,7 @@ export default function OrderHistoryPage() {
                                     value={TrangThaiHoaDon.PROCESSING}
                                     className="relative data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-blue-600 data-[state=active]:text-white text-sm font-medium rounded-lg transition-all duration-300 hover:scale-105"
                                 >
-                                    <span>✅ Đã xác nhận</span>
+                                    <span> Đã xác nhận</span>
                                     <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full min-w-[20px] h-5 flex items-center justify-center font-bold shadow-lg">
                                         {ordersWithDetails?.filter(o => o.trangThai === TrangThaiHoaDon.PROCESSING).length || 0}
                                     </span>
@@ -256,7 +258,7 @@ export default function OrderHistoryPage() {
                                     value={TrangThaiHoaDon.PACKING}
                                     className="relative data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-purple-600 data-[state=active]:text-white text-sm font-medium rounded-lg transition-all duration-300 hover:scale-105"
                                 >
-                                    <span>📦 Đang đóng gói</span>
+                                    <span> Đang đóng gói</span>
                                     <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full min-w-[20px] h-5 flex items-center justify-center font-bold shadow-lg">
                                         {ordersWithDetails?.filter(o => o.trangThai === TrangThaiHoaDon.PACKING).length || 0}
                                     </span>
@@ -265,7 +267,7 @@ export default function OrderHistoryPage() {
                                     value={TrangThaiHoaDon.SHIPPED}
                                     className="relative data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-orange-600 data-[state=active]:text-white text-sm font-medium rounded-lg transition-all duration-300 hover:scale-105"
                                 >
-                                    <span>🚚 Đang vận chuyển</span>
+                                    <span> Đang vận chuyển</span>
                                     <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full min-w-[20px] h-5 flex items-center justify-center font-bold shadow-lg">
                                         {ordersWithDetails?.filter(o => o.trangThai === TrangThaiHoaDon.SHIPPED).length || 0}
                                     </span>
@@ -274,7 +276,7 @@ export default function OrderHistoryPage() {
                                     value={TrangThaiHoaDon.DELIVERED}
                                     className="relative data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-green-600 data-[state=active]:text-white text-sm font-medium rounded-lg transition-all duration-300 hover:scale-105"
                                 >
-                                    <span>🎉 Đã giao</span>
+                                    <span> Đã giao</span>
                                     <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full min-w-[20px] h-5 flex items-center justify-center font-bold shadow-lg">
                                         {ordersWithDetails?.filter(o => o.trangThai === TrangThaiHoaDon.DELIVERED).length || 0}
                                     </span>
@@ -283,7 +285,7 @@ export default function OrderHistoryPage() {
                                     value={TrangThaiHoaDon.COMPLETED}
                                     className="relative data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-emerald-600 data-[state=active]:text-white text-sm font-medium rounded-lg transition-all duration-300 hover:scale-105"
                                 >
-                                    <span>💯 Hoàn tất</span>
+                                    <span> Hoàn tất</span>
                                     <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full min-w-[20px] h-5 flex items-center justify-center font-bold shadow-lg">
                                         {ordersWithDetails?.filter(o => o.trangThai === TrangThaiHoaDon.COMPLETED).length || 0}
                                     </span>
@@ -292,7 +294,7 @@ export default function OrderHistoryPage() {
                                     value={TrangThaiHoaDon.CANCELLED}
                                     className="relative data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-500 data-[state=active]:to-red-600 data-[state=active]:text-white text-sm font-medium rounded-lg transition-all duration-300 hover:scale-105"
                                 >
-                                    <span>❌ Đã hủy</span>
+                                    <span> Đã hủy</span>
                                     <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full min-w-[20px] h-5 flex items-center justify-center font-bold shadow-lg">
                                         {ordersWithDetails?.filter(o => o.trangThai === TrangThaiHoaDon.CANCELLED).length || 0}
                                     </span>
@@ -302,7 +304,7 @@ export default function OrderHistoryPage() {
                     </div>
 
                     {/* Advanced Search với design đẹp hơn */}
-                    <div className="mb-8 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200 p-6 shadow-lg">
+                    <div className="mb-8 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100 p-6 shadow-lg">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
                                 <div className="p-2 bg-blue-500 rounded-lg">
@@ -316,7 +318,7 @@ export default function OrderHistoryPage() {
                                 onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
                                 className="text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded-lg transition-all duration-200"
                             >
-                                {showAdvancedSearch ? "📤 Thu gọn" : "📥 Mở rộng"}
+                                {showAdvancedSearch ? " Thu gọn" : " Mở rộng"}
                             </Button>
                         </div>
 
@@ -338,7 +340,7 @@ export default function OrderHistoryPage() {
                                 <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 group-focus-within:text-blue-500 transition-colors" />
                                 <Input
                                     type="date"
-                                    placeholder="📅 Từ ngày đặt"
+                                    placeholder=" Từ ngày đặt"
                                     value={fromDate}
                                     onChange={(e) => {
                                         setFromDate(e.target.value);
@@ -352,7 +354,7 @@ export default function OrderHistoryPage() {
                                 <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 group-focus-within:text-blue-500 transition-colors" />
                                 <Input
                                     type="date"
-                                    placeholder="📅 Đến ngày đặt"
+                                    placeholder=" Đến ngày đặt"
                                     value={toDate}
                                     onChange={(e) => {
                                         setToDate(e.target.value);
@@ -376,7 +378,7 @@ export default function OrderHistoryPage() {
                                 disabled={!searchKeyword && !fromDate && !toDate}
                             >
                                 <Trash2 className="h-4 w-4 mr-2" />
-                                🗑️ Xóa bộ lọc
+                                Xóa bộ lọc
                             </Button>
                         </div>
 
@@ -387,7 +389,7 @@ export default function OrderHistoryPage() {
 
                                     {searchKeyword && (
                                         <div className="flex items-center gap-1 bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 px-3 py-1 rounded-full text-xs font-medium shadow-sm">
-                                            <span>🔍 Từ khóa: "{searchKeyword}"</span>
+                                            <span>Từ khóa: "{searchKeyword}"</span>
                                             <X
                                                 className="h-3 w-3 cursor-pointer hover:text-blue-600 transition-colors"
                                                 onClick={() => setSearchKeyword("")}
@@ -397,7 +399,7 @@ export default function OrderHistoryPage() {
 
                                     {fromDate && (
                                         <div className="flex items-center gap-1 bg-gradient-to-r from-green-100 to-green-200 text-green-800 px-3 py-1 rounded-full text-xs font-medium shadow-sm">
-                                            <span>📅 Từ: {fromDate}</span>
+                                            <span> Từ: {fromDate}</span>
                                             <X
                                                 className="h-3 w-3 cursor-pointer hover:text-green-600 transition-colors"
                                                 onClick={() => setFromDate("")}
@@ -407,7 +409,7 @@ export default function OrderHistoryPage() {
 
                                     {toDate && (
                                         <div className="flex items-center gap-1 bg-gradient-to-r from-green-100 to-green-200 text-green-800 px-3 py-1 rounded-full text-xs font-medium shadow-sm">
-                                            <span>📅 Đến: {toDate}</span>
+                                            <span> Đến: {toDate}</span>
                                             <X
                                                 className="h-3 w-3 cursor-pointer hover:text-green-600 transition-colors"
                                                 onClick={() => setToDate("")}
@@ -420,97 +422,105 @@ export default function OrderHistoryPage() {
                     </div>
 
                     {filteredOrders.length === 0 ? (
-                        <div className="text-center py-16 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border-2 border-dashed border-gray-300">
+                        <div className="text-center py-16 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border-2 border-dashed border-blue-200">
                             <div className="text-6xl mb-4">📦</div>
-                            <p className="text-gray-500 text-xl font-medium mb-2">
+                            <p className="text-blue-500 text-xl font-medium mb-2">
                                 {statusFilter === "all"
-                                    ? "🤷‍♂️ Bạn chưa có đơn hàng nào"
-                                    : `🔍 Không có đơn hàng ở trạng thái này`
+                                    ? " Bạn chưa có đơn hàng nào"
+                                    : ` Không có đơn hàng ở trạng thái này`
                                 }
                             </p>
-                            <p className="text-gray-400 text-sm">
-                                {statusFilter !== "all" && "💡 Hãy thử chọn tab khác để xem đơn hàng"}
+                            <p className="text-blue-400 text-sm">
+                                {statusFilter !== "all" && " Hãy thử chọn tab khác để xem đơn hàng"}
                             </p>
                         </div>
                     ) : (
                         <>
-                            <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200">
+                            <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-blue-100">
                                 <div className="overflow-x-auto">
                                     <table className="w-full">
-                                        <thead className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white">
+                                        <thead className="bg-gray-100 text-gray-700">
                                             <tr>
-                                                <th className="text-left py-4 px-6 font-semibold">📋 Mã Đơn</th>
-                                                <th className="text-left py-4 px-6 font-semibold">📅 Ngày Đặt</th>
-                                                <th className="text-left py-4 px-6 font-semibold">🛍️ Sản Phẩm</th>
-                                                <th className="text-left py-4 px-6 font-semibold">📊 Số Lượng</th>
-                                                <th className="text-left py-4 px-6 font-semibold">💰 Tổng Tiền</th>
+                                                <th className="text-left py-4 px-6 font-semibold">Mã Đơn</th>
+                                                <th className="text-left py-4 px-6 font-semibold">Ngày Đặt</th>
+                                                <th className="text-left py-4 px-6 font-semibold">Sản Phẩm</th>
+                                                <th className="text-left py-4 px-6 font-semibold">Số Lượng</th>
+                                                <th className="text-left py-4 px-6 font-semibold">Tổng Tiền</th>
                                                 {statusFilter === "all" && (
-                                                    <th className="text-left py-4 px-6 font-semibold">📈 Trạng Thái</th>
+                                                    <th className="text-left py-4 px-6 font-semibold">Trạng Thái</th>
                                                 )}
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {paginatedOrders.map((order, index) => (
-                                                <tr key={order.id} className={`border-b border-gray-100 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all duration-200 ${index % 2 === 0 ? 'bg-gray-50/50' : 'bg-white'}`}>
-                                                    <td className="py-4 px-6 text-gray-800 font-medium">
-                                                        <span className="bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 px-3 py-1 rounded-full text-sm font-bold">
+                                                <tr key={order.id} className={`border-b border-gray-100 hover:bg-gray-50 transition-all duration-150`}>
+                                                    <td className="py-4 px-6 text-gray-900 font-bold">
+                                                        <span className="bg-gray-50 text-gray-800 px-3 py-1 rounded text-sm font-bold">
                                                             #{order.maHD}
                                                         </span>
                                                     </td>
                                                     <td className="py-4 px-6 text-gray-800">
-                                                        <span className="bg-gray-100 px-3 py-1 rounded-lg text-sm">
+                                                        <span className="bg-gray-50 px-3 py-1 rounded text-sm">
                                                             {formatDateFlexible(order.ngayTao, false)}
                                                         </span>
                                                     </td>
-                                                    <td className="py-4 px-6 text-gray-800">
+                                                    <td className="py-4 px-6 text-gray-900">
                                                         {order.chiTietSanPham && order.chiTietSanPham.length > 0 ? (
                                                             <div className="space-y-2">
-                                                                {order.chiTietSanPham.map((item: any, index: number) => (
-                                                                    <div key={index} className="flex items-center gap-3 bg-white p-2 rounded-lg shadow-sm border border-gray-100">
-                                                                        {productImages[item.sanPham?.id] ? (
-                                                                            <img
-                                                                                src={productImages[item.sanPham.id]}
-                                                                                alt={item.sanPham?.tenSanPham}
-                                                                                className="w-12 h-12 object-cover rounded-lg border-2 border-gray-200 shadow-sm"
-                                                                            />
-                                                                        ) : (
-                                                                            <div className="w-12 h-12 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center border-2 border-gray-200">
-                                                                                <span className="text-gray-400 text-xs font-bold">📷</span>
+                                                                {order.chiTietSanPham.map((item: any, index: number) => {
+                                                                    const pid = item.sanPham?.id;
+                                                                    return (
+                                                                        <div key={index} className="flex items-center gap-3 bg-white p-2 rounded border border-gray-200">
+                                                                            {productImages[pid] ? (
+                                                                                <img
+                                                                                    src={productImages[pid]}
+                                                                                    alt={item.sanPham?.tenSanPham}
+                                                                                    className="w-10 h-10 object-cover rounded border"
+                                                                                />
+                                                                            ) : (
+                                                                                <div className="w-10 h-10 bg-gray-100 rounded flex items-center justify-center border">
+                                                                                    <span className="text-gray-300 text-xs font-bold">No Image</span>
+                                                                                </div>
+                                                                            )}
+                                                                            <div className="flex flex-col">
+                                                                                <span className="font-medium text-gray-900 text-sm">
+                                                                                    {item.sanPham?.tenSanPham || 'Tên sản phẩm không có'}
+                                                                                </span>
+                                                                                <span className="text-xs text-gray-500">
+                                                                                    Giá: {(item.sanPham?.gia || 0).toLocaleString()}₫
+                                                                                </span>
                                                                             </div>
-                                                                        )}
-                                                                        <span className="font-medium text-gray-700">
-                                                                            {item.sanPham?.tenSanPham || '❓ Tên sản phẩm không có'}
-                                                                        </span>
-                                                                    </div>
-                                                                ))}
+                                                                        </div>
+                                                                    );
+                                                                })}
                                                             </div>
                                                         ) : (
-                                                            <span className="text-gray-500 italic bg-gray-100 px-3 py-1 rounded-lg">❌ Không có sản phẩm</span>
+                                                            <span className="text-gray-400 italic bg-gray-50 px-3 py-1 rounded">Không có sản phẩm</span>
                                                         )}
                                                     </td>
-                                                    <td className="py-4 px-6 text-gray-800">
+                                                    <td className="py-4 px-6 text-blue-900">
                                                         {order.chiTietSanPham && order.chiTietSanPham.length > 0 ? (
                                                             <div className="space-y-2">
                                                                 {order.chiTietSanPham.map((item: any, index: number) => (
-                                                                    <div key={index} className="h-12 flex items-center bg-white p-2 rounded-lg shadow-sm border border-gray-100">
-                                                                        <span className="bg-gradient-to-r from-orange-100 to-orange-200 text-orange-800 px-3 py-1 rounded-full text-sm font-bold">
-                                                                            ✖️ {item.soLuong || 0}
+                                                                    <div className="center">
+                                                                        <span className="bg-gradient-to-r from-indigo-100 to-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-bold">
+                                                                            {item.soLuong || 0}
                                                                         </span>
                                                                     </div>
                                                                 ))}
                                                             </div>
                                                         ) : (
-                                                            <span className="text-gray-500 bg-gray-100 px-3 py-1 rounded-lg">➖</span>
+                                                            <span className="text-blue-400 bg-blue-50 px-3 py-1 rounded-lg">➖</span>
                                                         )}
                                                     </td>
-                                                    <td className="py-4 px-6 text-gray-800">
-                                                        <span className="bg-gradient-to-r from-green-100 to-green-200 text-green-800 px-4 py-2 rounded-lg font-bold text-lg shadow-sm">
-                                                            💰 {order.tongTien?.toLocaleString() || '0'} VNĐ
+                                                    <td className="py-4 px-6 text-gray-900">
+                                                        <span className="bg-gray-50 text-gray-900 px-4 py-2 rounded font-bold text-base">
+                                                            {(order.tongTien || 0).toLocaleString()}₫
                                                         </span>
                                                     </td>
                                                     {statusFilter === "all" && (
                                                         <td className="py-4 px-6">
-                                                            <span className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium shadow-sm ${getStatusColor(order.trangThai)} bg-white border-2`}>
+                                                            <span className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium ${getStatusColor(order.trangThai)} bg-gray-50 border`}>
                                                                 {getStatusIcon(order.trangThai)} {order.trangThai}
                                                             </span>
                                                         </td>
@@ -523,6 +533,77 @@ export default function OrderHistoryPage() {
                             </div>
                         </>
                     )}
+                    {/* PHÂN TRANG + CHỌN SỐ BẢNG GHI */}
+                    <div className="flex flex-col md:flex-row justify-between items-center gap-4 mt-8 pb-2">
+                        <div className="flex items-center gap-2">
+                            <span className="text-blue-800 font-semibold">Hiển thị:</span>
+                            <select
+                                aria-label="Chọn số bản ghi mỗi trang"
+                                value={itemPerPage}
+                                onChange={e => {
+                                    setItemPerPage(Number(e.target.value));
+                                    setCurrentPage(1);
+                                }}
+                                className="rounded-full border border-blue-200 px-4 py-2 bg-white text-blue-700 font-bold shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
+                            >
+                                <option value={5}>5</option>
+                                <option value={10}>10</option>
+                                <option value={20}>20</option>
+                            </select>
+                            <span className="text-blue-600">bản ghi/trang</span>
+                        </div>
+                        {totalPages > 1 && (
+                            <div className="flex justify-center items-center gap-2">
+                                <button
+                                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                    disabled={currentPage === 1}
+                                    className={`px-4 py-2 rounded-full font-bold text-blue-700 border border-blue-200 bg-white shadow-sm transition-all duration-200 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed`}
+                                >
+                                    ←
+                                </button>
+                                <div className="flex gap-1">
+                                    {((): React.ReactNode => {
+                                        const pages: (number | string)[] = [];
+                                        if (totalPages <= 2) {
+                                            for (let i = 1; i <= totalPages; i++) {
+                                                pages.push(i);
+                                            }
+                                        } else {
+                                            pages.push(1);
+                                            if (2 <= totalPages) pages.push(2);
+                                            if (3 <= totalPages) pages.push(3);
+                                            if (currentPage > 4) pages.push('...');
+                                            if (currentPage > 3 && currentPage < totalPages - 1) pages.push(currentPage);
+                                            if (currentPage < totalPages - 2) pages.push('...');
+                                            if (totalPages > 3) pages.push(totalPages);
+                                        }
+                                        // Loại bỏ trùng lặp số trang
+                                        const uniquePages = pages.filter((v, i, a) => a.indexOf(v) === i);
+                                        return uniquePages.map((page, idx) =>
+                                            page === '...'
+                                                ? <span key={"ellipsis-" + idx} className="px-2 text-blue-400 font-bold">...</span>
+                                                : <button
+                                                    key={page}
+                                                    onClick={() => setCurrentPage(Number(page))}
+                                                    className={`px-4 py-2 rounded-full font-bold border transition-all duration-200 ${currentPage === page
+                                                        ? 'bg-blue-600 text-white border-blue-600 shadow-lg'
+                                                        : 'bg-white text-blue-700 border-blue-200 hover:bg-blue-50'}`}
+                                                >
+                                                    {page}
+                                                </button>
+                                        );
+                                    })()}
+                                </div>
+                                <button
+                                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                    disabled={currentPage === totalPages}
+                                    className={`px-4 py-2 rounded-full font-bold text-blue-700 border border-blue-200 bg-white shadow-sm transition-all duration-200 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed`}
+                                >
+                                    →
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>

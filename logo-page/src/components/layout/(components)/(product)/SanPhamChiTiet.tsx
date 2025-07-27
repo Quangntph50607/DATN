@@ -23,7 +23,19 @@ import {
 import { danhGiaService } from "@/services/danhGiaService";
 
 // Thêm type mở rộng cho sản phẩm chi tiết để có anhUrls
-interface SanPhamChiTietWithAnhUrls extends Partial<SanPham> {
+interface SanPhamChiTietWithAnhUrls {
+  id?: number;
+  tenSanPham?: string;
+  moTa?: string;
+  gia?: number;
+  giaKhuyenMai?: number;
+  soLuongTon?: number;
+  maSanPham?: string;
+  doTuoi?: number;
+  soLuongManhGhep?: number;
+  trangThai?: string;
+  danhGiaTrungBinh?: number;
+  soLuongVote?: number;
   anhUrls: { url: string; anhChinh?: boolean }[];
 }
 
@@ -334,9 +346,7 @@ export default function SanPhamChitiet() {
                   onClick={() => handleThumbnailClick(idx)}
                 >
                   <Image
-                    src={
-                      mainImageUrl && mainImageIndex === idx ? mainImageUrl : ""
-                    }
+                    src={`http://localhost:8080/api/anhsp/images/${anh.url}`}
                     alt={`Thumbnail ${idx + 1}`}
                     width={80}
                     height={80}
