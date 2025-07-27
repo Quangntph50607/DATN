@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 type ConfirmDialogProps = {
   open: boolean;
   title?: string;
-  description?: string;
+  description?: React.ReactNode;
   onConfirm: () => void;
   onCancel: () => void;
   confirmText?: string;

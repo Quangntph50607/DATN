@@ -20,7 +20,7 @@ import { Modal } from "@/components/layout/(components)/(pages)/Modal";
 import LichSuLogTimeline from "@/shared/LichSuLogTimeline";
 import { PlusIcon } from "lucide-react";
 
-const PAGE_SIZE = 5;
+const PAGE_SIZE = 10;
 
 function isValidTrangThaiTransition(current: string, next: string): boolean {
   const currentKey = Object.keys(TrangThaiHoaDon).find(

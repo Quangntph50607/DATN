@@ -35,6 +35,7 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
 } from "@/components/ui/alert-dialog";
+import { ConfirmDialog } from "@/shared/ConfirmDialog";
 
 const loaiHDOptions = [
   { value: "all", label: "Tất cả" },
@@ -92,7 +93,11 @@ function HoaDonTable({
   // Khi xác nhận trong dialog
   const onConfirmChange = () => {
     if (pendingStatus) {
-      handleStatusChange(pendingStatus.id, pendingStatus.current, pendingStatus.next);
+      handleStatusChange(
+        pendingStatus.id,
+        pendingStatus.current,
+        pendingStatus.next
+      );
       setDialogOpen(false);
       setPendingStatus(null);
     }
@@ -110,15 +115,35 @@ function HoaDonTable({
           <AlertDialogHeader>
             <AlertDialogTitle>Xác nhận chuyển trạng thái</AlertDialogTitle>
             <AlertDialogDescription>
-              Bạn có chắc muốn chuyển trạng thái từ "<b>{pendingStatus?.current}</b>" sang "<b>{pendingStatus?.next}</b>"?
+              Bạn có chắc muốn chuyển trạng thái từ "
+              <b>{pendingStatus?.current}</b>" sang "
+              <b>{pendingStatus?.next}</b>"?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Hủy</AlertDialogCancel>
-            <AlertDialogAction onClick={onConfirmChange}>Xác nhận</AlertDialogAction>
+            <AlertDialogAction onClick={onConfirmChange}>
+              Xác nhận
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <ConfirmDialog
+        open={dialogOpen}
+        onConfirm={onConfirmChange}
+        onCancel={() => {
+          setDialogOpen(false);
+          setPendingStatus(null);
+        }}
+        title="Xác nhận chuyển trạng thái"
+        description={
+          <>
+            Bạn có muốn chuyển trạng thái từ
+            <b> "{pendingStatus?.current}</b>" sang
+            <b> "{pendingStatus?.next}</b>" ?
+          </>
+        }
+      />
 
       {/* Tabs lọc loại hóa đơn */}
       <div className="flex justify-start mb-6 animate-in fade-in slide-in-from-left-10 duration-500">
@@ -152,6 +177,7 @@ function HoaDonTable({
               <TableHead>STT</TableHead>
               <TableHead>Mã Hóa Đơn</TableHead>
               <TableHead>Khách hàng</TableHead>
+              <TableHead>SĐT</TableHead>
               <TableHead>Tổng tiền</TableHead>
               <TableHead>Ngày tạo</TableHead>
               <TableHead>Trạng thái</TableHead>
@@ -166,11 +192,14 @@ function HoaDonTable({
                 <TableCell className="text-white">
                   {page * PAGE_SIZE + index + 1}
                 </TableCell>
-                <TableCell className="text-blue-400 font-semibold ">
+                <TableCell className=" font-semibold ">
                   {hd.maHD || "N/A"}
                 </TableCell>
                 <TableCell className="text-white ">
                   {hd.user?.ten || hd.ten || "Khách lẻ"}
+                </TableCell>
+                <TableCell className="text-white ">
+                  {hd.user?.sdt || hd.sdt || "N/A"}
                 </TableCell>
                 <TableCell className="text-green-400 font-medium">
                   {hd.tongTien.toLocaleString("vi-VN")}₫
@@ -182,7 +211,7 @@ function HoaDonTable({
                 <TableCell>
                   <Select
                     value={hd.trangThai as TrangThaiHoaDon}
-                    onValueChange={() => { }}
+                    onValueChange={() => {}}
                     disabled
                   >
                     <SelectTrigger className="w-[150px] bg-white/10 border border-blue-400 text-white text-xs font-semibold rounded-lg opacity-60">
@@ -190,7 +219,11 @@ function HoaDonTable({
                     </SelectTrigger>
                     <SelectContent className="bg-[#181e29] border border-blue-400 text-white">
                       {Object.values(TrangThaiHoaDon).map((status, idx) => (
-                        <SelectItem key={idx} value={status} className="text-xs">
+                        <SelectItem
+                          key={idx}
+                          value={status}
+                          className="text-xs"
+                        >
                           {status}
                         </SelectItem>
                       ))}
@@ -199,7 +232,9 @@ function HoaDonTable({
                 </TableCell>
                 <TableCell className="text-white ">
                   {hd.phuongThucThanhToan
-                    ? PaymentMethods[hd.phuongThucThanhToan as keyof typeof PaymentMethods]
+                    ? PaymentMethods[
+                        hd.phuongThucThanhToan as keyof typeof PaymentMethods
+                      ]
                     : "N/A"}
                 </TableCell>
                 <TableCell className="text-white ">
@@ -209,24 +244,37 @@ function HoaDonTable({
                 <TableCell className="flex gap-2">
                   {hd.trangThai === TrangThaiHoaDon.SHIPPED ? (
                     <>
-                      {isValidTrangThaiTransition(hd.trangThai, TrangThaiHoaDon.DELIVERED) && (
+                      {isValidTrangThaiTransition(
+                        hd.trangThai,
+                        TrangThaiHoaDon.DELIVERED
+                      ) && (
                         <Button
                           size="icon"
                           variant="outline"
                           className="border-blue-400 text-blue-400"
                           title="Chuyển sang Đã giao"
-                          onClick={() => onChuyenTrangThaiClick(hd, TrangThaiHoaDon.DELIVERED)}
+                          onClick={() =>
+                            onChuyenTrangThaiClick(
+                              hd,
+                              TrangThaiHoaDon.DELIVERED
+                            )
+                          }
                         >
                           <Repeat2 className="w-4 h-4" />
                         </Button>
                       )}
-                      {isValidTrangThaiTransition(hd.trangThai, TrangThaiHoaDon.FAILED) && (
+                      {isValidTrangThaiTransition(
+                        hd.trangThai,
+                        TrangThaiHoaDon.FAILED
+                      ) && (
                         <Button
                           size="icon"
                           variant="outline"
                           className="border-red-400 text-red-500"
                           title="Chuyển sang Thất bại"
-                          onClick={() => onChuyenTrangThaiClick(hd, TrangThaiHoaDon.FAILED)}
+                          onClick={() =>
+                            onChuyenTrangThaiClick(hd, TrangThaiHoaDon.FAILED)
+                          }
                         >
                           <XCircle className="w-4 h-4" />
                         </Button>
@@ -257,8 +305,8 @@ function HoaDonTable({
                       status !== hd.trangThai &&
                       isValidTrangThaiTransition(hd.trangThai, status)
                   ).length === 0 && (
-                      <span className="text-gray-400 text-xs">-</span>
-                    )}
+                    <span className="text-gray-400 text-xs">-</span>
+                  )}
                   <Button
                     size="icon"
                     variant="ghost"
