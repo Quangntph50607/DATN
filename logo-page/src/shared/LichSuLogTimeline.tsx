@@ -17,14 +17,14 @@ export default function LichSuLogTimeline({
   const { data, isLoading } = useLichSuLogByBang(bang);
 
   return (
-    <Card className="mt-6 bg-white dark:bg-gray-600 shadow-lg rounded-xl overflow-hidden w-full max-w-6xl mx-auto">
+    <Card className="mt-6 bg-white dark:bg-gray-600 shadow-lg rounded-xl overflow-y-auto  w-full max-w-6xl mx-auto">
       <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-700 dark:to-gray-600 p-6 sticky top-0 z-10">
         <CardTitle className="text-lg font-semibold flex items-center gap-2">
           <Clock className="w-5 h-5 text-blue-500" />
           {title}
         </CardTitle>
       </CardHeader>
-      <CardContent className="p-0">
+      <CardContent className="p-0 ">
         {isLoading ? (
           <div className="space-y-4 p-6">
             {[...Array(5)].map((_, i) => (
@@ -39,7 +39,7 @@ export default function LichSuLogTimeline({
             ))}
           </div>
         ) : (
-          <div className="max-h-[500px] overflow-y-auto overflow-x-auto w-full">
+          <div className="w-full">
             {data?.map((log, index) => (
               <div
                 key={log.id}
@@ -49,7 +49,7 @@ export default function LichSuLogTimeline({
                     : ""
                 }`}
               >
-                <div className="flex items-start gap-4">
+                <div className="flex items-start gap-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-700 dark:to-gray-600 p-6 sticky top-0 z-10">
                   <div className="relative mt-1">
                     <div className="absolute left-0 top-2 w-3 h-3 rounded-full bg-blue-500" />
                     {index !== data.length - 1 && (

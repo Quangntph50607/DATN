@@ -123,8 +123,16 @@ export default function KhuyenMaiPage() {
         onOpenChange={() => setIsOpenLog(false)}
         title="Lịch sử user thay đổi"
         className="max-w-6xl"
+        scrollContentOnly
       >
-        <LichSuLogTimeline bang="khuyenMai" title="Lịch sử user log" />
+        <LichSuLogTimeline
+          bang="khuyenMai"
+          title="Lịch sử log của khuyến mại"
+        />
+        <LichSuLogTimeline
+          bang="khuyenMaiSanPham"
+          title="Lịch sử log khuyến mại theo sản phẩm "
+        />
       </Modal>
 
       <KhuyenMaiFilter
@@ -139,6 +147,7 @@ export default function KhuyenMaiPage() {
           <h2 className="text-lg font-bold">Danh sách khuyến mại</h2>
           <div className="flex gap-2">
             <Button onClick={() => setIsOpenLog(true)} variant="destructive">
+              <PlusIcon />
               Xem lịch sử
             </Button>
             <Button onClick={() => setIsModalOpen(true)} className="px-2">

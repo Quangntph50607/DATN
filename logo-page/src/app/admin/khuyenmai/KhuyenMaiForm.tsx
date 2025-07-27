@@ -211,7 +211,12 @@ export default function KhuyenMaiForm({
                     type="number"
                     placeholder="---"
                     {...field}
-                    onChange={(e) => field.onChange(+e.target.value)}
+                    value={field.value ?? ""}
+                    onChange={(e) =>
+                      field.onChange(
+                        e.target.value === "" ? undefined : +e.target.value
+                      )
+                    }
                   />
                 </FormControl>
                 <FormMessage />
@@ -229,7 +234,7 @@ export default function KhuyenMaiForm({
                   <FormLabel>Ngày bắt đầu</FormLabel>
                   <FormControl>
                     <DateTimePicker
-                      value={field.value}
+                      value={field.value ?? null}
                       onChange={field.onChange}
                     />
                   </FormControl>
