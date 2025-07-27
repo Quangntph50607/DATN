@@ -54,7 +54,9 @@ export default function SanPhamTable({ sanPhams, onDelete, onEdit }: Props) {
             <TableHead className="whitespace-nowrap">Xuất xứ</TableHead>
             <TableHead className="whitespace-nowrap">Thương hiệu</TableHead>
             <TableHead className="whitespace-nowrap">Nổi bật</TableHead>
-            <TableHead className="whitespace-nowrap text-center">Hành động</TableHead>
+            <TableHead className="whitespace-nowrap text-center">
+              Hành động
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -68,10 +70,14 @@ export default function SanPhamTable({ sanPhams, onDelete, onEdit }: Props) {
             sortSanPham.map((sp, index) => (
               <TableRow key={sp.id}>
                 <TableCell>{index + 1}</TableCell>
-                <TableCell className="max-w-[100px] truncate">{sp.maSanPham}</TableCell>
-                <TableCell className="max-w-[250px] truncate">{sp.tenSanPham}</TableCell>
+                <TableCell className="max-w-[100px] truncate">
+                  {sp.maSanPham}
+                </TableCell>
+                <TableCell className="max-w-[250px] truncate">
+                  {sp.tenSanPham}
+                </TableCell>
                 <TableCell>{sp.doTuoi}</TableCell>
-                <TableCell>{sp.gia.toLocaleString()}đ</TableCell>
+                <TableCell>{sp.gia.toLocaleString("vi-VN")}đ</TableCell>
                 <TableCell>{sp.soLuongTon}</TableCell>
 
                 <TableCell>
@@ -84,9 +90,13 @@ export default function SanPhamTable({ sanPhams, onDelete, onEdit }: Props) {
                 </TableCell>
                 <TableCell>
                   {sp.trangThai === "Đang kinh doanh" ? (
-                    <span className="text-green-600 font-semibold">Đang kinh doanh</span>
+                    <span className="text-green-600 font-semibold">
+                      Đang kinh doanh
+                    </span>
                   ) : sp.trangThai === "Ngừng kinh doanh" ? (
-                    <span className="text-yellow-500 font-semibold">Ngừng kinh doanh</span>
+                    <span className="text-yellow-500 font-semibold">
+                      Ngừng kinh doanh
+                    </span>
                   ) : (
                     <span className="text-red-400 font-semibold">Hết hàng</span>
                   )}
@@ -118,7 +128,10 @@ export default function SanPhamTable({ sanPhams, onDelete, onEdit }: Props) {
                     <Button onClick={() => onEdit(sp)} title="Chỉnh sửa">
                       <Edit className="w-4 h-4 text-blue-500" />
                     </Button>
-                    <Button onClick={() => onDelete(sp.id)} title="Chuyển trạng thái">
+                    <Button
+                      onClick={() => onDelete(sp.id)}
+                      title="Chuyển trạng thái"
+                    >
                       <SwitchCameraIcon className="w-4 h-4 text-red-500" />
                     </Button>
                   </div>
