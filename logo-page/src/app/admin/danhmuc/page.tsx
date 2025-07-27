@@ -87,7 +87,7 @@ export default function LegoCategoryPage() {
   // Phân trang
   const itemPerPage = 10;
   const totalPages = Math.ceil(filteredCategories.length / itemPerPage);
-  const paginatedData = categories.slice(
+  const paginatedData = filteredCategories.slice(
     (currentPage - 1) * itemPerPage,
     currentPage * itemPerPage
   );

@@ -25,6 +25,7 @@ export interface XuatXu {
   id: number;
   ten: string;
   moTa?: string;
+  ngayTao?: string;
   sanPhams?: SanPham[];
 }
 
@@ -32,6 +33,7 @@ export interface ThuongHieu {
   id: number;
   ten: string;
   moTa?: string;
+  ngayTao?: string;
   sanPhams?: SanPham[];
 }
 

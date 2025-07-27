@@ -333,17 +333,51 @@ const Summary: React.FC<Props> = ({
             </SelectTrigger>
             <SelectContent className="rounded-xl border-2 border-primary/60 shadow-lg bg-[#23272f] text-white">
               <SelectItem value={"0"} className="rounded-xl">Không áp dụng</SelectItem>
-              {phieuGiamGias
-                .filter(opt => {
+              {(() => {
+                console.log("Tất cả voucher:", phieuGiamGias);
+                console.log("Subtotal:", subtotal);
+                console.log("Tất cả trạng thái:", phieuGiamGias.map(v => v.trangThai));
+
+                const filteredVouchers = phieuGiamGias.filter(opt => {
+                  console.log("Kiểm tra voucher:", opt.maPhieu, {
+                    trangThai: opt.trangThai,
+                    ngayKetThuc: opt.ngayKetThuc,
+                    giaTriToiThieu: opt.giaTriToiThieu,
+                    subtotal: subtotal
+                  });
+
+                  // Kiểm tra trạng thái hoạt động (chỉ lấy voucher đang hoạt động)
+                  if (opt.trangThai && opt.trangThai !== "Đang hoạt động" && opt.trangThai !== "active") {
+                    console.log("Bị loại do trạng thái:", opt.trangThai);
+                    return false;
+                  }
+
+                  // Kiểm tra ngày hết hạn
                   const now = new Date();
                   if (opt.ngayKetThuc) {
                     const [day, month, year] = opt.ngayKetThuc.split("-");
                     const isoDate = `${year}-${month}-${day}T23:59:59`;
                     const expiry = new Date(isoDate);
-                    if (expiry < now) return false;
+                    if (expiry < now) {
+                      console.log("Bị loại do hết hạn:", expiry);
+                      return false;
+                    }
                   }
-                  return subtotal >= opt.giaTriToiThieu;
-                })
+
+                  // Kiểm tra giá trị tối thiểu
+                  if (subtotal < opt.giaTriToiThieu) {
+                    console.log("Bị loại do giá trị tối thiểu:", opt.giaTriToiThieu);
+                    return false;
+                  }
+
+                  console.log("Voucher hợp lệ:", opt.maPhieu);
+                  return true;
+                });
+
+                console.log("Voucher sau khi filter:", filteredVouchers);
+
+                return filteredVouchers;
+              })()
                 .map(opt => (
                   <SelectItem key={opt.id} value={String(opt.id)} className="rounded-xl">
                     {opt.maPhieu ? `${opt.maPhieu} - ` : ''}

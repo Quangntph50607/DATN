@@ -95,7 +95,10 @@ export const khuyenMaiService = {
       if (!res.ok) {
         throw new Error("Không tìm thấy danh sách sản phẩm");
       }
-      return await res.json();
+      const data = await res.json();
+      console.log("API ListSanPhamTheoKhuyenMai response:", data);
+      console.log("Sample product anhSps:", data[0]?.anhSps);
+      return data;
     } catch (error) {
       console.error("Lỗi:", error);
       throw error;

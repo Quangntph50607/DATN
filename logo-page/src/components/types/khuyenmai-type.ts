@@ -34,6 +34,7 @@ export interface KhuyenMaiTheoSanPham {
   danhMucId: number;
   boSuuTapId: number;
   anhSps?: AnhSanPhamChiTiet[];
+  anhUrls?: AnhSanPhamChiTiet[];
   giaKhuyenMai: number | null;
   phanTramKhuyenMai: number | null;
   noiBat?: number | boolean;
