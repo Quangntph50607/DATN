@@ -8,6 +8,9 @@ import { Building2, Puzzle, Shield, Bot, Car, Rocket, Landmark, Swords, Heart } 
 import CallToActionBanner from "./CallToActionBanner";
 import WhyChooseUs from "./WhyChooseUs";
 import { motion } from "framer-motion";
+import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 // Hàm chọn icon lucide-react dựa trên tên danh mục, nếu không match thì lấy icon theo index
 const ICONS = [Building2, Puzzle, Shield, Bot, Car, Rocket, Landmark, Swords, Heart];
@@ -58,6 +61,36 @@ export default function MainHome() {
 
   return (
     <div className="text-black ">
+
+      {/* Banner */}
+      <div className="w-full">
+        {/* Banner */}
+        <div className="relative h-[500px] w-full overflow-hidden">
+          <Image
+            src="/images/banner1.jpg"
+            alt="Banner"
+            fill
+            priority
+            quality={100}
+            className="object-cover"
+            sizes="100vw"
+          />
+
+          {/* Nội dung trên banner */}
+          <div className="relative z-10 flex flex-col items-center justify-center h-full text-center px-4">
+            <h1 className="text-4xl md:text-6xl font-bold text-black mb-4 drop-shadow-lg">
+              Siêu khuyến mãi
+            </h1>
+            <p className="text-xl mb-8 max-w-2xl text-black drop-shadow md:text-2xl">
+              Giảm giá lên đến 30% toàn bộ sản phẩm lego
+            </p>
+            <Button className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold text-lg px-8 py-4 rounded-lg shadow-lg transition-all hover:scale-105">
+              <Link href="/product">MUA NGAY</Link>
+            </Button>
+          </div>
+        </div>
+      </div>
+
       <Navbar />
       <motion.div
         className="items-center font-bold text-center text-3xl mt-10"
@@ -77,6 +110,7 @@ export default function MainHome() {
           <SanPhamListNoBox ps={featuredProducts} />
         </div>
       </div>
+
       {/* Danh mục sản phẩm */}
       <motion.section
         className="pt-16 pb-0 px-4"
