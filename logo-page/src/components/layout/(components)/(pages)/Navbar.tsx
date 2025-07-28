@@ -38,7 +38,7 @@ export default function Navbar() {
           { href: "/product", label: "Sản phẩm" },
           { href: "/1", label: "Cửa hàng" },
           { href: "/2", label: "Giới thiệu" },
-          { href: "/3", label: "Phần thưởng" },
+          { href: "/lucky-wheel", label: "Phần thưởng" },
         ].map((item) => (
           <Link
             key={item.href}
