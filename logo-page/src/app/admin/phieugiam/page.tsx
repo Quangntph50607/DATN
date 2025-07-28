@@ -107,6 +107,7 @@ export default function Page() {
         onOpenChange={() => setIsOpenLog(false)}
         title="Lịch sử user thay đổi"
         className="max-w-6xl"
+        scrollContentOnly
       >
         <LichSuLogTimeline bang="phieuGiamGia" title="Lịch sử user log" />
       </Modal>

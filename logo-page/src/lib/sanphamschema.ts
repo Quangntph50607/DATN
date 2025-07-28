@@ -28,8 +28,8 @@ export function productSchema(isEdit: boolean) {
         .refine((files) => files.length > 0, {
           message: "Phải chọn ít nhất 1 ảnh",
         })
-        .refine((files) => files.length <= 5, {
-          message: "Tối đa 5 ảnh",
+        .refine((files) => files.length <= 10, {
+          message: "Tối đa 10 ảnh",
         }),
   });
 }
@@ -37,4 +37,7 @@ export function productSchema(isEdit: boolean) {
 export const productAddSchema = productSchema(false);
 export const productEditSchema = productSchema(true);
 export type ProductData = z.infer<ReturnType<typeof productSchema>>;
+
+// Type cho việc edit sản phẩm không có files
+export type ProductDataWithoutFiles = Omit<ProductData, 'files'>;
 

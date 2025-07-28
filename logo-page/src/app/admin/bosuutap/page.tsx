@@ -147,6 +147,7 @@ export default function LegoCollectionPage() {
               onOpenChange={() => setIsOpenLog(false)}
               title="Lịch sử  thay đổi"
               className="max-w-6xl"
+              scrollContentOnly
             >
               <LichSuLogTimeline bang="boSuutap" title="Lịch sử user log" />
             </Modal>

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { productSchema, ProductData } from "@/lib/sanphamschema";
+import { productSchema, ProductData, ProductDataWithoutFiles } from "@/lib/sanphamschema";
 import { SanPham } from "@/components/types/product.type";
 import { useDanhMuc } from "@/hooks/useDanhMuc";
 import { useBoSuutap } from "@/hooks/useBoSutap";
@@ -35,7 +35,7 @@ import { useSanPham } from "@/hooks/useSanPham";
 import { toast } from "sonner";
 
 interface Props {
-  onSubmit: (data: ProductData, id?: number) => void;
+  onSubmit: (data: ProductData | ProductDataWithoutFiles, id?: number) => void;
   edittingSanPham?: SanPham | null;
   setEditing: (data: SanPham | null) => void;
   onSucces?: () => void;
@@ -167,10 +167,24 @@ export default function SanPhamForm({
                 console.log("Đã xóa xong các ảnh");
               }
 
-              // Gọi API update sản phẩm (form-data, kèm ảnh mới nếu có)
-              await onSubmit(data, edittingSanPham.id);
+              // Tạo data không có files để gọi API update sản phẩm (chỉ cập nhật thông tin)
+              const updateData = {
+                tenSanPham: data.tenSanPham,
+                moTa: data.moTa,
+                danhMucId: data.danhMucId,
+                boSuuTapId: data.boSuuTapId,
+                gia: data.gia,
+                doTuoi: data.doTuoi,
+                trangThai: data.trangThai,
+                soLuongTon: data.soLuongTon,
+                soLuongManhGhep: data.soLuongManhGhep,
+                xuatXuId: data.xuatXuId,
+                thuongHieuId: data.thuongHieuId,
+                noiBat: data.noiBat,
+              } as ProductDataWithoutFiles;
+              await onSubmit(updateData, edittingSanPham.id);
 
-              // Thêm ảnh mới nếu có
+              // Thêm ảnh mới nếu có (xử lý riêng vì API Update không xử lý ảnh)
               if (data.files && data.files.length > 0) {
                 // Kiểm tra sản phẩm đã có ảnh chưa
                 const hasExistingImages = edittingSanPham.anhUrls && edittingSanPham.anhUrls.length > 0;
@@ -455,7 +469,7 @@ export default function SanPhamForm({
 
             return (
               <FormItem>
-                <FormLabel>Ảnh sản phẩm (tối đa 5 ảnh)</FormLabel>
+                <FormLabel>Ảnh sản phẩm (tối đa 10 ảnh)</FormLabel>
                 <FormControl>
                   <div>
                     <Input
@@ -467,9 +481,9 @@ export default function SanPhamForm({
                         if (selectedFiles) {
                           const total =
                             currentFiles.length + selectedFiles.length;
-                          if (total > 5) {
+                          if (total > 10) {
                             toast.error(
-                              `Chỉ cho phép tối đa 5 ảnh, bạn đang cố chọn ${total} ảnh`
+                              `Chỉ cho phép tối đa 10 ảnh, bạn đang cố chọn ${total} ảnh`
                             );
                             return;
                           }
@@ -482,7 +496,7 @@ export default function SanPhamForm({
                         }
                         console.log("Selectt:", selectedFiles);
                       }}
-                      disabled={currentFiles.length >= 5}
+                      disabled={currentFiles.length >= 10}
                     />
 
                     {/* Preview ảnh cũ khi sửa */}

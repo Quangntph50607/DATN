@@ -1,5 +1,5 @@
 import { SanPham } from "@/components/types/product.type";
-import { ProductData } from "@/lib/sanphamschema";
+import { ProductData, ProductDataWithoutFiles } from "@/lib/sanphamschema";
 import { KhuyenMaiTheoSanPham } from "@/components/types/khuyenmai-type";
 
 import { sanPhamService } from "@/services/sanPhamService";
@@ -36,7 +36,7 @@ export function useAddSanPham() {
 export function useEditSanPham() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: ProductData }) =>
+    mutationFn: ({ id, data }: { id: number; data: ProductDataWithoutFiles }) =>
       sanPhamService.editSanPham(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["sanPhams"] });

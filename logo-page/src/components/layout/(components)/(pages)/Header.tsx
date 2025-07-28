@@ -10,6 +10,16 @@ import { useUserStore } from "@/context/authStore.store";
 import UserDropDown from "./UserDropDown";
 import { useState, useEffect } from "react";
 
+// Type cho cart item
+interface CartItem {
+  id: number;
+  name: string;
+  image: string;
+  price: number;
+  originalPrice: number;
+  quantity: number;
+}
+
 export default function Header() {
   const { keyword, setKeyword } = useSearchStore();
   const router = useRouter();
@@ -20,14 +30,31 @@ export default function Header() {
   useEffect(() => {
     // Hàm lấy tổng số lượng sản phẩm trong giỏ
     const getCartCount = () => {
-      const cart = JSON.parse(localStorage.getItem("cartItems") || "[]");
-      setCartCount(cart.length);
+      try {
+        const cart = JSON.parse(localStorage.getItem("cartItems") || "[]");
+        // Tính tổng số lượng thay vì số loại sản phẩm
+        const totalQuantity = cart.reduce((sum: number, item: CartItem) => sum + (item.quantity || 0), 0);
+        setCartCount(totalQuantity);
+      } catch (error) {
+        console.error("Lỗi khi đọc giỏ hàng:", error);
+        setCartCount(0);
+      }
     };
     getCartCount();
 
     // Lắng nghe sự thay đổi của localStorage (khi thêm/xóa sản phẩm)
     window.addEventListener("storage", getCartCount);
-    return () => window.removeEventListener("storage", getCartCount);
+
+    // Lắng nghe custom event để cập nhật ngay lập tức trong cùng tab
+    const handleCartUpdate = () => {
+      getCartCount();
+    };
+    window.addEventListener("cartUpdated", handleCartUpdate);
+
+    return () => {
+      window.removeEventListener("storage", getCartCount);
+      window.removeEventListener("cartUpdated", handleCartUpdate);
+    };
   }, []);
 
   const handleSearch = () => {
