@@ -3,16 +3,10 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { useUserStore } from "@/context/authStore.store";
 import { useThongTinNguoiNhan, useCreateThongTin } from "@/hooks/useThongTinTaiKhoan";
-import { HoaDonService } from "@/services/hoaDonService";
-import { ShippingCalculator } from "@/utils/shippingCalculator";
 
 // Import Shadcn/ui components
-import {
-  Button
-} from "@/components/ui/button";
-import {
-  Input
-} from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -20,10 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Card,
-  CardContent,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface AddressSectionProps {
   address: string;
@@ -39,6 +30,9 @@ interface AddressSectionProps {
   shippingMethod: string;
   onTenNguoiNhanChange: (value: string) => void;
   onPhoneNumberChange: (value: string) => void;
+  provinces: any[];
+  wards: any[];
+  allWards: any;
 }
 
 export default function AddressSection({
@@ -49,12 +43,11 @@ export default function AddressSection({
   onProvinceChange,
   onWardChange,
   onShowAddressForm,
-  onShippingFeeChange,
-  onDeliveryDaysChange,
-  products,
-  shippingMethod,
   onTenNguoiNhanChange,
   onPhoneNumberChange,
+  provinces,
+  wards,
+  allWards,
 }: AddressSectionProps) {
   const { user } = useUserStore();
   const currentUserId = user?.id;
@@ -62,13 +55,10 @@ export default function AddressSection({
   const createMutation = useCreateThongTin();
 
   // Tìm địa chỉ mặc định
-  const defaultAddress = thongTinList.find((item) => item.isMacDinh === 1);
+  const defaultAddress = thongTinList.find((item) => item.isMacDinh === true);
 
   const [showNewAddressForm, setShowNewAddressForm] = useState(false);
   const [isAddingAddress, setIsAddingAddress] = useState(false);
-  const [provinces, setProvinces] = useState<any[]>([]);
-  const [wards, setWards] = useState<any[]>([]);
-  const [allWards, setAllWards] = useState<any>({});
   const [newAddressData, setNewAddressData] = useState({
     hoTen: "",
     sdt: "",
@@ -78,40 +68,6 @@ export default function AddressSection({
     selectedProvince: null as number | null,
     selectedWard: null as number | null,
   });
-
-  // Load provinces và wards data
-  useEffect(() => {
-    const loadLocationData = async () => {
-      try {
-        const [provinceRes, wardRes] = await Promise.all([
-          fetch("/data/province.json"),
-          fetch("/data/ward.json")
-        ]);
-
-        const provinceData = await provinceRes.json();
-        const wardData = await wardRes.json();
-
-        setAllWards(wardData);
-
-        // Lọc provinces có wards
-        const parentCodes = new Set();
-        Object.values(wardData as Record<string, any>).forEach((w: any) => {
-          if (w.parent_code) parentCodes.add(w.parent_code);
-        });
-
-        const filteredProvinces = Object.entries(provinceData as Record<string, any>)
-          .filter(([code]) => parentCodes.has(code))
-          .map(([code, info]) => ({ code: Number(code), ...info }));
-
-        setProvinces(filteredProvinces);
-      } catch (error) {
-        console.error("Error loading location data:", error);
-        toast.error("Không thể tải dữ liệu tỉnh/thành phố");
-      }
-    };
-
-    loadLocationData();
-  }, []);
 
   // Set địa chỉ mặc định khi có dữ liệu
   useEffect(() => {
@@ -155,19 +111,6 @@ export default function AddressSection({
     }
   }, [defaultAddress, provinces, allWards, onTenNguoiNhanChange, onPhoneNumberChange, onAddressChange, onProvinceChange, onWardChange]);
 
-  // Update wards khi province thay đổi
-  useEffect(() => {
-    if (province && allWards) {
-      const wardsArr = Object.entries(allWards as Record<string, any>)
-        .filter(([_, info]) => (info as any).parent_code === province)
-        .map(([code, info]) => ({ code: Number(code), ...(info as any) }));
-
-      setWards(wardsArr);
-    } else {
-      setWards([]);
-    }
-  }, [province, allWards]);
-
   // Update new address form khi chọn province/ward
   useEffect(() => {
     if (newAddressData.selectedProvince) {
@@ -181,39 +124,16 @@ export default function AddressSection({
 
   useEffect(() => {
     if (newAddressData.selectedWard) {
-      const selectedWardData = wards.find(w => w.code === newAddressData.selectedWard);
+      const selectedWardData = Object.entries(allWards)
+        .filter(([_, info]) => (info as any).parent_code === newAddressData.selectedProvince)
+        .map(([code, info]) => ({ code: Number(code), ...(info as any) }))
+        .find(w => w.code === newAddressData.selectedWard);
       setNewAddressData(prev => ({
         ...prev,
-        xa: selectedWardData?.name || "",
+        xa: selectedWardData?.name,
       }));
     }
-  }, [newAddressData.selectedWard, wards]);
-
-  // Tính phí ship
-  useEffect(() => {
-    if (!province || !ward || !address) {
-      onShippingFeeChange(0);
-      onDeliveryDaysChange(0);
-      return;
-    }
-
-    const provinceName = provinces.find((p) => p.code === province)?.name || "";
-    const wardName = wards.find((w) => w.code === ward)?.name || "";
-    const isFast = shippingMethod === "Nhanh" ? 1 : 0;
-    const totalWeight = products.reduce((sum, p) => sum + (p.quantity * 0.5), 0);
-
-    const result = ShippingCalculator.calculateShipping(
-      address,
-      wardName,
-      provinceName,
-      isFast,
-      totalWeight
-    );
-
-    onShippingFeeChange(result.phiShip);
-    onDeliveryDaysChange(result.soNgayGiao);
-
-  }, [province, ward, address, shippingMethod, provinces, wards, products]);
+  }, [newAddressData.selectedWard, newAddressData.selectedProvince, allWards]);
 
   const validateNewAddress = () => {
     if (!currentUserId) {
