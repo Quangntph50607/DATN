@@ -1,84 +1,61 @@
 import React from "react";
-import CartItem from "./CartItem";
-
-interface Item {
-  id: number;
-  name: string;
-  image: string;
-  price: number;
-  quantity: number;
-}
+import { CartItem } from "./CartItem";
 
 interface CartListProps {
-  items: Item[];
-  onRemove: (id: number) => void;
-  onQuantityChange: (id: number, delta: number) => void;
+  items: any[];
   selectedIds: number[];
-  onSelect: (id: number) => void;
-  onSelectAll: () => void;
-  allSelected: boolean;
   imageUrls: Record<number, string | null>;
+  productDetails: any;
+  categoryNames: { [key: number]: string };
+  brandNames: { [key: number]: string };
+  originNames: { [key: number]: string };
+  onSelect: (id: number) => void;
+  onQuantityChange: (id: number, delta: number) => void;
+  onRemove: (id: number) => void;
+  formatCurrency: (amount: number) => string;
 }
 
-export default function CartList({
+export const CartList = ({
   items,
-  onRemove,
-  onQuantityChange,
   selectedIds,
-  onSelect,
-  onSelectAll,
-  allSelected,
   imageUrls,
-}: CartListProps) {
-  return (
-    <div className="overflow-x-auto">
-      {items.length > 0 && (
-        <div className="flex items-center gap-2 p-4 bg-gray-50 rounded mb-4">
-          <input
-            type="checkbox"
-            checked={allSelected}
-            onChange={onSelectAll}
-            className="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
-            aria-label="Chọn tất cả sản phẩm"
-          />
-          <span className="font-medium">Chọn tất cả ({items.length} sản phẩm)</span>
-        </div>
-      )}
+  productDetails,
+  categoryNames,
+  brandNames,
+  originNames,
+  onSelect,
+  onQuantityChange,
+  onRemove,
+  formatCurrency,
+}: CartListProps) => {
+  if (items.length === 0) {
+    return (
+      <div className="text-center py-8 bg-white">
+        <p className="text-gray-500">Giỏ hàng của bạn đang trống</p>
+      </div>
+    );
+  }
 
-      <table className="w-full bg-white rounded-lg shadow">
-        <thead className="bg-gray-100">
-          <tr>
-            <th className="px-4 py-3 text-left">
-              <input
-                type="checkbox"
-                checked={allSelected}
-                onChange={onSelectAll}
-                className="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
-                aria-label="Chọn tất cả sản phẩm"
-              />
-            </th>
-            <th className="px-4 py-3 text-left font-semibold text-gray-700">Ảnh</th>
-            <th className="px-4 py-3 text-left font-semibold text-gray-700">Sản phẩm</th>
-            <th className="px-4 py-3 text-left font-semibold text-gray-700">Đơn giá</th>
-            <th className="px-4 py-3 text-left font-semibold text-gray-700">Số lượng</th>
-            <th className="px-4 py-3 text-left font-semibold text-gray-700">Thành tiền</th>
-            <th className="px-4 py-3 text-left font-semibold text-gray-700">Thao tác</th>
-          </tr>
-        </thead>
-        <tbody>
-          {items.map((item) => (
-            <CartItem
-              key={item.id}
-              {...item}
-              onRemove={onRemove}
-              onQuantityChange={onQuantityChange}
-              selectedIds={selectedIds}
-              onSelect={onSelect}
-              imageUrls={imageUrls}
-            />
-          ))}
-        </tbody>
-      </table>
+  return (
+    <div className="space-y-4">
+      {items.map((item) => (
+        <CartItem
+          key={item.id}
+          item={item}
+          isSelected={selectedIds.includes(item.id)}
+          imageUrl={imageUrls[item.id]}
+          productDetails={productDetails}
+          categoryNames={categoryNames}
+          brandNames={brandNames}
+          originNames={originNames}
+          onSelect={onSelect}
+          onQuantityChange={onQuantityChange}
+          onRemove={onRemove}
+          formatCurrency={formatCurrency}
+        />
+      ))}
     </div>
   );
-}
+};
+
+

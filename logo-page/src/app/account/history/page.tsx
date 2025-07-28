@@ -1,110 +1,155 @@
 
 "use client";
 
-import { useHoaDonByUserId, useChiTietSanPhamHoaDon } from "@/hooks/useHoaDon";
-import { useSanPham } from "@/hooks/useSanPham";
-import { useAnhSanPhamTheoSanPhamId } from "@/hooks/useAnhSanPham";
+import React, { useEffect, useState } from "react";
 import { useUserStore } from "@/context/authStore.store";
-import { useState, useEffect } from "react";
+import { useHoaDonByUserId } from "@/hooks/useHoaDon";
+import { useSanPham } from "@/hooks/useSanPham";
 import { HoaDonService } from "@/services/hoaDonService";
-import { getAnhByFileName } from "@/services/anhSanPhamService";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ChevronLeft, ChevronRight, Search, Calendar, X, Trash2 } from "lucide-react";
 import { formatDateFlexible } from "@/app/admin/khuyenmai/formatDateFlexible";
-import { TrangThaiHoaDon } from "@/components/types/hoaDon-types";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+    ShoppingBag,
+    Truck,
+    CheckCircle,
+    Wallet,
+    Eye,
+    RotateCcw,
+    XCircle,
+    Package,
+    Clock,
+    Phone
+} from "lucide-react";
+import { toast } from "sonner";
+import { useChiTietSanPhamHoaDon } from "@/hooks/useHoaDon";
+import { anhSanPhamSevice } from "@/services/anhSanPhamService";
 
 export default function OrderHistoryPage() {
     const { user } = useUserStore();
-    const { data: orders, isLoading, error } = useHoaDonByUserId(user?.id || 0);
+    const { data: orders, isLoading, error, refetch } = useHoaDonByUserId(user?.id || 0);
     const { data: sanPhams } = useSanPham();
     const [statusFilter, setStatusFilter] = useState<string>("all");
     const [dateFilter, setDateFilter] = useState<string>("");
+    const [searchKeyword, setSearchKeyword] = useState<string>("");
     const [ordersWithDetails, setOrdersWithDetails] = useState<any[]>([]);
     const [productImages, setProductImages] = useState<Record<number, string>>({});
     const [currentPage, setCurrentPage] = useState(1);
-    const [itemPerPage, setItemPerPage] = useState(10);
+    const [itemPerPage] = useState(10);
+    const [selectedOrder, setSelectedOrder] = useState<any>(null);
+    const [showOrderDetail, setShowOrderDetail] = useState(false);
 
-    // Advanced search states
-    const [searchKeyword, setSearchKeyword] = useState<string>("");
-    const [fromDate, setFromDate] = useState<string>("");
-    const [toDate, setToDate] = useState<string>("");
-    const [showAdvancedSearch, setShowAdvancedSearch] = useState<boolean>(false);
+    // Get chi tiết sản phẩm for selected order
+    const { data: chiTietSanPham } = useChiTietSanPhamHoaDon(selectedOrder?.id || 0);
 
-    // Lấy chi tiết sản phẩm và ảnh cho từng hóa đơn
     useEffect(() => {
-        if (orders && orders.length > 0 && sanPhams) {
-            const fetchOrderDetails = async () => {
-                const ordersWithDetailsData = await Promise.all(
-                    orders.map(async (order) => {
-                        try {
-                            const chiTietSanPham = await HoaDonService.getChiTietSanPhamByHoaDonId(order.id);
-
-                            // Enrich chi tiết với thông tin sản phẩm
-                            const enrichedChiTiet = chiTietSanPham.map((item: any) => {
-                                const productId = typeof item.spId === "object" ? item.spId.id : item.spId;
-                                const sanPham = sanPhams.find(sp => sp.id === productId);
-
+        if (orders && sanPhams) {
+            const ordersWithSanPhamDetails = orders.map((order: any) => {
+                // Fetch chi tiết sản phẩm cho mỗi order
+                const fetchChiTietForOrder = async () => {
+                    try {
+                        const chiTietData = await HoaDonService.getChiTietSanPhamByHoaDonId(order.id);
+                        if (chiTietData && chiTietData.length > 0) {
+                            const enrichedChiTiet = chiTietData.map((ct: any) => {
+                                const productId = typeof ct.spId === "object" ? ct.spId.id : ct.spId;
+                                const matched = sanPhams.find((sp: any) => sp.id === productId);
                                 return {
-                                    ...item,
-                                    sanPham: sanPham || {
-                                        id: productId,
-                                        tenSanPham: "Sản phẩm không tồn tại",
-                                        gia: 0
-                                    }
+                                    ...ct,
+                                    sanPham: matched || null,
                                 };
                             });
 
-                            return {
-                                ...order,
-                                chiTietSanPham: enrichedChiTiet || []
-                            };
-                        } catch (error) {
-                            console.error(`Lỗi lấy chi tiết hóa đơn ${order.id}:`, error);
-                            return {
-                                ...order,
-                                chiTietSanPham: []
-                            };
+                            // Update order with chi tiết
+                            setOrdersWithDetails(prev =>
+                                prev.map(o =>
+                                    o.id === order.id
+                                        ? { ...o, chiTietSanPham: enrichedChiTiet }
+                                        : o
+                                )
+                            );
                         }
-                    })
-                );
-                setOrdersWithDetails(ordersWithDetailsData);
+                    } catch (error) {
+                        console.error(`Lỗi lấy chi tiết cho order ${order.id}:`, error);
+                    }
+                };
 
-                // Lấy ảnh cho các sản phẩm (đảm bảo fetch cho mọi productId duy nhất)
-                const fetchedProductIds = new Set<number>();
-                ordersWithDetailsData.forEach(order => {
-                    order.chiTietSanPham?.forEach((item: any) => {
-                        const productId = item.sanPham?.id;
-                        if (productId && !productImages[productId] && !fetchedProductIds.has(productId)) {
-                            fetchedProductIds.add(productId);
-                            fetchProductImage(productId);
-                        }
-                    });
-                });
-            };
+                fetchChiTietForOrder();
 
-            fetchOrderDetails();
+                return {
+                    ...order,
+                    chiTietSanPham: [], // Khởi tạo rỗng, sẽ được update sau
+                };
+            });
+
+            setOrdersWithDetails(ordersWithSanPhamDetails);
         }
     }, [orders, sanPhams]);
 
+    // Update selected order with chi tiết sản phẩm when data is loaded
+    useEffect(() => {
+        if (selectedOrder && chiTietSanPham && sanPhams) {
+            const enrichedChiTietSanPham = chiTietSanPham.map((ct) => {
+                // Get productId from spId
+                const productId = typeof ct.spId === "object" ? ct.spId.id : ct.spId;
+                const matched = sanPhams.find((sp) => sp.id === productId);
+
+                if (!matched) {
+                    return {
+                        ...ct,
+                        sanPham: {
+                            id: productId,
+                            maSanPham: "N/A",
+                            tenSanPham: "N/A",
+                            doTuoi: 0,
+                            gia: 0,
+                            soLuongTon: 0,
+                            trangThai: "N/A",
+                            danhMucId: 0,
+                            boSuuTapId: 0,
+                            soLuongManhGhep: 0,
+                            moTa: "",
+                        },
+                    };
+                }
+
+                return {
+                    ...ct,
+                    sanPham: matched,
+                };
+            });
+
+            setSelectedOrder(prev => ({
+                ...prev,
+                chiTietSanPham: enrichedChiTietSanPham
+            }));
+
+            // Fetch images for products in detail
+            enrichedChiTietSanPham.forEach((item) => {
+                if (item.sanPham?.id) {
+                    fetchProductImage(item.sanPham.id);
+                }
+            });
+        }
+    }, [chiTietSanPham, sanPhams, selectedOrder?.id]);
+
     const fetchProductImage = async (productId: number) => {
+        if (productImages[productId]) return;
+
         try {
-            // Lấy danh sách ảnh theo id sản phẩm (giống SanPhamList)
-            const response = await fetch(`http://localhost:8080/api/anhsp/sanpham/${productId}`);
-            if (response.ok) {
-                const images = await response.json();
-                if (images && images.length > 0) {
-                    const mainImage = typeof images[0] === 'string' ? images[0] : images[0]?.tenAnh || images[0]?.url;
-                    if (mainImage) {
-                        const blob = await getAnhByFileName(mainImage);
-                        const imageUrl = URL.createObjectURL(blob);
-                        setProductImages(prev => ({
-                            ...prev,
-                            [productId]: imageUrl
-                        }));
-                    }
+            // Lấy ảnh sản phẩm từ API
+            const images = await anhSanPhamSevice.getAnhSanPhamTheoSanPhamId(productId);
+            if (images && images.length > 0) {
+                // Tìm ảnh chính hoặc lấy ảnh đầu tiên
+                const mainImg = images.find(img => img.anhChinh) || images[0];
+                if (mainImg && mainImg.url) {
+                    const imageUrl = `http://localhost:8080/api/anhsp/images/${mainImg.url}`;
+                    setProductImages(prev => ({
+                        ...prev,
+                        [productId]: imageUrl
+                    }));
                 }
             }
         } catch (error) {
@@ -112,72 +157,52 @@ export default function OrderHistoryPage() {
         }
     };
 
-    if (isLoading) return <div className="text-black bg-white p-4">Đang tải lịch sử mua hàng...</div>;
-    if (error) return <div className="text-black bg-white p-4">Lỗi tải dữ liệu</div>;
+    if (isLoading) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                    <p className="text-gray-600">Đang tải lịch sử đơn hàng...</p>
+                </div>
+            </div>
+        );
+    }
 
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case "Đã giao":
-                return "text-green-600";
-            case "Đang vận chuyển":
-                return "text-orange-500";
-            case "Chờ xác nhận":
-                return "text-blue-600";
-            case "Đã hủy":
-                return "text-red-600";
-            default:
-                return "text-gray-600";
-        }
-    };
+    // Statistics
+    const totalOrders = ordersWithDetails.length;
+    const pendingOrders = ordersWithDetails.filter(o => o.trangThai === "Chờ xác nhận").length;
+    const deliveredOrders = ordersWithDetails.filter(o => o.trangThai === "Đã giao").length;
+    const totalAmount = ordersWithDetails.reduce((sum, order) => sum + (order.tongTien || 0), 0);
 
-    const getStatusIcon = (status: string) => {
-        switch (status) {
-            case "Đã giao":
-                return "✅";
-            case "Đang vận chuyển":
-                return "🚚";
-            default:
-                return "";
-        }
-    };
+    // Status filter options
+    const statusOptions = [
+        { value: "all", label: "Tất cả", count: totalOrders },
+        { value: "Chờ xác nhận", label: "Đang xử lý", count: pendingOrders },
+        { value: "Đã xác nhận", label: "Đã xác nhận", count: ordersWithDetails.filter(o => o.trangThai === "Đã xác nhận").length },
+        { value: "Đang đóng gói", label: "Đang đóng gói", count: ordersWithDetails.filter(o => o.trangThai === "Đang đóng gói").length },
+        { value: "Đang vận chuyển", label: "Đang vận chuyển", count: ordersWithDetails.filter(o => o.trangThai === "Đang vận chuyển").length },
+        { value: "Đã giao", label: "Đã giao", count: deliveredOrders },
+        { value: "Hoàn tất", label: "Hoàn tất", count: ordersWithDetails.filter(o => o.trangThai === "Hoàn tất").length },
+        { value: "Đã hủy", label: "Đã hủy", count: ordersWithDetails.filter(o => o.trangThai === "Đã hủy").length },
+    ];
 
-    const filteredOrders = ordersWithDetails?.filter(order => {
-        // Filter by status
+    // Filter orders
+    const filteredOrders = ordersWithDetails.filter(order => {
+        // Status filter
         const matchesStatus = statusFilter === "all" || order.trangThai === statusFilter;
 
-        // Filter by date range (ngày đặt hàng)
+        // Date filter
         let matchesDateRange = true;
-        if (fromDate || toDate) {
-            // Handle different date formats from backend
-            let orderDateStr = "";
-            if (Array.isArray(order.ngayTao)) {
-                // Backend array format: [year, month, day, hour, minute, second, nano]
-                const [year, month, day] = order.ngayTao;
-                if (year && month && day) {
-                    orderDateStr = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-                }
-            } else if (order.ngayTao) {
-                // String format
-                const orderDate = new Date(order.ngayTao);
-                if (!isNaN(orderDate.getTime())) {
-                    orderDateStr = orderDate.toISOString().split('T')[0];
-                }
-            }
-
+        if (dateFilter) {
+            const orderDateStr = formatDateFlexible(order.ngayTao, false);
             if (orderDateStr) {
-                if (fromDate && toDate) {
-                    matchesDateRange = orderDateStr >= fromDate && orderDateStr <= toDate;
-                } else if (fromDate) {
-                    matchesDateRange = orderDateStr >= fromDate;
-                } else if (toDate) {
-                    matchesDateRange = orderDateStr <= toDate;
-                }
+                matchesDateRange = orderDateStr >= dateFilter;
             } else {
-                matchesDateRange = false; // Invalid date should not match
+                matchesDateRange = false;
             }
         }
 
-        // Filter by search keyword
+        // Search filter
         let matchesKeyword = true;
         if (searchKeyword.trim()) {
             const keyword = searchKeyword.toLowerCase().trim();
@@ -189,423 +214,661 @@ export default function OrderHistoryPage() {
         }
 
         return matchesStatus && matchesDateRange && matchesKeyword;
-    }) || [];
+    });
 
-    // Phân trang
+    // Pagination
     const totalPages = Math.ceil(filteredOrders.length / itemPerPage);
     const paginatedOrders = filteredOrders.slice(
         (currentPage - 1) * itemPerPage,
         currentPage * itemPerPage
     );
 
-    if (!ordersWithDetails || ordersWithDetails.length === 0) {
-        return (
-            <div className="bg-gray-100 min-h-screen p-6">
-                <div className="max-w-6xl mx-auto">
-                    <h1 className="text-2xl font-bold text-gray-800 mb-6">Lịch Sử Mua Hàng</h1>
-                    <div className="bg-white rounded-lg shadow-sm p-6 text-center">
-                        <p className="text-gray-500">Bạn chưa có đơn hàng nào</p>
-                    </div>
-                </div>
-            </div>
+    const getStatusColor = (status: string) => {
+        switch (status) {
+            case "Chờ xác nhận": return "bg-yellow-100 text-yellow-800";
+            case "Đã xác nhận": return "bg-blue-100 text-blue-800";
+            case "Đang đóng gói": return "bg-purple-100 text-purple-800";
+            case "Đang vận chuyển": return "bg-indigo-100 text-indigo-800";
+            case "Đã giao": return "bg-green-100 text-green-800";
+            case "Hoàn tất": return "bg-green-100 text-green-800";
+            case "Đã hủy": return "bg-red-100 text-red-800";
+            default: return "bg-gray-100 text-gray-800";
+        }
+    };
+
+    // Handle cancel order
+    const handleCancelOrder = async (orderId: number) => {
+        try {
+            await HoaDonService.updateTrangThai(orderId, "Đã hủy");
+            toast.success("Hủy đơn hàng thành công");
+            refetch();
+        } catch (error) {
+            toast.error("Không thể hủy đơn hàng");
+        }
+    };
+
+    // Handle buy again
+    const handleBuyAgain = (order: any) => {
+        try {
+            const cartItems = JSON.parse(localStorage.getItem("cartItems") || "[]");
+
+            order.chiTietSanPham?.forEach((item: any) => {
+                const existingItemIndex = cartItems.findIndex((cartItem: any) => cartItem.id === item.sanPham?.id);
+
+                if (existingItemIndex >= 0) {
+                    cartItems[existingItemIndex].quantity += item.soLuong;
+                } else {
+                    cartItems.push({
+                        id: item.sanPham?.id,
+                        tenSanPham: item.sanPham?.tenSanPham,
+                        gia: item.sanPham?.gia,
+                        quantity: item.soLuong,
+                        hinhAnh: item.sanPham?.hinhAnh
+                    });
+                }
+            });
+
+            localStorage.setItem("cartItems", JSON.stringify(cartItems));
+            toast.success("Đã thêm sản phẩm vào giỏ hàng");
+        } catch (error) {
+            toast.error("Không thể thêm vào giỏ hàng");
+        }
+    };
+
+    // Show order detail
+    const handleViewDetail = (order: any) => {
+        setSelectedOrder(order);
+        setShowOrderDetail(true);
+    };
+
+    // Get action buttons based on order status
+    const getActionButtons = (order: any) => {
+        const buttons = [];
+
+        // Always show view detail with yellow color
+        buttons.push(
+            <Button
+                key="detail"
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2 border-yellow-500 text-yellow-600 hover:bg-yellow-50"
+                onClick={() => handleViewDetail(order)}
+            >
+                <Eye className="w-4 h-4" />
+                Xem Chi Tiết
+            </Button>
         );
-    }
+
+        // Cancel button for pending orders
+        if (order.trangThai === "Chờ xác nhận") {
+            buttons.push(
+                <Button
+                    key="cancel"
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-2 text-red-600 border-red-600 hover:bg-red-50"
+                    onClick={() => handleCancelOrder(order.id)}
+                >
+                    <XCircle className="w-4 h-4" />
+                    Hủy Đơn
+                </Button>
+            );
+        }
+
+        // Buy again button for completed orders
+        if (order.trangThai === "Đã giao" || order.trangThai === "Hoàn tất") {
+            buttons.push(
+                <Button
+                    key="buyagain"
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-2 text-green-600 border-green-600 hover:bg-green-50"
+                    onClick={() => handleBuyAgain(order)}
+                >
+                    <RotateCcw className="w-4 h-4" />
+                    Mua Lại
+                </Button>
+            );
+        }
+
+        return buttons;
+    };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-100">
-            <div className="max-w-7xl mx-auto px-4 py-8">
-                {/* Header với gradient đẹp */}
-                {/* <div className="text-center mb-8">
-                    <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent mb-2">
-                        📦 Quản Lý Đơn Hàng
-                    </h1>
-                    <p className="text-gray-600">Theo dõi và quản lý tất cả đơn hàng của bạn</p>
-                </div> */}
+        <div className="min-h-screen bg-gray-50 p-6">
+            <div className="max-w-7xl mx-auto">
+                <h1 className="text-2xl font-bold text-gray-900 mb-6">Lịch Sử Đơn Hàng</h1>
 
-                <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-blue-100 p-8">
-                    {/* Status Tabs với số lượng */}
-                    <div className="mb-8">
-                        <Tabs value={statusFilter} onValueChange={setStatusFilter}>
-                            <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-8 bg-gradient-to-r from-gray-100 to-gray-200 p-1 rounded-xl">
-                                <TabsTrigger
-                                    value="all"
-                                    className="relative data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-blue-600 data-[state=active]:text-white text-sm font-medium rounded-lg transition-all duration-300 hover:scale-105"
-                                >
-                                    <span> Tất cả</span>
-                                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full min-w-[20px] h-5 flex items-center justify-center font-bold shadow-lg">
-                                        {ordersWithDetails?.length || 0}
-                                    </span>
-                                </TabsTrigger>
-                                <TabsTrigger
-                                    value={TrangThaiHoaDon.PENDING}
-                                    className="relative data-[state=active]:bg-gradient-to-r data-[state=active]:from-yellow-500 data-[state=active]:to-yellow-600 data-[state=active]:text-white text-sm font-medium rounded-lg transition-all duration-300 hover:scale-105"
-                                >
-                                    <span> Đang xử lý</span>
-                                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full min-w-[20px] h-5 flex items-center justify-center font-bold shadow-lg">
-                                        {ordersWithDetails?.filter(o => o.trangThai === TrangThaiHoaDon.PENDING).length || 0}
-                                    </span>
-                                </TabsTrigger>
-                                <TabsTrigger
-                                    value={TrangThaiHoaDon.PROCESSING}
-                                    className="relative data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-blue-600 data-[state=active]:text-white text-sm font-medium rounded-lg transition-all duration-300 hover:scale-105"
-                                >
-                                    <span> Đã xác nhận</span>
-                                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full min-w-[20px] h-5 flex items-center justify-center font-bold shadow-lg">
-                                        {ordersWithDetails?.filter(o => o.trangThai === TrangThaiHoaDon.PROCESSING).length || 0}
-                                    </span>
-                                </TabsTrigger>
-                                <TabsTrigger
-                                    value={TrangThaiHoaDon.PACKING}
-                                    className="relative data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-purple-600 data-[state=active]:text-white text-sm font-medium rounded-lg transition-all duration-300 hover:scale-105"
-                                >
-                                    <span> Đang đóng gói</span>
-                                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full min-w-[20px] h-5 flex items-center justify-center font-bold shadow-lg">
-                                        {ordersWithDetails?.filter(o => o.trangThai === TrangThaiHoaDon.PACKING).length || 0}
-                                    </span>
-                                </TabsTrigger>
-                                <TabsTrigger
-                                    value={TrangThaiHoaDon.SHIPPED}
-                                    className="relative data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-orange-600 data-[state=active]:text-white text-sm font-medium rounded-lg transition-all duration-300 hover:scale-105"
-                                >
-                                    <span> Đang vận chuyển</span>
-                                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full min-w-[20px] h-5 flex items-center justify-center font-bold shadow-lg">
-                                        {ordersWithDetails?.filter(o => o.trangThai === TrangThaiHoaDon.SHIPPED).length || 0}
-                                    </span>
-                                </TabsTrigger>
-                                <TabsTrigger
-                                    value={TrangThaiHoaDon.DELIVERED}
-                                    className="relative data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-green-600 data-[state=active]:text-white text-sm font-medium rounded-lg transition-all duration-300 hover:scale-105"
-                                >
-                                    <span> Đã giao</span>
-                                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full min-w-[20px] h-5 flex items-center justify-center font-bold shadow-lg">
-                                        {ordersWithDetails?.filter(o => o.trangThai === TrangThaiHoaDon.DELIVERED).length || 0}
-                                    </span>
-                                </TabsTrigger>
-                                <TabsTrigger
-                                    value={TrangThaiHoaDon.COMPLETED}
-                                    className="relative data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-emerald-600 data-[state=active]:text-white text-sm font-medium rounded-lg transition-all duration-300 hover:scale-105"
-                                >
-                                    <span> Hoàn tất</span>
-                                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full min-w-[20px] h-5 flex items-center justify-center font-bold shadow-lg">
-                                        {ordersWithDetails?.filter(o => o.trangThai === TrangThaiHoaDon.COMPLETED).length || 0}
-                                    </span>
-                                </TabsTrigger>
-                                <TabsTrigger
-                                    value={TrangThaiHoaDon.CANCELLED}
-                                    className="relative data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-500 data-[state=active]:to-red-600 data-[state=active]:text-white text-sm font-medium rounded-lg transition-all duration-300 hover:scale-105"
-                                >
-                                    <span> Đã hủy</span>
-                                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full min-w-[20px] h-5 flex items-center justify-center font-bold shadow-lg">
-                                        {ordersWithDetails?.filter(o => o.trangThai === TrangThaiHoaDon.CANCELLED).length || 0}
-                                    </span>
-                                </TabsTrigger>
-                            </TabsList>
-                        </Tabs>
-                    </div>
-
-                    {/* Advanced Search với design đẹp hơn */}
-                    <div className="mb-8 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100 p-6 shadow-lg">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                                <div className="p-2 bg-blue-500 rounded-lg">
-                                    <Search className="h-5 w-5 text-white" />
+                {/* Statistics Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                    <Card className="bg-white">
+                        <CardContent className="p-4">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm text-gray-600">Tổng Đơn Hàng</p>
+                                    <p className="text-2xl font-bold text-gray-900">{totalOrders}</p>
                                 </div>
-                                Tìm kiếm nâng cao
-                            </h3>
+                                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                                    <ShoppingBag className="w-6 h-6 text-blue-600" />
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="bg-white">
+                        <CardContent className="p-4">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm text-gray-600">Đang Giao</p>
+                                    <p className="text-2xl font-bold text-purple-600">{pendingOrders}</p>
+                                </div>
+                                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                                    <Truck className="w-6 h-6 text-purple-600" />
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="bg-white">
+                        <CardContent className="p-4">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm text-gray-600">Đã Giao</p>
+                                    <p className="text-2xl font-bold text-green-600">{deliveredOrders}</p>
+                                </div>
+                                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                                    <CheckCircle className="w-6 h-6 text-green-600" />
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="bg-white">
+                        <CardContent className="p-4">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm text-gray-600">Tổng Chi Tiêu</p>
+                                    <p className="text-2xl font-bold text-yellow-600">₫{(totalAmount / 1000000).toFixed(1)}M</p>
+                                </div>
+                                <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                                    <Wallet className="w-6 h-6 text-yellow-600" />
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                {/* Filter Tabs */}
+                <div className="bg-white rounded-lg p-4 mb-6">
+                    <div className="flex flex-wrap gap-2 mb-4">
+                        {statusOptions.map((option) => (
                             <Button
-                                variant="ghost"
+                                key={option.value}
+                                variant={statusFilter === option.value ? "default" : "outline"}
                                 size="sm"
-                                onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
-                                className="text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded-lg transition-all duration-200"
+                                onClick={() => setStatusFilter(option.value)}
+                                className={`${statusFilter === option.value
+                                    ? "bg-blue-600 text-white"
+                                    : "bg-white text-gray-700 border-gray-300"
+                                    } hover:bg-blue-50`}
                             >
-                                {showAdvancedSearch ? " Thu gọn" : " Mở rộng"}
+                                {option.label} {option.count > 0 && (
+                                    <Badge variant="secondary" className="ml-1 text-xs">
+                                        {option.count}
+                                    </Badge>
+                                )}
                             </Button>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                            <div className="relative group">
-                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 group-focus-within:text-blue-500 transition-colors" />
-                                <Input
-                                    placeholder=" Tìm theo mã đơn hàng hoặc tên sản phẩm..."
-                                    value={searchKeyword}
-                                    onChange={(e) => {
-                                        setSearchKeyword(e.target.value);
-                                        setCurrentPage(1);
-                                    }}
-                                    className="pl-10 text-black bg-white border-2 border-gray-200 focus:border-blue-500 rounded-lg shadow-sm transition-all duration-200 hover:shadow-md"
-                                />
-                            </div>
-
-                            <div className="relative group">
-                                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 group-focus-within:text-blue-500 transition-colors" />
-                                <Input
-                                    type="date"
-                                    placeholder=" Từ ngày đặt"
-                                    value={fromDate}
-                                    onChange={(e) => {
-                                        setFromDate(e.target.value);
-                                        setCurrentPage(1);
-                                    }}
-                                    className="pl-10 text-black bg-white border-2 border-gray-200 focus:border-blue-500 rounded-lg shadow-sm transition-all duration-200 hover:shadow-md"
-                                />
-                            </div>
-
-                            <div className="relative group">
-                                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 group-focus-within:text-blue-500 transition-colors" />
-                                <Input
-                                    type="date"
-                                    placeholder=" Đến ngày đặt"
-                                    value={toDate}
-                                    onChange={(e) => {
-                                        setToDate(e.target.value);
-                                        setCurrentPage(1);
-                                    }}
-                                    className="pl-10 text-black bg-white border-2 border-gray-200 focus:border-blue-500 rounded-lg shadow-sm transition-all duration-200 hover:shadow-md"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="flex justify-end">
-                            <Button
-                                variant="outline"
-                                onClick={() => {
-                                    setSearchKeyword("");
-                                    setFromDate("");
-                                    setToDate("");
-                                    setCurrentPage(1);
-                                }}
-                                className="bg-gradient-to-r from-red-50 to-red-100 text-red-600 hover:from-red-100 hover:to-red-200 border-red-200 hover:border-red-300 rounded-lg transition-all duration-200 hover:scale-105"
-                                disabled={!searchKeyword && !fromDate && !toDate}
-                            >
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Xóa bộ lọc
-                            </Button>
-                        </div>
-
-                        {showAdvancedSearch && (
-                            <div className="border-t border-blue-200 pt-4 mt-4">
-                                <div className="flex flex-wrap gap-2 items-center">
-                                    <span className="text-sm text-gray-600 font-medium">🏷️ Bộ lọc đang áp dụng:</span>
-
-                                    {searchKeyword && (
-                                        <div className="flex items-center gap-1 bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 px-3 py-1 rounded-full text-xs font-medium shadow-sm">
-                                            <span>Từ khóa: "{searchKeyword}"</span>
-                                            <X
-                                                className="h-3 w-3 cursor-pointer hover:text-blue-600 transition-colors"
-                                                onClick={() => setSearchKeyword("")}
-                                            />
-                                        </div>
-                                    )}
-
-                                    {fromDate && (
-                                        <div className="flex items-center gap-1 bg-gradient-to-r from-green-100 to-green-200 text-green-800 px-3 py-1 rounded-full text-xs font-medium shadow-sm">
-                                            <span> Từ: {fromDate}</span>
-                                            <X
-                                                className="h-3 w-3 cursor-pointer hover:text-green-600 transition-colors"
-                                                onClick={() => setFromDate("")}
-                                            />
-                                        </div>
-                                    )}
-
-                                    {toDate && (
-                                        <div className="flex items-center gap-1 bg-gradient-to-r from-green-100 to-green-200 text-green-800 px-3 py-1 rounded-full text-xs font-medium shadow-sm">
-                                            <span> Đến: {toDate}</span>
-                                            <X
-                                                className="h-3 w-3 cursor-pointer hover:text-green-600 transition-colors"
-                                                onClick={() => setToDate("")}
-                                            />
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        )}
+                        ))}
                     </div>
 
-                    {filteredOrders.length === 0 ? (
-                        <div className="text-center py-16 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border-2 border-dashed border-blue-200">
-                            <div className="text-6xl mb-4">📦</div>
-                            <p className="text-blue-500 text-xl font-medium mb-2">
-                                {statusFilter === "all"
-                                    ? " Bạn chưa có đơn hàng nào"
-                                    : ` Không có đơn hàng ở trạng thái này`
-                                }
-                            </p>
-                            <p className="text-blue-400 text-sm">
-                                {statusFilter !== "all" && " Hãy thử chọn tab khác để xem đơn hàng"}
-                            </p>
-                        </div>
-                    ) : (
-                        <>
-                            <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-blue-100">
-                                <div className="overflow-x-auto">
-                                    <table className="w-full">
-                                        <thead className="bg-gray-100 text-gray-700">
-                                            <tr>
-                                                <th className="text-left py-4 px-6 font-semibold">Mã Đơn</th>
-                                                <th className="text-left py-4 px-6 font-semibold">Ngày Đặt</th>
-                                                <th className="text-left py-4 px-6 font-semibold">Sản Phẩm</th>
-                                                <th className="text-left py-4 px-6 font-semibold">Số Lượng</th>
-                                                <th className="text-left py-4 px-6 font-semibold">Tổng Tiền</th>
-                                                {statusFilter === "all" && (
-                                                    <th className="text-left py-4 px-6 font-semibold">Trạng Thái</th>
-                                                )}
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {paginatedOrders.map((order, index) => (
-                                                <tr key={order.id} className={`border-b border-gray-100 hover:bg-gray-50 transition-all duration-150`}>
-                                                    <td className="py-4 px-6 text-gray-900 font-bold">
-                                                        <span className="bg-gray-50 text-gray-800 px-3 py-1 rounded text-sm font-bold">
-                                                            #{order.maHD}
-                                                        </span>
-                                                    </td>
-                                                    <td className="py-4 px-6 text-gray-800">
-                                                        <span className="bg-gray-50 px-3 py-1 rounded text-sm">
-                                                            {formatDateFlexible(order.ngayTao, false)}
-                                                        </span>
-                                                    </td>
-                                                    <td className="py-4 px-6 text-gray-900">
-                                                        {order.chiTietSanPham && order.chiTietSanPham.length > 0 ? (
-                                                            <div className="space-y-2">
-                                                                {order.chiTietSanPham.map((item: any, index: number) => {
-                                                                    const pid = item.sanPham?.id;
-                                                                    return (
-                                                                        <div key={index} className="flex items-center gap-3 bg-white p-2 rounded border border-gray-200">
-                                                                            {productImages[pid] ? (
-                                                                                <img
-                                                                                    src={productImages[pid]}
-                                                                                    alt={item.sanPham?.tenSanPham}
-                                                                                    className="w-10 h-10 object-cover rounded border"
-                                                                                />
-                                                                            ) : (
-                                                                                <div className="w-10 h-10 bg-gray-100 rounded flex items-center justify-center border">
-                                                                                    <span className="text-gray-300 text-xs font-bold">No Image</span>
-                                                                                </div>
-                                                                            )}
-                                                                            <div className="flex flex-col">
-                                                                                <span className="font-medium text-gray-900 text-sm">
-                                                                                    {item.sanPham?.tenSanPham || 'Tên sản phẩm không có'}
-                                                                                </span>
-                                                                                <span className="text-xs text-gray-500">
-                                                                                    Giá: {(item.sanPham?.gia || 0).toLocaleString()}₫
-                                                                                </span>
-                                                                            </div>
-                                                                        </div>
-                                                                    );
-                                                                })}
-                                                            </div>
-                                                        ) : (
-                                                            <span className="text-gray-400 italic bg-gray-50 px-3 py-1 rounded">Không có sản phẩm</span>
-                                                        )}
-                                                    </td>
-                                                    <td className="py-4 px-6 text-blue-900">
-                                                        {order.chiTietSanPham && order.chiTietSanPham.length > 0 ? (
-                                                            <div className="space-y-2">
-                                                                {order.chiTietSanPham.map((item: any, index: number) => (
-                                                                    <div className="center">
-                                                                        <span className="bg-gradient-to-r from-indigo-100 to-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-bold">
-                                                                            {item.soLuong || 0}
-                                                                        </span>
-                                                                    </div>
-                                                                ))}
-                                                            </div>
-                                                        ) : (
-                                                            <span className="text-blue-400 bg-blue-50 px-3 py-1 rounded-lg">➖</span>
-                                                        )}
-                                                    </td>
-                                                    <td className="py-4 px-6 text-gray-900">
-                                                        <span className="bg-gray-50 text-gray-900 px-4 py-2 rounded font-bold text-base">
-                                                            {(order.tongTien || 0).toLocaleString()}₫
-                                                        </span>
-                                                    </td>
-                                                    {statusFilter === "all" && (
-                                                        <td className="py-4 px-6">
-                                                            <span className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium ${getStatusColor(order.trangThai)} bg-gray-50 border`}>
-                                                                {getStatusIcon(order.trangThai)} {order.trangThai}
-                                                            </span>
-                                                        </td>
-                                                    )}
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </>
-                    )}
-                    {/* PHÂN TRANG + CHỌN SỐ BẢNG GHI */}
-                    <div className="flex flex-col md:flex-row justify-between items-center gap-4 mt-8 pb-2">
-                        <div className="flex items-center gap-2">
-                            <span className="text-blue-800 font-semibold">Hiển thị:</span>
-                            <select
-                                aria-label="Chọn số bản ghi mỗi trang"
-                                value={itemPerPage}
-                                onChange={e => {
-                                    setItemPerPage(Number(e.target.value));
-                                    setCurrentPage(1);
-                                }}
-                                className="rounded-full border border-blue-200 px-4 py-2 bg-white text-blue-700 font-bold shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
-                            >
-                                <option value={5}>5</option>
-                                <option value={10}>10</option>
-                                <option value={20}>20</option>
-                            </select>
-                            <span className="text-blue-600">bản ghi/trang</span>
-                        </div>
-                        {totalPages > 1 && (
-                            <div className="flex justify-center items-center gap-2">
-                                <button
-                                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                                    disabled={currentPage === 1}
-                                    className={`px-4 py-2 rounded-full font-bold text-blue-700 border border-blue-200 bg-white shadow-sm transition-all duration-200 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed`}
-                                >
-                                    ←
-                                </button>
-                                <div className="flex gap-1">
-                                    {((): React.ReactNode => {
-                                        const pages: (number | string)[] = [];
-                                        if (totalPages <= 2) {
-                                            for (let i = 1; i <= totalPages; i++) {
-                                                pages.push(i);
-                                            }
-                                        } else {
-                                            pages.push(1);
-                                            if (2 <= totalPages) pages.push(2);
-                                            if (3 <= totalPages) pages.push(3);
-                                            if (currentPage > 4) pages.push('...');
-                                            if (currentPage > 3 && currentPage < totalPages - 1) pages.push(currentPage);
-                                            if (currentPage < totalPages - 2) pages.push('...');
-                                            if (totalPages > 3) pages.push(totalPages);
-                                        }
-                                        // Loại bỏ trùng lặp số trang
-                                        const uniquePages = pages.filter((v, i, a) => a.indexOf(v) === i);
-                                        return uniquePages.map((page, idx) =>
-                                            page === '...'
-                                                ? <span key={"ellipsis-" + idx} className="px-2 text-blue-400 font-bold">...</span>
-                                                : <button
-                                                    key={page}
-                                                    onClick={() => setCurrentPage(Number(page))}
-                                                    className={`px-4 py-2 rounded-full font-bold border transition-all duration-200 ${currentPage === page
-                                                        ? 'bg-blue-600 text-white border-blue-600 shadow-lg'
-                                                        : 'bg-white text-blue-700 border-blue-200 hover:bg-blue-50'}`}
-                                                >
-                                                    {page}
-                                                </button>
-                                        );
-                                    })()}
-                                </div>
-                                <button
-                                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                                    disabled={currentPage === totalPages}
-                                    className={`px-4 py-2 rounded-full font-bold text-blue-700 border border-blue-200 bg-white shadow-sm transition-all duration-200 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed`}
-                                >
-                                    →
-                                </button>
-                            </div>
-                        )}
+                    {/* Search and Date Filter */}
+                    <div className="flex gap-4">
+                        <Input
+                            placeholder="Tìm kiếm theo mã đơn hàng hoặc tên sản phẩm..."
+                            value={searchKeyword}
+                            onChange={(e) => setSearchKeyword(e.target.value)}
+                            className="flex-1"
+                        />
+                        <Input
+                            type="date"
+                            value={dateFilter}
+                            onChange={(e) => setDateFilter(e.target.value)}
+                            className="w-48"
+                        />
                     </div>
                 </div>
+
+                {/* Orders List */}
+                <div className="space-y-4">
+                    {paginatedOrders.map((order) => (
+                        <Card key={order.id} className="bg-white">
+                            <CardContent className="p-6">
+                                {/* Order Header */}
+                                <div className="flex items-center justify-between mb-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                                            <ShoppingBag className="w-5 h-5 text-blue-600" />
+                                        </div>
+                                        <div>
+                                            <h3 className="font-semibold text-gray-900">{order.maHD}</h3>
+                                            <p className="text-sm text-gray-500">
+                                                Đặt ngày {formatDateFlexible(order.ngayTao, false)}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <Badge className={`${getStatusColor(order.trangThai)} px-3 py-1`}>
+                                            {order.trangThai}
+                                        </Badge>
+                                        <p className="text-lg font-bold text-gray-900 mt-1">
+                                            ₫{(order.tongTien || 0).toLocaleString()}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* Progress Bar */}
+                                <div className="mb-4">
+                                    <div className="text-xs text-gray-600 mb-1">Tiến độ đơn hàng</div>
+                                    <div className="w-full bg-gray-200 rounded-full h-2">
+                                        <div
+                                            className="bg-green-500 h-2 rounded-full transition-all duration-300"
+                                            style={{
+                                                width: order.trangThai === "Đã giao" || order.trangThai === "Hoàn tất" ? "100%" :
+                                                    order.trangThai === "Đang vận chuyển" ? "75%" :
+                                                        order.trangThai === "Đang đóng gói" ? "50%" :
+                                                            order.trangThai === "Đã xác nhận" ? "25%" : "10%"
+                                            }}
+                                        />
+                                    </div>
+                                    <div className="text-xs text-gray-500 mt-1">
+                                        {order.trangThai === "Đã giao" || order.trangThai === "Hoàn tất" ? "100%" :
+                                            order.trangThai === "Đang vận chuyển" ? "75%" :
+                                                order.trangThai === "Đang đóng gói" ? "50%" :
+                                                    order.trangThai === "Đã xác nhận" ? "25%" : "10%"}
+                                    </div>
+                                </div>
+
+                                {/* Products */}
+                                <div className="mb-4">
+                                    <p className="text-sm font-medium text-gray-900 mb-2">
+                                        Sản phẩm ({order.chiTietSanPham?.length || 0})
+                                    </p>
+                                    <div className="space-y-2">
+                                        {order.chiTietSanPham?.map((item: any, index: number) => {
+                                            const pid = item.sanPham?.id;
+                                            return (
+                                                <div key={index} className="flex items-center gap-3 p-2 bg-gray-50 rounded-lg">
+                                                    {productImages[pid] ? (
+                                                        <img
+                                                            src={productImages[pid]}
+                                                            alt={item.sanPham?.tenSanPham}
+                                                            className="w-12 h-12 object-cover rounded-lg"
+                                                        />
+                                                    ) : (
+                                                        <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
+                                                            <span className="text-gray-400 text-xs">No Image</span>
+                                                        </div>
+                                                    )}
+                                                    <div className="flex-1">
+                                                        <p className="font-medium text-gray-900 text-sm">
+                                                            {item.sanPham?.tenSanPham || 'Sản phẩm không tồn tại'}
+                                                        </p>
+                                                        <p className="text-xs text-gray-500">
+                                                            Số lượng: {item.soLuong || 0}
+                                                        </p>
+                                                    </div>
+                                                    <p className="font-medium text-gray-900">
+                                                        ₫{((item.sanPham?.gia || 0) * (item.soLuong || 0)).toLocaleString()}
+                                                    </p>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+
+                                {/* Action Buttons */}
+                                <div className="flex gap-2">
+                                    {getActionButtons(order)}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+
+                {/* Order Detail Modal */}
+                <Dialog open={showOrderDetail} onOpenChange={setShowOrderDetail}>
+                    <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white">
+                        <DialogHeader>
+                            <DialogTitle className="text-xl font-bold text-gray-900">
+                                Chi Tiết Đơn Hàng
+                            </DialogTitle>
+                        </DialogHeader>
+
+                        {selectedOrder && (
+                            <div className="space-y-6">
+                                {/* Order Info and Status Timeline */}
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                    {/* Order Information */}
+                                    <div className="bg-blue-50 rounded-lg p-4">
+                                        <div className="flex items-center gap-2 mb-4">
+                                            <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
+                                                <Package className="w-4 h-4 text-white" />
+                                            </div>
+                                            <h3 className="font-semibold text-blue-900">Thông Tin Đơn Hàng</h3>
+                                        </div>
+                                        <div className="space-y-2 text-sm">
+                                            <div className="flex justify-between">
+                                                <span className="text-gray-600">Mã đơn hàng:</span>
+                                                <span className="font-medium text-gray-900">{selectedOrder.maHD}</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className="text-gray-600">Ngày đặt:</span>
+                                                <span className="font-medium text-gray-900">
+                                                    {formatDateFlexible(selectedOrder.ngayTao, false)}
+                                                </span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className="text-gray-600">Trạng thái:</span>
+                                                <Badge className={`${getStatusColor(selectedOrder.trangThai)} px-2 py-1`}>
+                                                    {selectedOrder.trangThai}
+                                                </Badge>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className="text-gray-600">Tổng tiền:</span>
+                                                <span className="font-bold text-blue-600 text-lg">
+                                                    ₫{(selectedOrder.tongTien || 0).toLocaleString()}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Order Status Timeline */}
+                                    <div className="bg-orange-50 rounded-lg p-4">
+                                        <div className="flex items-center gap-2 mb-4">
+                                            <div className="w-6 h-6 bg-orange-600 rounded-full flex items-center justify-center">
+                                                <Clock className="w-4 h-4 text-white" />
+                                            </div>
+                                            <h3 className="font-semibold text-orange-900">Lịch Sử Đơn Hàng</h3>
+                                        </div>
+                                        <div className="space-y-3">
+                                            {/* Timeline items */}
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                                                    <CheckCircle className="w-3 h-3 text-white" />
+                                                </div>
+                                                <div className="text-sm">
+                                                    <p className="font-medium text-gray-900">Đặt hàng thành công</p>
+                                                    <p className="text-gray-500">{formatDateFlexible(selectedOrder.ngayTao, false)}</p>
+                                                </div>
+                                            </div>
+
+                                            {selectedOrder.trangThai !== "Chờ xác nhận" && (
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                                                        <CheckCircle className="w-3 h-3 text-white" />
+                                                    </div>
+                                                    <div className="text-sm">
+                                                        <p className="font-medium text-gray-900">Xác nhận đơn hàng</p>
+                                                        <p className="text-gray-500">Đã xác nhận</p>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {(selectedOrder.trangThai === "Đang đóng gói" ||
+                                                selectedOrder.trangThai === "Đang vận chuyển" ||
+                                                selectedOrder.trangThai === "Đã giao" ||
+                                                selectedOrder.trangThai === "Hoàn tất") && (
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                                                            <Package className="w-3 h-3 text-white" />
+                                                        </div>
+                                                        <div className="text-sm">
+                                                            <p className="font-medium text-gray-900">Đang đóng gói</p>
+                                                            <p className="text-gray-500">Đang chuẩn bị hàng</p>
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                            {(selectedOrder.trangThai === "Đang vận chuyển" ||
+                                                selectedOrder.trangThai === "Đã giao" ||
+                                                selectedOrder.trangThai === "Hoàn tất") && (
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                                                            <Truck className="w-3 h-3 text-white" />
+                                                        </div>
+                                                        <div className="text-sm">
+                                                            <p className="font-medium text-gray-900">Đang vận chuyển</p>
+                                                            <p className="text-gray-500">Đang giao hàng</p>
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                            {(selectedOrder.trangThai === "Đã giao" || selectedOrder.trangThai === "Hoàn tất") && (
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                                                        <CheckCircle className="w-3 h-3 text-white" />
+                                                    </div>
+                                                    <div className="text-sm">
+                                                        <p className="font-medium text-gray-900">Giao hàng thành công</p>
+                                                        <p className="text-gray-500">Đã giao thành công</p>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Delivery Information */}
+                                <div className="bg-green-50 rounded-lg p-4">
+                                    <div className="flex items-center gap-2 mb-4">
+                                        <div className="w-6 h-6 bg-green-600 rounded-full flex items-center justify-center">
+                                            <Truck className="w-4 h-4 text-white" />
+                                        </div>
+                                        <h3 className="font-semibold text-green-900">Thông Tin Giao Hàng</h3>
+                                    </div>
+                                    <div className="space-y-2 text-sm">
+                                        <div>
+                                            <span className="text-gray-600">Địa chỉ:</span>
+                                            <p className="font-medium text-gray-900">
+                                                {selectedOrder.diaChiGiaoHang || "Chưa có địa chỉ"}
+                                            </p>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-600">Phương thức:</span>
+                                            <span className="font-medium text-gray-900">
+                                                {selectedOrder.loaiVanChuyen === 1 || selectedOrder.isFast === 1
+                                                    ? "Giao hàng nhanh"
+                                                    : "Giao hàng thường"}
+                                            </span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-600">Phí giao hàng:</span>
+                                            <span className="font-medium text-gray-900">
+                                                ₫{(selectedOrder.phiShip || 0).toLocaleString()}
+                                            </span>
+                                        </div>
+                                        {selectedOrder.tenNguoiNhan && (
+                                            <div className="flex justify-between">
+                                                <span className="text-gray-600">Người nhận:</span>
+                                                <span className="font-medium text-gray-900">
+                                                    {selectedOrder.tenNguoiNhan}
+                                                </span>
+                                            </div>
+                                        )}
+                                        {selectedOrder.sdt && (
+                                            <div className="flex justify-between">
+                                                <span className="text-gray-600">Số điện thoại:</span>
+                                                <span className="font-medium text-gray-900">
+                                                    {selectedOrder.sdt}
+                                                </span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Products List */}
+                                <div className="bg-purple-50 rounded-lg p-4">
+                                    <div className="flex items-center gap-2 mb-4">
+                                        <div className="w-6 h-6 bg-purple-600 rounded-full flex items-center justify-center">
+                                            <Package className="w-4 h-4 text-white" />
+                                        </div>
+                                        <h3 className="font-semibold text-purple-900">
+                                            Sản Phẩm ({selectedOrder.chiTietSanPham?.length || 0})
+                                        </h3>
+                                    </div>
+
+                                    {selectedOrder.chiTietSanPham && selectedOrder.chiTietSanPham.length > 0 ? (
+                                        <div className="space-y-3">
+                                            {selectedOrder.chiTietSanPham.map((item: any, index: number) => {
+                                                const pid = item.sanPham?.id;
+                                                return (
+                                                    <div key={index} className="flex items-center gap-4 p-3 bg-white rounded-lg">
+                                                        {productImages[pid] ? (
+                                                            <img
+                                                                src={productImages[pid]}
+                                                                alt={item.sanPham?.tenSanPham}
+                                                                className="w-16 h-16 object-cover rounded-lg"
+                                                            />
+                                                        ) : (
+                                                            <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
+                                                                <Package className="w-6 h-6 text-gray-400" />
+                                                            </div>
+                                                        )}
+                                                        <div className="flex-1">
+                                                            <h4 className="font-medium text-gray-900">
+                                                                {item.sanPham?.tenSanPham || 'Sản phẩm không tồn tại'}
+                                                            </h4>
+                                                            <p className="text-sm text-gray-500">
+                                                                Mã SP: {item.sanPham?.maSanPham || 'N/A'}
+                                                            </p>
+                                                            <p className="text-sm text-gray-500">
+                                                                Số lượng: {item.soLuong || 0}
+                                                            </p>
+                                                            <p className="text-sm text-gray-500">
+                                                                Đơn giá: ₫{(item.gia || item.sanPham?.gia || 0).toLocaleString()}
+                                                            </p>
+                                                        </div>
+                                                        <div className="text-right">
+                                                            <p className="font-bold text-purple-600">
+                                                                ₫{((item.gia || item.sanPham?.gia || 0) * (item.soLuong || 0)).toLocaleString()}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    ) : (
+                                        <div className="text-center py-8">
+                                            <Package className="w-12 h-12 text-gray-300 mx-auto mb-2" />
+                                            <p className="text-gray-500">Không có sản phẩm nào</p>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Payment Summary */}
+                                <div className="bg-blue-50 rounded-lg p-4">
+                                    <div className="flex items-center gap-2 mb-4">
+                                        <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
+                                            <Wallet className="w-4 h-4 text-white" />
+                                        </div>
+                                        <h3 className="font-semibold text-blue-900">Thông Tin Thanh Toán</h3>
+                                    </div>
+                                    <div className="space-y-2 text-sm">
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-600">Tạm tính:</span>
+                                            <span className="font-medium">₫{(selectedOrder.tamTinh || 0).toLocaleString()}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-600">Phí vận chuyển:</span>
+                                            <span className="font-medium">₫{(selectedOrder.phiShip || 0).toLocaleString()}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-600">Giảm giá:</span>
+                                            <span className="font-medium text-green-600">-₫{(selectedOrder.soTienGiam || 0).toLocaleString()}</span>
+                                        </div>
+                                        <div className="border-t pt-2 flex justify-between">
+                                            <span className="font-bold text-gray-900">Tổng cộng:</span>
+                                            <span className="font-bold text-blue-600 text-lg">₫{(selectedOrder.tongTien || 0).toLocaleString()}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-600">Phương thức:</span>
+                                            <span className="font-medium">{selectedOrder.phuongThucThanhToan || 'COD'}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Contact Support Button */}
+                                <div className="flex justify-center">
+                                    <Button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2">
+                                        <Phone className="w-4 h-4 mr-2" />
+                                        Liên Hệ Hỗ Trợ
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
+                    </DialogContent>
+                </Dialog>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                    <div className="flex justify-center items-center gap-2 mt-8">
+                        <Button
+                            variant="outline"
+                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                            disabled={currentPage === 1}
+                        >
+                            ←
+                        </Button>
+                        <div className="flex gap-1">
+                            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                                const page = i + 1;
+                                return (
+                                    <Button
+                                        key={page}
+                                        variant={currentPage === page ? "default" : "outline"}
+                                        onClick={() => setCurrentPage(page)}
+                                        className="w-10"
+                                    >
+                                        {page}
+                                    </Button>
+                                );
+                            })}
+                        </div>
+                        <Button
+                            variant="outline"
+                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                            disabled={currentPage === totalPages}
+                        >
+                            →
+                        </Button>
+                    </div>
+                )}
+
+                {/* Empty State */}
+                {filteredOrders.length === 0 && (
+                    <div className="text-center py-12">
+                        <ShoppingBag className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">
+                            Không có đơn hàng nào
+                        </h3>
+                        <p className="text-gray-500">
+                            {statusFilter === "all"
+                                ? "Bạn chưa có đơn hàng nào"
+                                : `Không có đơn hàng nào với trạng thái "${statusOptions.find(o => o.value === statusFilter)?.label}"`
+                            }
+                        </p>
+                    </div>
+                )}
             </div>
         </div>
     );
 }
+
+
+
+
+
+
+
+
+

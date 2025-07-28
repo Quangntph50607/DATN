@@ -124,6 +124,15 @@ export default function CheckoutSuccessPage() {
         }
     };
 
+    // Thêm hàm kiểm tra thanh toán online
+    // --- BẮT ĐẦU: Giao diện thành công riêng cho thanh toán tài khoản (chuyển khoản/VNPAY) ---
+    const isOnlinePayment = (hoaDon: any) => {
+        if (!hoaDon) return false;
+        const pt = (hoaDon.phuongThucThanhToan || '').toLowerCase();
+        return pt.includes('chuyển khoản') || pt.includes('vnpay') || pt.includes('online');
+    };
+    // --- KẾT THÚC: Giao diện thành công riêng cho thanh toán tài khoản (chuyển khoản/VNPAY) ---
+
     const formatDate = (dateString: string) => {
         return new Date(dateString).toLocaleDateString("vi-VN", {
             year: "numeric",
@@ -185,8 +194,21 @@ export default function CheckoutSuccessPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-50 py-8">
-            <div className="max-w-5xl mx-auto px-4">
+        <div className="min-h-screen bg-gradient-to-br from-orange-50 to-blue-50 flex flex-col items-center justify-center py-8">
+            <div className="w-full max-w-4xl bg-white/90 rounded-3xl shadow-2xl p-8">
+                {/* Thông báo thành công riêng cho thanh toán tài khoản */}
+                {/* --- BẮT ĐẦU: Giao diện thành công riêng cho thanh toán tài khoản (chuyển khoản/VNPAY) --- */}
+                {hoaDon && isOnlinePayment(hoaDon) && (
+                    <div className="mb-8 p-6 rounded-xl bg-gradient-to-r from-blue-500 to-green-400 text-white shadow-lg flex flex-col items-center">
+                        <div className="text-5xl mb-2">🎉</div>
+                        <h2 className="text-2xl font-bold mb-2">Thanh toán thành công qua tài khoản!</h2>
+                        <p className="text-lg mb-2">Cảm ơn bạn đã sử dụng phương thức thanh toán online.</p>
+                        <p className="text-base">Đơn hàng của bạn đã được ghi nhận và sẽ được xử lý ngay khi hệ thống xác nhận thanh toán.</p>
+                        <p className="text-base mt-2">Bạn có thể kiểm tra trạng thái đơn hàng trong mục <span className="font-semibold">Tài khoản &gt; Lịch sử mua hàng</span>.</p>
+                    </div>
+                )}
+                {/* --- KẾT THÚC: Giao diện thành công riêng cho thanh toán tài khoản (chuyển khoản/VNPAY) --- */}
+                {/* Thông báo thành công chung (giữ nguyên phần còn lại) */}
                 {/* Header thành công với animation */}
                 <div className="text-center mb-12">
                     <div className="relative inline-block">
