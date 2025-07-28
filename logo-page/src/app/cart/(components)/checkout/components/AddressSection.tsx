@@ -6,6 +6,25 @@ import { useThongTinNguoiNhan, useCreateThongTin } from "@/hooks/useThongTinTaiK
 import { HoaDonService } from "@/services/hoaDonService";
 import { ShippingCalculator } from "@/utils/shippingCalculator";
 
+// Import Shadcn/ui components
+import {
+  Button
+} from "@/components/ui/button";
+import {
+  Input
+} from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Card,
+  CardContent,
+} from "@/components/ui/card";
+
 interface AddressSectionProps {
   address: string;
   province: number | null;
@@ -97,10 +116,6 @@ export default function AddressSection({
   // Set địa chỉ mặc định khi có dữ liệu
   useEffect(() => {
     if (defaultAddress && provinces.length > 0 && Object.keys(allWards).length > 0) {
-      console.log("Setting default address:", defaultAddress);
-      console.log("Available provinces:", provinces);
-      console.log("Available wards:", allWards);
-
       // Set thông tin người nhận
       onTenNguoiNhanChange(defaultAddress.hoTen);
       onPhoneNumberChange(defaultAddress.sdt);
@@ -108,7 +123,6 @@ export default function AddressSection({
 
       // Tìm province theo tên
       const foundProvince = provinces.find((p) => p.name === defaultAddress.thanhPho);
-      console.log("Found province:", foundProvince);
 
       if (foundProvince) {
         onProvinceChange(foundProvince.code);
@@ -118,11 +132,7 @@ export default function AddressSection({
           .filter(([_, info]) => (info as any).parent_code === foundProvince.code)
           .map(([code, info]) => ({ code: Number(code), ...(info as any) }));
 
-        console.log("Wards for province:", wardsForProvince);
-        console.log("Looking for ward:", defaultAddress.xa);
-
         const foundWard = wardsForProvince.find((w) => w.name === defaultAddress.xa);
-        console.log("Found ward:", foundWard);
 
         if (foundWard) {
           // Delay nhỏ để đảm bảo province được set trước
@@ -130,21 +140,17 @@ export default function AddressSection({
             onWardChange(foundWard.code);
           }, 50);
         } else {
-          console.warn("Ward not found:", defaultAddress.xa);
           // Thử tìm ward với tên tương tự
           const similarWard = wardsForProvince.find((w) =>
             w.name.toLowerCase().includes(defaultAddress.xa.toLowerCase()) ||
             defaultAddress.xa.toLowerCase().includes(w.name.toLowerCase())
           );
           if (similarWard) {
-            console.log("Found similar ward:", similarWard);
             setTimeout(() => {
               onWardChange(similarWard.code);
             }, 50);
           }
         }
-      } else {
-        console.warn("Province not found:", defaultAddress.thanhPho);
       }
     }
   }, [defaultAddress, provinces, allWards, onTenNguoiNhanChange, onPhoneNumberChange, onAddressChange, onProvinceChange, onWardChange]);
@@ -156,7 +162,6 @@ export default function AddressSection({
         .filter(([_, info]) => (info as any).parent_code === province)
         .map(([code, info]) => ({ code: Number(code), ...(info as any) }));
 
-      console.log("Updated wards for province", province, ":", wardsArr);
       setWards(wardsArr);
     } else {
       setWards([]);
@@ -208,7 +213,6 @@ export default function AddressSection({
     onShippingFeeChange(result.phiShip);
     onDeliveryDaysChange(result.soNgayGiao);
 
-    console.log("AddressSection - Phí ship:", result);
   }, [province, ward, address, shippingMethod, provinces, wards, products]);
 
   const validateNewAddress = () => {
@@ -289,232 +293,229 @@ export default function AddressSection({
     }
   };
 
-  // Thêm vào cuối component, trước return
-  const debugInfo = () => {
-    if (defaultAddress) {
-      console.log("=== DEBUG INFO ===");
-      console.log("Default address:", defaultAddress);
-      console.log("Current province:", province);
-      console.log("Current ward:", ward);
-      console.log("Available provinces:", provinces.map(p => ({ code: p.code, name: p.name })));
-      console.log("Available wards:", wards.map(w => ({ code: w.code, name: w.name })));
-      console.log("All wards sample:", Object.entries(allWards).slice(0, 5));
-    }
-  };
-
-  // Gọi debug khi cần
-  useEffect(() => {
-    if (defaultAddress && provinces.length > 0) {
-      debugInfo();
-    }
-  }, [defaultAddress, provinces, wards]);
-
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-6">
-      <div className="flex items-center gap-2 mb-4">
-        <span className="text-orange-500">📍</span>
-        <h2 className="text-lg font-semibold text-black">Địa chỉ thanh toán</h2>
-      </div>
-
-      {/* Quick Address Selection */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-blue-600">📍</span>
-            <span className="text-sm text-gray-700">
-              {defaultAddress ?
-                `Địa chỉ mặc định: ${defaultAddress.hoTen} - ${defaultAddress.duong}, ${defaultAddress.xa}, ${defaultAddress.thanhPho}` :
-                "Chọn từ sổ địa chỉ có sẵn"
-              }
-            </span>
-          </div>
-          <button
-            onClick={onShowAddressForm}
-            className="px-3 py-1 border border-blue-300 text-blue-700 hover:bg-blue-50 rounded text-sm"
-          >
-            Chọn địa chỉ
-          </button>
-        </div>
-      </div>
-
-      <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-black mb-1">
-            Địa chỉ <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            value={address}
-            onChange={(e) => onAddressChange(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md text-black bg-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-            placeholder="Số nhà, tên đường"
-          />
+    <Card className="p-6 border-gray-200 bg-white text-black">
+      <CardContent className="p-0 bg-white text-black">
+        <div className="flex items-center gap-2 mb-4">
+          <span className="text-orange-500">📍</span>
+          <h2 className="text-lg font-semibold">Địa chỉ thanh toán</h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-black mb-1">
-              Tỉnh/Thành phố <span className="text-red-500">*</span>
-            </label>
-            <select
-              value={province || ""}
-              onChange={(e) => onProvinceChange(e.target.value ? Number(e.target.value) : null)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-black bg-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-            >
-              <option value="">Chọn tỉnh/thành phố</option>
-              {provinces.map((p) => (
-                <option key={p.code} value={p.code} className="text-black">
-                  {p.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-black mb-1">
-              Phường/Xã <span className="text-red-500">*</span>
-            </label>
-            <select
-              value={ward || ""}
-              onChange={(e) => onWardChange(e.target.value ? Number(e.target.value) : null)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-black bg-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-              disabled={!province}
-            >
-              <option value="">Chọn phường/xã</option>
-              {wards.map((w) => (
-                <option key={w.code} value={w.code} className="text-black">
-                  {w.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        {/* Form thêm địa chỉ mới */}
-        <div className="border-t border-gray-200 pt-4">
-          <button
-            onClick={() => setShowNewAddressForm(!showNewAddressForm)}
-            className="text-orange-500 hover:text-orange-600 text-sm font-medium"
-          >
-            + Thêm địa chỉ mới
-          </button>
-
-          {showNewAddressForm && (
-            <div className="mt-4 p-4 bg-gray-50 rounded-lg space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-black mb-1">
-                    Họ tên <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={newAddressData.hoTen}
-                    onChange={(e) => setNewAddressData(prev => ({ ...prev, hoTen: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-black bg-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                    placeholder="Nhập họ tên"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-black mb-1">
-                    Số điện thoại <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={newAddressData.sdt}
-                    onChange={(e) => setNewAddressData(prev => ({ ...prev, sdt: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-black bg-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                    placeholder="Nhập số điện thoại"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-black mb-1">
-                  Địa chỉ <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={newAddressData.duong}
-                  onChange={(e) => setNewAddressData(prev => ({ ...prev, duong: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-black bg-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                  placeholder="Số nhà, tên đường"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-black mb-1">
-                    Tỉnh/Thành phố <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={newAddressData.selectedProvince || ""}
-                    onChange={(e) => setNewAddressData(prev => ({
-                      ...prev,
-                      selectedProvince: e.target.value ? Number(e.target.value) : null,
-                      selectedWard: null
-                    }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-black bg-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                  >
-                    <option value="">Chọn tỉnh/thành phố</option>
-                    {provinces.map((p) => (
-                      <option key={p.code} value={p.code} className="text-black">
-                        {p.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-black mb-1">
-                    Phường/Xã <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={newAddressData.selectedWard || ""}
-                    onChange={(e) => setNewAddressData(prev => ({
-                      ...prev,
-                      selectedWard: e.target.value ? Number(e.target.value) : null
-                    }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-black bg-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                    disabled={!newAddressData.selectedProvince}
-                  >
-                    <option value="">Chọn phường/xã</option>
-                    {newAddressData.selectedProvince &&
-                      Object.entries(allWards as Record<string, any>)
-                        .filter(([_, info]) => (info as any).parent_code === newAddressData.selectedProvince)
-                        .map(([code, info]) => (
-                          <option key={code} value={code} className="text-black">
-                            {(info as any).name}
-                          </option>
-                        ))
-                    }
-                  </select>
-                </div>
-              </div>
-
-              <div className="flex gap-2">
-                <button
-                  onClick={handleAddNewAddress}
-                  disabled={isAddingAddress}
-                  className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600 disabled:opacity-50"
-                >
-                  {isAddingAddress ? "Đang thêm..." : "Thêm địa chỉ"}
-                </button>
-                <button
-                  onClick={() => setShowNewAddressForm(false)}
-                  className="px-4 py-2 border border-gray-300 text-gray-600 rounded hover:bg-gray-50"
-                >
-                  Hủy
-                </button>
-              </div>
+        {/* Quick Address Selection */}
+        <div className="bg-white border border-blue-200 rounded-lg p-4 mb-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-blue-600">📍</span>
+              <span className="text-sm">
+                {defaultAddress ?
+                  `Địa chỉ mặc định: ${defaultAddress.hoTen} - ${defaultAddress.duong}, ${defaultAddress.xa}, ${defaultAddress.thanhPho}` :
+                  "Chọn từ sổ địa chỉ có sẵn"
+                }
+              </span>
             </div>
-          )}
+            <Button
+              variant="outline"
+              onClick={onShowAddressForm}
+              className="text-blue-700 border-blue-300 hover:bg-blue-50 bg-white"
+              size="sm"
+            >
+              Chọn địa chỉ
+            </Button>
+          </div>
         </div>
-      </div>
-    </div>
+
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Địa chỉ <span className="text-red-500">*</span>
+            </label>
+            <Input
+              type="text"
+              value={address}
+              onChange={(e) => onAddressChange(e.target.value)}
+              className="text-black bg-white"
+              placeholder="Số nhà, tên đường"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Tỉnh/Thành phố <span className="text-red-500">*</span>
+              </label>
+              <Select
+                value={province ? String(province) : ""}
+                onValueChange={val => onProvinceChange(val ? Number(val) : null)}
+              >
+                <SelectTrigger className="w-full bg-white text-black">
+                  <SelectValue placeholder="Chọn tỉnh/thành phố" />
+                </SelectTrigger>
+                <SelectContent className="bg-white text-black">
+                  {provinces.map((p) => (
+                    <SelectItem key={p.code} value={String(p.code)} className="text-black">
+                      {p.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Phường/Xã <span className="text-red-500">*</span>
+              </label>
+              <Select
+                value={ward ? String(ward) : ""}
+                onValueChange={val => onWardChange(val ? Number(val) : null)}
+                disabled={!province}
+              >
+                <SelectTrigger className="w-full bg-white text-black">
+                  <SelectValue placeholder="Chọn phường/xã" />
+                </SelectTrigger>
+                <SelectContent className="bg-white text-black">
+                  {wards.map((w) => (
+                    <SelectItem key={w.code} value={String(w.code)} className="text-black">
+                      {w.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Form thêm địa chỉ mới */}
+          <div className="border-t border-gray-200 pt-4">
+            <Button
+              variant="ghost"
+              className="text-orange-500 hover:text-orange-600 text-sm font-medium px-0 bg-white"
+              onClick={() => setShowNewAddressForm(!showNewAddressForm)}
+            >
+              + Thêm địa chỉ mới
+            </Button>
+
+            {showNewAddressForm && (
+              <div className="mt-4 p-4 bg-white rounded-lg space-y-4 border border-gray-100">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">
+                      Họ tên <span className="text-red-500">*</span>
+                    </label>
+                    <Input
+                      type="text"
+                      value={newAddressData.hoTen}
+                      onChange={(e) => setNewAddressData(prev => ({ ...prev, hoTen: e.target.value }))}
+                      placeholder="Nhập họ tên"
+                      className="bg-white text-black"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">
+                      Số điện thoại <span className="text-red-500">*</span>
+                    </label>
+                    <Input
+                      type="text"
+                      value={newAddressData.sdt}
+                      onChange={(e) => setNewAddressData(prev => ({ ...prev, sdt: e.target.value }))}
+                      placeholder="Nhập số điện thoại"
+                      className="bg-white text-black"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Địa chỉ <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    type="text"
+                    value={newAddressData.duong}
+                    onChange={(e) => setNewAddressData(prev => ({ ...prev, duong: e.target.value }))}
+                    placeholder="Số nhà, tên đường"
+                    className="bg-white text-black"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">
+                      Tỉnh/Thành phố <span className="text-red-500">*</span>
+                    </label>
+                    <Select
+                      value={newAddressData.selectedProvince ? String(newAddressData.selectedProvince) : ""}
+                      onValueChange={val =>
+                        setNewAddressData(prev => ({
+                          ...prev,
+                          selectedProvince: val ? Number(val) : null,
+                          selectedWard: null
+                        }))
+                      }
+                    >
+                      <SelectTrigger className="w-full bg-white text-black">
+                        <SelectValue placeholder="Chọn tỉnh/thành phố" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white text-black">
+                        {provinces.map((p) => (
+                          <SelectItem key={p.code} value={String(p.code)} className="text-black">
+                            {p.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-1">
+                      Phường/Xã <span className="text-red-500">*</span>
+                    </label>
+                    <Select
+                      value={newAddressData.selectedWard ? String(newAddressData.selectedWard) : ""}
+                      onValueChange={val =>
+                        setNewAddressData(prev => ({
+                          ...prev,
+                          selectedWard: val ? Number(val) : null
+                        }))
+                      }
+                      disabled={!newAddressData.selectedProvince}
+                    >
+                      <SelectTrigger className="w-full bg-white text-black">
+                        <SelectValue placeholder="Chọn phường/xã" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white text-black">
+                        {newAddressData.selectedProvince &&
+                          Object.entries(allWards as Record<string, any>)
+                            .filter(([_, info]) => (info as any).parent_code === newAddressData.selectedProvince)
+                            .map(([code, info]) => (
+                              <SelectItem key={code} value={String(code)} className="text-black">
+                                {(info as any).name}
+                              </SelectItem>
+                            ))
+                        }
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <Button
+                    onClick={handleAddNewAddress}
+                    disabled={isAddingAddress}
+                    className="bg-orange-500 text-white hover:bg-orange-600"
+                  >
+                    {isAddingAddress ? "Đang thêm..." : "Thêm địa chỉ"}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowNewAddressForm(false)}
+                    className="bg-white text-black"
+                  >
+                    Hủy
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
-
-
-
-
-

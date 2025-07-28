@@ -140,10 +140,6 @@ export default function CheckoutPage() {
       return;
     }
 
-    if (!window.confirm("Bạn xác nhận muốn đặt hàng với thông tin này?")) {
-      return;
-    }
-
     setIsLoadingOrder(true);
 
     try {

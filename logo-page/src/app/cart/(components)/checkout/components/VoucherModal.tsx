@@ -3,6 +3,12 @@ import React, { useState } from 'react';
 import { useGetPhieuGiam } from "@/hooks/usePhieuGiam";
 import type { PhieuGiamGia } from "@/components/types/phieugiam.type";
 
+// shadcn/ui components
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+
 interface VoucherModalProps {
   show: boolean;
   onClose: () => void;
@@ -21,8 +27,6 @@ export default function VoucherModal({
   const [voucherInput, setVoucherInput] = useState("");
   const [selectedVoucherCode, setSelectedVoucherCode] = useState<string>("");
   const { data: voucherList = [], isLoading: loadingVouchers } = useGetPhieuGiam();
-
-  if (!show) return null;
 
   const handleApplyVoucher = () => {
     const v = voucherList.find(
@@ -55,30 +59,29 @@ export default function VoucherModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4 max-h-[80vh] overflow-y-auto">
-        <h3 className="text-lg font-bold text-black mb-4">Chọn Voucher</h3>
+    <Dialog open={show} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-md w-full max-h-[80vh] bg-white text-black">
+        <DialogHeader>
+          <DialogTitle className="text-black">Chọn Voucher</DialogTitle>
+        </DialogHeader>
 
         <div className="flex gap-2 mb-4">
-          <input
+          <Input
             type="text"
             value={voucherInput}
             onChange={(e) => setVoucherInput(e.target.value)}
             placeholder="Mã Voucher"
-            className="border border-gray-300 rounded px-3 py-2 flex-1 text-black bg-white"
+            className="flex-1 bg-white text-black"
           />
-          <button
-            onClick={handleApplyVoucher}
-            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
-          >
+          <Button onClick={handleApplyVoucher} className="bg-blue-500 hover:bg-blue-600 text-white">
             Áp dụng
-          </button>
+          </Button>
         </div>
 
-        <div className="mb-2 font-semibold text-black">Danh sách Voucher</div>
-        <div className="max-h-60 overflow-y-auto">
+        <div className="mb-2 font-semibold">Danh sách Voucher</div>
+        <ScrollArea className="max-h-60">
           {loadingVouchers ? (
-            <div className="text-center text-gray-500 py-4">
+            <div className="text-center py-4 text-black/60">
               Đang tải phiếu giảm giá...
             </div>
           ) : (
@@ -90,17 +93,17 @@ export default function VoucherModal({
                   className={`flex items-center gap-3 border rounded-lg p-3 mb-2 cursor-pointer transition ${selectedVoucherCode === v.maPhieu
                     ? "border-orange-500 bg-orange-50"
                     : "border-gray-200"
-                    } ${notEnough ? "opacity-50 cursor-not-allowed" : ""}`}
+                    } ${notEnough ? "opacity-50 cursor-not-allowed" : ""} bg-white text-black`}
                 >
                   <span className="text-2xl">🧧</span>
                   <div className="flex-1">
                     <div className="font-bold text-orange-600">
                       {v.tenPhieu}
                     </div>
-                    <div className="text-xs text-gray-500">
+                    <div className="text-xs text-black/60">
                       HSD: {v.ngayKetThuc || "31.12.2025"}
                     </div>
-                    <div className="text-xs text-gray-500">
+                    <div className="text-xs text-black/60">
                       {v.loaiPhieuGiam === "Theo %"
                         ? `Giảm ${v.giaTriGiam}%`
                         : `Giảm ${v.giaTriGiam?.toLocaleString()}đ`}
@@ -124,23 +127,22 @@ export default function VoucherModal({
               );
             })
           )}
-        </div>
+        </ScrollArea>
 
-        <div className="flex justify-end gap-2 mt-4">
-          <button
-            className="px-4 py-2 rounded border border-gray-300 text-gray-600 hover:bg-gray-100"
-            onClick={onClose}
-          >
-            Trở lại
-          </button>
-          <button
-            className="px-6 py-2 rounded bg-orange-500 text-white font-bold hover:bg-orange-600"
+        <DialogFooter className="flex justify-end gap-2 mt-4">
+          <DialogClose asChild>
+            <Button variant="outline" onClick={onClose} className="bg-white text-black">
+              Trở lại
+            </Button>
+          </DialogClose>
+          <Button
+            className="bg-orange-500 text-white font-bold hover:bg-orange-600"
             onClick={handleOkVoucher}
           >
             OK
-          </button>
-        </div>
-      </div>
-    </div>
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
