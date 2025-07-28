@@ -9,9 +9,27 @@ import { MapPin, Plus, Edit, Trash2, Star, User, Phone, Home, Building } from "l
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogAction, AlertDialogCancel } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function AddressInfo() {
   const [showDialog, setShowDialog] = useState(false);
@@ -312,6 +330,16 @@ export default function AddressInfo() {
     }
   };
 
+  // Handle province change
+  const handleProvinceChange = (value: string) => {
+    setSelectedProvince(value);
+  };
+
+  // Handle ward change
+  const handleWardChange = (value: string) => {
+    setSelectedWard(value);
+  };
+
   if (isLoading) {
     return (
       <Card>
@@ -326,157 +354,68 @@ export default function AddressInfo() {
   }
 
   return (
-    <Card className="bg-gradient-to-br from-yellow-50 to-blue-50 border-2 border-yellow-300 shadow-lg">
-      <CardHeader className="bg-gradient-to-r from-yellow-400 to-blue-500 text-white rounded-t-lg">
-        <CardTitle className="flex items-center gap-2 text-xl font-bold">
-          <MapPin className="h-6 w-6 text-yellow-100" />
-          Thông tin địa chỉ
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="p-6">
-        <div className="space-y-4">
-          {/* Add button */}
-          <Dialog open={showDialog} onOpenChange={setShowDialog}>
-            <DialogTrigger asChild>
-              <Button
-                onClick={() => {
-                  resetForm();
-                  setShowDialog(true);
-                }}
-                className="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-semibold py-3 rounded-lg shadow-md transition-all duration-200 transform hover:scale-105"
-              >
-                <Plus className="h-5 w-5 mr-2" />
-                Thêm địa chỉ mới
-              </Button>
-            </DialogTrigger>
+    <div className="max-w-6xl mx-auto p-6 bg-white">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
+            <MapPin className="w-5 h-5 text-orange-600" />
+          </div>
+          <h1 className="text-xl font-semibold text-black">Địa chỉ nhận hàng</h1>
+        </div>
+        <Button
+          onClick={() => setShowDialog(true)}
+          className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+        >
+          <Plus className="w-4 h-4" />
+          Thêm địa chỉ
+        </Button>
+      </div>
 
-            <DialogContent className="max-w-md bg-gradient-to-br from-yellow-50 to-blue-50 border-2 border-yellow-300">
-              <DialogHeader className="bg-gradient-to-r from-yellow-400 to-blue-500 text-white p-4 -m-6 mb-4 rounded-t-lg">
-                <DialogTitle className="text-xl font-bold">
-                  {editingId ? "✏️ Sửa địa chỉ" : "➕ Thêm địa chỉ mới"}
-                </DialogTitle>
-              </DialogHeader>
+      {/* Address List */}
+      <div className="space-y-4">
+        {Array.from({ length: Math.ceil(thongTinList.length / 2) }, (_, rowIndex) => {
+          const startIndex = rowIndex * 2;
+          const rowItems = thongTinList.slice(startIndex, startIndex + 2);
 
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <label className="text-sm font-semibold text-gray-800">Họ tên</label>
-                  <Input
-                    value={formData.hoTen}
-                    onChange={(e) => setFormData(prev => ({ ...prev, hoTen: e.target.value }))}
-                    placeholder="Nhập họ tên"
-                    className="border-2 border-gray-500 focus:border-blue-500 bg-white text-black"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm font-semibold text-gray-800">Số điện thoại</label>
-                  <Input
-                    value={formData.sdt}
-                    onChange={(e) => setFormData(prev => ({ ...prev, sdt: e.target.value }))}
-                    placeholder="Nhập số điện thoại"
-                    className="border-2 border-gray-500 focus:border-blue-500 bg-white text-black"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm font-semibold text-gray-800">Tỉnh/Thành phố</label>
-                  <Select value={selectedProvince} onValueChange={setSelectedProvince}>
-                    <SelectTrigger className="border-2 border-gray-500  focus:border-blue-500 bg-white text-black">
-                      <SelectValue placeholder="Chọn tỉnh/thành phố" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white border-2 border-gray-500 text-black">
-                      {provinces.map((province) => (
-                        <SelectItem key={province.code} value={province.code} className="hover:bg-yellow-100">
-                          {province.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <label className="text-sm font-semibold text-gray-800">Xã/Phường</label>
-                  <Select value={selectedWard} onValueChange={setSelectedWard}>
-                    <SelectTrigger className="border-2 border-gray-500 focus:border-blue-500 bg-white text-black">
-                      <SelectValue placeholder="Chọn xã/phường" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white border-2border-gray-500 text-black">
-                      {wards.map((ward) => (
-                        <SelectItem key={ward.code} value={ward.code} className="hover:bg-yellow-100">
-                          {ward.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <label className="text-sm font-semibold text-gray-800">Địa chỉ đường</label>
-                  <Input
-                    value={formData.duong}
-                    onChange={(e) => setFormData(prev => ({ ...prev, duong: e.target.value }))}
-                    placeholder="Nhập địa chỉ đường"
-                    className="border-2 border-gray-500 focus:border-blue-500 bg-white text-black"
-                    required
-                  />
-                </div>
-
-                <div className="flex gap-3 pt-4">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={resetForm}
-                    className="flex-1 border-2 border-gray-400 hover:bg-gray-100 text-gray-700"
-                  >
-                    Hủy
-                  </Button>
-                  <Button
-                    type="submit"
-                    disabled={loading}
-                    className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold"
-                  >
-                    {loading ? "Đang lưu..." : editingId ? "Cập nhật" : "Thêm mới"}
-                  </Button>
-                </div>
-              </form>
-            </DialogContent>
-          </Dialog>
-
-          {/* Address list */}
-          <div className="space-y-3">
-            {thongTinList.map((item) => (
-              <div
-                key={item.id}
-                className={`p-4 rounded-lg border-2 transition-all duration-200 ${item.isMacDinh === 1
-                  ? "bg-gradient-to-r from-yellow-100 to-yellow-200 border-yellow-400 shadow-lg"
-                  : "bg-white border-gray-300 hover:border-blue-300 hover:shadow-md"
-                  }`}
-              >
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <h3 className="font-bold text-gray-800">{item.hoTen}</h3>
-                      {item.isMacDinh === 1 && (
-                        <Badge className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-black font-semibold px-2 py-1">
-                          ⭐ Mặc định
-                        </Badge>
-                      )}
-                    </div>
-                    <p className="text-gray-700 font-medium">📞 {item.sdt}</p>
-                    <p className="text-gray-600">
-                      📍 {item.duong}, {item.xa}, {item.thanhPho}
-                    </p>
+          return (
+            <div
+              key={rowIndex}
+              className={`flex gap-4 ${rowItems.length === 1 ? 'justify-center' : 'justify-between'
+                }`}
+            >
+              {rowItems.map((item) => (
+                <div
+                  key={item.id}
+                  className={`bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow ${rowItems.length === 1 ? 'w-1/2' : 'flex-1'
+                    }`}
+                >
+                  {/* Name and Default Badge */}
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-semibold text-black text-lg">{item.hoTen}</h3>
+                    {item.isMacDinh === 1 && (
+                      <Badge className="bg-orange-500 text-white px-2 py-1 text-xs rounded">
+                        Mặc định
+                      </Badge>
+                    )}
                   </div>
 
-                  <div className="flex flex-col gap-2 ml-4">
+                  {/* Phone */}
+                  <p className="text-gray-700 mb-2">{item.sdt}</p>
+
+                  {/* Address */}
+                  <p className="text-gray-600 mb-4">
+                    {item.duong}, {item.xa}, {item.thanhPho}
+                  </p>
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-2">
                     <Button
                       size="sm"
                       onClick={() => handleEdit(item)}
-                      className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-3 py-1"
+                      className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 text-sm rounded flex items-center gap-1"
                     >
-                      <Edit className="h-4 w-4 mr-1" />
+                      <Edit className="w-3 h-3" />
                       Sửa
                     </Button>
 
@@ -484,68 +423,184 @@ export default function AddressInfo() {
                       <Button
                         size="sm"
                         onClick={() => handleSetDefault(item.id)}
-                        className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-semibold px-3 py-1"
+                        className="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1 text-sm rounded flex items-center gap-1"
                       >
-                        <Star className="h-4 w-4 mr-1" />
+                        <Star className="w-3 h-3" />
                         Đặt mặc định
                       </Button>
                     )}
 
                     <Button
                       size="sm"
-                      variant="destructive"
                       onClick={() => setDeleteId(item.id)}
-                      className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 px-3 py-1"
+                      className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 text-sm rounded flex items-center gap-1"
                     >
-                      <Trash2 className="h-4 w-4 mr-1" />
+                      <Trash2 className="w-3 h-3" />
                       Xóa
                     </Button>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
+          );
+        })}
+      </div>
 
-            {thongTinList.length === 0 && (
-              <div className="text-center py-8 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg border-2 border-dashed border-gray-300">
-                <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-                <p className="text-gray-600 font-medium">Chưa có địa chỉ nào</p>
-                <p className="text-gray-500 text-sm">Thêm địa chỉ đầu tiên của bạn</p>
-              </div>
-            )}
-          </div>
-
-          {/* Delete confirmation dialog */}
-          <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
-            <AlertDialogContent className="bg-gradient-to-br from-red-50 to-red-100 border-2 border-red-300">
-              <AlertDialogHeader>
-                <AlertDialogTitle className="text-red-800 font-bold">🗑️ Xác nhận xóa</AlertDialogTitle>
-                <AlertDialogDescription className="text-red-700">
-                  Bạn có chắc chắn muốn xóa địa chỉ này không? Hành động này không thể hoàn tác.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <div className="flex gap-3 pt-4">
-                <AlertDialogCancel className="flex-1 border-2 border-gray-400 hover:bg-gray-100">
-                  Hủy
-                </AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={handleDelete}
-                  className="flex-1 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white"
-                >
-                  Xóa
-                </AlertDialogAction>
-              </div>
-            </AlertDialogContent>
-          </AlertDialog>
+      {/* Empty State */}
+      {thongTinList.length === 0 && (
+        <div className="text-center py-12">
+          <MapPin className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            Chưa có địa chỉ nào
+          </h3>
+          <p className="text-gray-500 mb-4">
+            Thêm địa chỉ đầu tiên để bắt đầu mua sắm
+          </p>
+          <Button
+            onClick={() => setShowDialog(true)}
+            className="bg-orange-500 hover:bg-orange-600 text-white"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Thêm địa chỉ mới
+          </Button>
         </div>
-      </CardContent>
-    </Card>
+      )}
+
+      {/* Add/Edit Dialog */}
+      <Dialog open={showDialog} onOpenChange={setShowDialog}>
+        <DialogContent className="sm:max-w-[500px] bg-white">
+          <DialogHeader>
+            <DialogTitle className="text-black">
+              {editingId ? "Chỉnh sửa địa chỉ" : "Thêm địa chỉ mới"}
+            </DialogTitle>
+            <DialogDescription className="text-gray-600">
+              {editingId ? "Cập nhật thông tin địa chỉ" : "Điền thông tin địa chỉ mới"}
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="hoTen" className="text-black">
+                  Họ tên <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="hoTen"
+                  value={formData.hoTen}
+                  onChange={(e) => setFormData({ ...formData, hoTen: e.target.value })}
+                  className="bg-white border-gray-300 text-black"
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="sdt" className="text-black">
+                  Số điện thoại <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="sdt"
+                  value={formData.sdt}
+                  onChange={(e) => setFormData({ ...formData, sdt: e.target.value })}
+                  className="bg-white border-gray-300 text-black"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-black">
+                  Tỉnh/Thành phố <span className="text-red-500">*</span>
+                </Label>
+                <Select value={selectedProvince} onValueChange={handleProvinceChange}>
+                  <SelectTrigger className="bg-white border-gray-300 text-black">
+                    <SelectValue placeholder="Chọn tỉnh/thành phố" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white">
+                    {provinces.map((province) => (
+                      <SelectItem key={province.code} value={province.code} className="text-black">
+                        {province.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-black">
+                  Xã/Phường <span className="text-red-500">*</span>
+                </Label>
+                <Select value={selectedWard} onValueChange={handleWardChange} disabled={!selectedProvince}>
+                  <SelectTrigger className="bg-white border-gray-300 text-black">
+                    <SelectValue placeholder="Chọn xã/phường" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white">
+                    {wards.map((ward) => (
+                      <SelectItem key={ward.code} value={ward.code} className="text-black">
+                        {ward.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="duong" className="text-black">
+                Địa chỉ cụ thể <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="duong"
+                value={formData.duong}
+                onChange={(e) => setFormData({ ...formData, duong: e.target.value })}
+                placeholder="Số nhà, tên đường..."
+                className="bg-white border-gray-300 text-black"
+                required
+              />
+            </div>
+
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowDialog(false)}
+                className="text-black border-gray-300"
+              >
+                Hủy
+              </Button>
+              <Button
+                type="submit"
+                disabled={loading}
+                className="bg-orange-500 hover:bg-orange-600 text-white"
+              >
+                {loading ? "Đang lưu..." : editingId ? "Cập nhật" : "Thêm mới"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
+        <AlertDialogContent className="bg-white">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-black">Xác nhận xóa</AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-600">
+              Bạn có chắc chắn muốn xóa địa chỉ này? Hành động này không thể hoàn tác.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="text-black border-gray-300">Hủy</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-red-500 hover:bg-red-600 text-white"
+            >
+              Xóa
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
   );
 }
-
-
-
-
-
 
 
 
