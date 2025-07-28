@@ -1,71 +1,174 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
-
-import CartSummary from "./(components)/CartSummary";
-import { getAnhByFileName } from "@/services/anhSanPhamService";
 import Header from "@/components/layout/(components)/(pages)/Header";
 import Footer from "@/components/layout/(components)/(pages)/Footer";
 import { useGetPhieuGiam } from "@/hooks/usePhieuGiam";
 import type { PhieuGiamGia } from "@/components/types/phieugiam.type";
 import CartVoucherModal from "./(components)/CartVoucherModal";
+import { CartMain } from "./(components)/CartMain";
+import { CartSummary } from "./(components)/CartSummary";
+import { CartTotalBar } from "./(components)/CartTotalBar";
+import { sanPhamService } from "@/services/sanPhamService";
+import { danhMucService } from "@/services/danhMucService";
+import { thuongHieuService } from "@/services/thuongHieuService";
+import { xuatXuService } from "@/services/xuatXuService";
+import { anhSanPhamSevice } from "@/services/anhSanPhamService";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
-import CartTotalBar from "./(components)/CartTotalBar";
-import CartMain from "./(components)/CartMain";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
 export default function CartPage() {
+  const router = useRouter();
+
+  // Cart data states
   const [items, setItems] = useState<any[]>([]);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [imageUrls, setImageUrls] = useState<Record<number, string | null>>({});
-  const [voucher, setVoucher] = useState("");
+  const [productDetails, setProductDetails] = useState<{ [key: number]: any }>({});
+  const [categoryNames, setCategoryNames] = useState<{ [key: number]: string }>({});
+  const [brandNames, setBrandNames] = useState<{ [key: number]: string }>({});
+  const [originNames, setOriginNames] = useState<{ [key: number]: string }>({});
+
+  // Voucher states
   const [discount, setDiscount] = useState(0);
   const [voucherMessage, setVoucherMessage] = useState("");
   const [showVoucherModal, setShowVoucherModal] = useState(false);
   const [selectedVoucher, setSelectedVoucher] = useState<PhieuGiamGia | null>(null);
   const [voucherInput, setVoucherInput] = useState("");
-  const [selectedVoucherCode, setSelectedVoucherCode] = useState<string>("");
-  const { data: voucherList = [], isLoading: loadingVouchers } = useGetPhieuGiam();
-  const router = useRouter();
 
-  useEffect(() => {
-    const cart = JSON.parse(localStorage.getItem("cartItems") || "[]");
-    const fixedCart = cart.map((item: any) => ({
-      ...item,
-      image: item.image && !item.image.startsWith("/") && !item.image.startsWith("http")
-        ? "/" + item.image
-        : item.image,
-    }));
-    setItems(fixedCart);
-    setSelectedIds(fixedCart.map((item: any) => item.id));
-    loadImages(fixedCart);
-  }, []);
+  const { data: voucherList = [] } = useGetPhieuGiam();
 
+  // Add states for confirmation dialogs
+  const [deleteSelectedOpen, setDeleteSelectedOpen] = useState(false);
+  const [unselectAllOpen, setUnselectAllOpen] = useState(false);
+  const [deleteItemOpen, setDeleteItemOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<number | null>(null);
+
+  // Load product details by ID
+  const loadProductDetails = async (productIds: number[]) => {
+    const details: { [key: number]: any } = {};
+
+    for (const id of productIds) {
+      if (!productDetails[id]) {
+        try {
+          const product = await sanPhamService.getSanPhamID(id);
+          details[id] = product;
+        } catch (error) {
+          console.error(`Lỗi lấy thông tin sản phẩm ${id}:`, error);
+        }
+      }
+    }
+
+    if (Object.keys(details).length > 0) {
+      setProductDetails(prev => ({ ...prev, ...details }));
+
+      // Load additional info after getting product details
+      const products = Object.values(details);
+      loadAdditionalInfo(products);
+    }
+  };
+
+  // Load category, brand, origin names
+  const loadAdditionalInfo = async (products: any[]) => {
+    const categoryIds = [...new Set(products.map(p => p.danhMucId).filter(Boolean))];
+    const brandIds = [...new Set(products.map(p => p.thuongHieuId).filter(Boolean))];
+    const originIds = [...new Set(products.map(p => p.xuatXuId).filter(Boolean))];
+
+    // Load categories
+    for (const id of categoryIds) {
+      if (!categoryNames[id]) {
+        try {
+          const category = await danhMucService.getDanhMucId(id);
+          setCategoryNames(prev => ({ ...prev, [id]: category.tenDanhMuc }));
+        } catch (error) {
+          console.error(`Error loading category ${id}:`, error);
+        }
+      }
+    }
+
+    // Load brands
+    for (const id of brandIds) {
+      if (!brandNames[id]) {
+        try {
+          const brands = await thuongHieuService.getAll();
+          const brand = brands.find(b => b.id === id);
+          if (brand) {
+            setBrandNames(prev => ({ ...prev, [id]: brand.ten }));
+          }
+        } catch (error) {
+          console.error(`Error loading brand ${id}:`, error);
+        }
+      }
+    }
+
+    // Load origins
+    for (const id of originIds) {
+      if (!originNames[id]) {
+        try {
+          const origins = await xuatXuService.getAll();
+          const origin = origins.find(o => o.id === id);
+          if (origin) {
+            setOriginNames(prev => ({ ...prev, [id]: origin.ten }));
+          }
+        } catch (error) {
+          console.error(`Error loading origin ${id}:`, error);
+        }
+      }
+    }
+  };
+
+  // Load images
   const loadImages = async (products: any[]) => {
     const urls: Record<number, string | null> = {};
     for (const product of products) {
-      let fileName = product.image;
-      if (!fileName && product.anhUrls && product.anhUrls.length > 0) {
-        fileName = product.anhUrls[0].url;
-      }
-      if (fileName) {
-        try {
-          if (fileName.startsWith("/")) fileName = fileName.slice(1);
-          console.log("Đang lấy ảnh cho:", fileName);
-          const imageBlob = await getAnhByFileName(fileName);
-          urls[product.id] = URL.createObjectURL(imageBlob);
-        } catch (error) {
-          console.log("Không lấy được ảnh cho:", fileName, error);
-          urls[product.id] = "/fallback.jpg";
+      try {
+        const images = await anhSanPhamSevice.getAnhSanPhamTheoSanPhamId(product.id);
+        if (images && images.length > 0) {
+          const mainImg = images.find(img => img.anhChinh) || images[0];
+          if (mainImg?.url) {
+            urls[product.id] = `http://localhost:8080/api/anhsp/images/${mainImg.url}`;
+          }
         }
-      } else {
-        urls[product.id] = "/fallback.jpg";
+      } catch (error) {
+        console.error(`Lỗi lấy ảnh sản phẩm ${product.id}:`, error);
+      }
+
+      if (!urls[product.id]) {
+        urls[product.id] = "/images/placeholder-product.png";
       }
     }
     setImageUrls(urls);
   };
 
+  // Initialize cart data
+  useEffect(() => {
+    const cart = JSON.parse(localStorage.getItem("cartItems") || "[]");
+
+    const fixedCart = cart.map((item: any) => ({
+      id: Number(item.id) || 0,
+      name: item.name || item.tenSanPham || "Sản phẩm không tên",
+      price: Number(item.price) || Number(item.gia) || Number(item.giaKhuyenMai) || 0,
+      quantity: Number(item.quantity) || Number(item.soLuong) || 1,
+    }));
+
+    setItems(fixedCart);
+    setSelectedIds(fixedCart.map((item: any) => item.id));
+
+    const productIds = fixedCart.map(item => item.id);
+    if (productIds.length > 0) {
+      loadProductDetails(productIds);
+      loadImages(fixedCart);
+    }
+  }, []);
+
+  // Cart actions
   const handleQuantityChange = (id: number, delta: number) => {
-    setItems((prev) => {
+    setItems((prev: any[]) => {
       const updated = prev.map((item) =>
         item.id === id
           ? { ...item, quantity: Math.max(1, item.quantity + delta) }
@@ -77,148 +180,246 @@ export default function CartPage() {
   };
 
   const handleRemove = (id: number) => {
-    setItems((prev) => {
-      const updated = prev.filter((item) => item.id !== id);
-      localStorage.setItem("cartItems", JSON.stringify(updated));
-      setSelectedIds((prevIds) => prevIds.filter((sid) => sid !== id));
-      return updated;
-    });
+    setItemToDelete(id);
+    setDeleteItemOpen(true);
   };
 
-  // Chọn/bỏ chọn từng sản phẩm
   const handleSelect = (id: number) => {
-    setSelectedIds((prev) =>
+    setSelectedIds((prev: number[]) =>
       prev.includes(id) ? prev.filter((sid) => sid !== id) : [...prev, id]
     );
   };
 
-  // Chọn/bỏ chọn tất cả sản phẩm
-  const allSelected = items.length > 0 && selectedIds.length === items.length;
   const handleSelectAll = () => {
+    const allSelected = items.length > 0 && selectedIds.length === items.length;
     if (allSelected) {
-      setSelectedIds([]);
+      // Show confirmation for unselect all
+      setUnselectAllOpen(true);
     } else {
       setSelectedIds(items.map((item) => item.id));
     }
   };
 
-  // Tổng tiền chỉ tính các sản phẩm được chọn
-  const selectedItems = items.filter((item) => selectedIds.includes(item.id));
-  const total = selectedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-
-  // Hàm kiểm tra mã giảm giá (ví dụ đơn giản, bạn có thể thay bằng API)
-  const handleApplyVoucher = () => {
-    const v = voucherList.find(v => v.maPhieu?.toLowerCase() === voucherInput.trim().toLowerCase());
-    if (v) {
-      setSelectedVoucher(v);
-      setSelectedVoucherCode(v.maPhieu || "");
-      setVoucherMessage(`Áp dụng: ${v.tenPhieu}`);
-      if (v.loaiPhieuGiam === 'Theo %') setDiscount((v.giaTriGiam || 0) / 100);
-      else if (v.loaiPhieuGiam === 'Theo số tiền') setDiscount(v.giaTriGiam || 0);
-    } else {
-      setDiscount(0);
-      setVoucherMessage("Mã giảm giá không hợp lệ.");
-      setSelectedVoucher(null);
-      setSelectedVoucherCode("");
-    }
-    setShowVoucherModal(false);
-    setVoucherInput("");
-  };
-
-  const handleSelectVoucherRadio = (code: string) => {
-    setSelectedVoucherCode(code);
-  };
-
-  const handleOkVoucher = () => {
-    const v = voucherList.find(v => v.maPhieu === selectedVoucherCode);
-    if (v) {
-      setSelectedVoucher(v);
-      setVoucherMessage(`Áp dụng: ${v.tenPhieu}`);
-      if (v.loaiPhieuGiam === 'Theo %') setDiscount((v.giaTriGiam || 0) / 100);
-      else if (v.loaiPhieuGiam === 'Theo số tiền') setDiscount(v.giaTriGiam || 0);
-
-      // Lưu vào localStorage để đồng bộ với checkout
-      localStorage.setItem("selectedVoucher", JSON.stringify(v));
-      localStorage.setItem(
-        "checkoutDiscount",
-        String(
-          v.loaiPhieuGiam === 'Theo %'
-            ? (v.giaTriGiam || 0) / 100
-            : v.giaTriGiam || 0
-        )
-      );
-      localStorage.setItem("selectedVoucherCode", v.maPhieu || "");
-    }
-    setShowVoucherModal(false);
-  };
-
-  // Tính tổng sau giảm giá
-  let totalAfterDiscount = total;
-  if (discount > 0 && discount < 1) {
-    totalAfterDiscount = total - total * discount;
-  } else if (discount >= 1) {
-    totalAfterDiscount = total - discount;
-  }
-  if (totalAfterDiscount < 0) totalAfterDiscount = 0;
-
-  // Thêm hàm xử lý khi nhấn Mua Hàng
   const handleCheckout = () => {
+    if (selectedItems.length === 0) {
+      alert("Vui lòng chọn ít nhất một sản phẩm để thanh toán!");
+      return;
+    }
     localStorage.setItem("checkoutItems", JSON.stringify(selectedItems));
+    localStorage.setItem("checkoutDiscount", String(totalAfterDiscount));
     router.push("/cart/checkout");
   };
 
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('vi-VN').format(amount) + 'đ';
+  };
+
+  const selectedItems = items.filter(item => selectedIds.includes(item.id));
+  const subtotal = selectedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const totalAfterDiscount = Math.max(0, subtotal - discount);
+
+  const handleApplyVoucher = () => {
+    const voucher = voucherList.find(v => v.maPhieu === voucherInput);
+    if (voucher) {
+      const discountAmount = voucher.loaiGiam === 'PERCENT'
+        ? (subtotal * voucher.giaTriGiam) / 100
+        : voucher.giaTriGiam;
+
+      setDiscount(Math.min(discountAmount, voucher.giamToiDa || discountAmount));
+      setSelectedVoucher(voucher);
+      setVoucherMessage("Áp dụng voucher thành công!");
+    } else {
+      setVoucherMessage("Mã voucher không hợp lệ!");
+    }
+  };
+
+  // Add function to handle delete selected items
+  const handleDeleteSelected = () => {
+    if (selectedItems.length === 0) {
+      alert("Vui lòng chọn ít nhất một sản phẩm để xóa!");
+      return;
+    }
+    setDeleteSelectedOpen(true);
+  };
+
+  const confirmDeleteSelected = () => {
+    selectedIds.forEach(id => {
+      setItems((prev) => {
+        const updated = prev.filter((item) => item.id !== id);
+        localStorage.setItem("cartItems", JSON.stringify(updated));
+        return updated;
+      });
+    });
+    setSelectedIds([]);
+    setDeleteSelectedOpen(false);
+    toast.success(`Đã xóa ${selectedItems.length} sản phẩm khỏi giỏ hàng!`);
+  };
+
+  const confirmUnselectAll = () => {
+    setSelectedIds([]);
+    setUnselectAllOpen(false);
+    toast.success("Đã bỏ chọn tất cả sản phẩm!");
+  };
+
+  const confirmDeleteItem = () => {
+    if (itemToDelete) {
+      setItems((prev: any[]) => {
+        const updated = prev.filter((item) => item.id !== itemToDelete);
+        localStorage.setItem("cartItems", JSON.stringify(updated));
+        setSelectedIds((prevIds: number[]) => prevIds.filter((sid) => sid !== itemToDelete));
+        return updated;
+      });
+      setDeleteItemOpen(false);
+      setItemToDelete(null);
+      toast.success("Đã xóa sản phẩm khỏi giỏ hàng!");
+    }
+  };
+
   return (
-    <>
+    <div className="min-h-screen bg-gray-50">
       <Header />
-      <div className="max-w-6xl mx-auto p-4 mt-8 text-black">
-        <h1 className="text-2xl font-bold mb-4">Giỏ Hàng</h1>
-        {items.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-500 text-lg mb-4">Giỏ hàng của bạn đang trống</p>
-            <button
-              onClick={() => router.push("/product")}
-              className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-6 py-2 rounded"
-            >
-              Tiếp tục mua sắm
-            </button>
-          </div>
-        ) : (
-          <>
-            <CartVoucherModal
-              show={showVoucherModal}
-              onClose={() => setShowVoucherModal(false)}
-              voucherList={voucherList}
-              loadingVouchers={loadingVouchers}
-              total={total}
-              selectedVoucherCode={selectedVoucherCode}
-              onSelectVoucherRadio={handleSelectVoucherRadio}
-              voucherInput={voucherInput}
-              setVoucherInput={setVoucherInput}
-              handleApplyVoucher={handleApplyVoucher}
-              handleOkVoucher={handleOkVoucher}
-            />
-            <CartMain
-              items={items}
-              onRemove={handleRemove}
-              onQuantityChange={handleQuantityChange}
-              selectedIds={selectedIds}
-              onSelect={handleSelect}
-              onSelectAll={handleSelectAll}
-              allSelected={allSelected}
-              imageUrls={imageUrls}
-            />
-            <CartTotalBar
-              selectedItems={selectedItems}
-              total={total}
-              totalAfterDiscount={totalAfterDiscount}
-              selectedVoucher={selectedVoucher}
-              onShowVoucherModal={() => setShowVoucherModal(true)}
-              onCheckout={handleCheckout}
-            />
-          </>
-        )}
+
+      <div className="max-w-6xl mx-auto p-6">
+        <div className="flex items-center gap-4 mb-6">
+          <Button
+            variant="ghost"
+            onClick={() => router.back()}
+            className="text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Quay lại
+          </Button>
+          <h1 className="text-2xl font-bold text-gray-900">Giỏ hàng của bạn</h1>
+        </div>
+
+        <div className="flex gap-6">
+          <CartMain
+            items={items}
+            selectedIds={selectedIds}
+            imageUrls={imageUrls}
+            productDetails={productDetails}
+            categoryNames={categoryNames}
+            brandNames={brandNames}
+            originNames={originNames}
+            onSelect={handleSelect}
+            onSelectAll={handleSelectAll}
+            onQuantityChange={handleQuantityChange}
+            onRemove={handleRemove}
+            formatCurrency={formatCurrency}
+            onDeleteSelected={handleDeleteSelected}
+          />
+
+          <CartSummary
+            selectedItems={selectedItems}
+            discount={discount}
+            selectedVoucher={selectedVoucher}
+            voucherInput={voucherInput}
+            voucherMessage={voucherMessage}
+            onVoucherInputChange={setVoucherInput}
+            onApplyVoucher={handleApplyVoucher}
+            onShowVoucherModal={() => setShowVoucherModal(true)}
+            onCheckout={handleCheckout}
+            formatCurrency={formatCurrency}
+          />
+        </div>
+
+
       </div>
+
+      <CartVoucherModal
+        show={showVoucherModal}
+        onClose={() => setShowVoucherModal(false)}
+        voucherList={voucherList}
+        loadingVouchers={false}
+        total={subtotal}
+        selectedVoucherCode={selectedVoucher?.maPhieu || ""}
+        onSelectVoucherRadio={(code) => {
+          const voucher = voucherList.find(v => v.maPhieu === code);
+          if (voucher) {
+            setSelectedVoucher(voucher);
+            setVoucherInput(code);
+          }
+        }}
+        voucherInput={voucherInput}
+        setVoucherInput={setVoucherInput}
+        handleApplyVoucher={handleApplyVoucher}
+        handleOkVoucher={() => setShowVoucherModal(false)}
+      />
+
       <Footer />
-    </>
+
+      {/* Add AlertDialog for delete confirmation */}
+      <AlertDialog open={deleteSelectedOpen} onOpenChange={setDeleteSelectedOpen}>
+        <AlertDialogContent className="bg-white">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-black">Xác nhận xóa sản phẩm</AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-600">
+              Bạn có chắc chắn muốn xóa {selectedIds.length} sản phẩm đã chọn khỏi giỏ hàng?
+              Hành động này không thể hoàn tác.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="text-black border-gray-300">Hủy</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteSelected}
+              className="bg-red-500 hover:bg-red-600 text-white"
+            >
+              Xóa
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* AlertDialog for unselect all confirmation */}
+      <AlertDialog open={unselectAllOpen} onOpenChange={setUnselectAllOpen}>
+        <AlertDialogContent className="bg-white">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-black">Xác nhận bỏ chọn</AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-600">
+              Bạn có chắc chắn muốn bỏ chọn tất cả {items.length} sản phẩm?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="text-black border-gray-300">Hủy</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmUnselectAll}
+              className="bg-orange-500 hover:bg-orange-600 text-white"
+            >
+              Bỏ chọn tất cả
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* AlertDialog for delete single item confirmation */}
+      <AlertDialog open={deleteItemOpen} onOpenChange={setDeleteItemOpen}>
+        <AlertDialogContent className="bg-white">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-black">Xác nhận xóa sản phẩm</AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-600">
+              Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng?
+              Hành động này không thể hoàn tác.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="text-black border-gray-300">Hủy</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteItem}
+              className="bg-red-500 hover:bg-red-600 text-white"
+            >
+              Xóa
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
   );
 }
+
+
+
+
+
+
+
+
