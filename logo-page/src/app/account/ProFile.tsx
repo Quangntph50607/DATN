@@ -37,11 +37,7 @@ export default function ProFile() {
 
   // Lấy địa chỉ mặc định
   const { data: thongTinList = [] } = useThongTinNguoiNhan(currentUserId || 0);
-  const defaultAddress = thongTinList.find(item => item.isMacDinh === 1);
-
-  // Mutations cho thông tin tài khoản
-  const createThongTinMutation = useCreateThongTin();
-  const updateThongTinMutation = useUpdateThongTin();
+  const defaultAddress = thongTinList.find(item => item.isMacDinh === true);
 
   // State cho địa chỉ
   const [provinces, setProvinces] = useState<any[]>([]);
@@ -56,9 +52,9 @@ export default function ProFile() {
     email: user?.email || "",
     sdt: user?.sdt || "",
     ngaySinh: user?.ngaySinh,
-    duong: "",
-    xa: "",
-    thanhPho: "",
+    duong: defaultAddress?.duong || "",
+    xa: defaultAddress?.xa || "",
+    thanhPho: defaultAddress?.thanhPho || "",
   });
 
   // Fetch danh sách tỉnh và xã/phường từ public/data
@@ -185,6 +181,11 @@ export default function ProFile() {
       return;
     }
 
+    if (!personalData.duong.trim() || !personalData.xa.trim() || !personalData.thanhPho.trim()) {
+      toast.error("Vui lòng điền đầy đủ thông tin địa chỉ");
+      return;
+    }
+
     const formData = {
       ten: personalData.ten,
       sdt: personalData.sdt,
@@ -206,9 +207,9 @@ export default function ProFile() {
     setIsLoading(true);
 
     try {
-      const diaChi = defaultAddress
-        ? `${defaultAddress.duong}, ${defaultAddress.xa}, ${defaultAddress.thanhPho}`
-        : user?.diaChi || "";
+      const diaChi = pendingFormData.duong && pendingFormData.xa && pendingFormData.thanhPho
+        ? `${pendingFormData.duong}, ${pendingFormData.xa}, ${pendingFormData.thanhPho}`
+        : "Địa chỉ không xác định";
 
       await accountService.updateAccount(currentUserId, {
         ten: pendingFormData.ten,
@@ -492,7 +493,7 @@ export default function ProFile() {
               <div className="flex items-center gap-3 p-3 bg-white border border-gray-200 rounded-lg">
                 <User className="w-5 h-5 text-gray-500" />
                 <span className="text-black font-medium">
-                  {user?.ten || "Nguyễn Văn A"}
+                  {user?.ten}
                 </span>
               </div>
             </div>
@@ -505,7 +506,7 @@ export default function ProFile() {
               <div className="flex items-center gap-3 p-3 bg-white border border-gray-200 rounded-lg">
                 <Phone className="w-5 h-5 text-gray-500" />
                 <span className="text-black font-medium">
-                  {user?.sdt || "0123456789"}
+                  {user?.sdt || "chưa cập nhật"}
                 </span>
               </div>
             </div>
@@ -518,7 +519,7 @@ export default function ProFile() {
               <div className="flex items-center gap-3 p-3 bg-white border border-gray-200 rounded-lg">
                 <Mail className="w-5 h-5 text-gray-500" />
                 <span className="text-black font-medium">
-                  {user?.email || "nguyenvana@email.com"}
+                  {user?.email}
                 </span>
               </div>
             </div>
@@ -533,7 +534,7 @@ export default function ProFile() {
                 <span className="text-black font-medium">
                   {user?.ngaySinh ?
                     (typeof user.ngaySinh === 'string' ? user.ngaySinh : format(new Date(user.ngaySinh), "dd/MM/yyyy"))
-                    : "01/01/1990"
+                    : "Chưa cập nhật"
                   }
                 </span>
               </div>
@@ -547,10 +548,7 @@ export default function ProFile() {
               <div className="flex items-start gap-3 p-3 bg-white border border-gray-200 rounded-lg">
                 <MapPin className="w-5 h-5 text-gray-500 mt-0.5" />
                 <span className="text-black font-medium">
-                  {defaultAddress
-                    ? `${defaultAddress.duong}, ${defaultAddress.xa}, ${defaultAddress.thanhPho}`
-                    : "123 Đường ABC, Phường XYZ, Quận 1, TP.HCM"
-                  }
+                  {user.diaChi}
                 </span>
               </div>
             </div>
@@ -560,5 +558,3 @@ export default function ProFile() {
     </div>
   );
 }
-
-

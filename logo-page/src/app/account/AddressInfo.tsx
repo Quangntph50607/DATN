@@ -215,7 +215,7 @@ export default function AddressInfo() {
       duong: item.duong,
       xa: item.xa,
       thanhPho: item.thanhPho,
-      isMacDinh: item.isMacDinh, // Giữ nguyên trạng thái mặc định hiện tại
+      isMacDinh: 1 || 0, // Giữ nguyên trạng thái mặc định hiện tại
       idUser: currentUserId || 0
     });
 
@@ -393,7 +393,7 @@ export default function AddressInfo() {
                   {/* Name and Default Badge */}
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="font-semibold text-black text-lg">{item.hoTen}</h3>
-                    {item.isMacDinh === 1 && (
+                    {item.isMacDinh === true && (
                       <Badge className="bg-orange-500 text-white px-2 py-1 text-xs rounded">
                         Mặc định
                       </Badge>
@@ -419,7 +419,7 @@ export default function AddressInfo() {
                       Sửa
                     </Button>
 
-                    {item.isMacDinh !== 1 && (
+                    {item.isMacDinh === false && (
                       <Button
                         size="sm"
                         onClick={() => handleSetDefault(item.id)}
