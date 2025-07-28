@@ -1,6 +1,6 @@
 "use client";
 
-import { ProductData } from "@/lib/sanphamschema";
+import { ProductData, ProductDataWithoutFiles } from "@/lib/sanphamschema";
 import SanPhamForm from "./SanPhamForm";
 import SanPhamTable from "./SanPhamTable";
 import {
@@ -51,7 +51,7 @@ export default function SanPhamPage() {
     console.log("edit id:", editSanPham?.id);
   }, [editSanPham]);
 
-  const handleSubmit = async (data: ProductData, id?: number) => {
+  const handleSubmit = async (data: ProductData | ProductDataWithoutFiles, id?: number) => {
     try {
       if (id) {
         await editSanPhamMutation.mutateAsync({ id, data });

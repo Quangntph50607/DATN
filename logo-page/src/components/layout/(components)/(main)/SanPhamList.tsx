@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState } from "react";
 
 import {
   Card,
@@ -14,8 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 
 import { KhuyenMaiTheoSanPham } from "@/components/types/khuyenmai-type";
-import { ShoppingCart, ChevronLeft, ChevronRight, Heart, Star } from "lucide-react";
-import { toast } from "sonner";
+import { ShoppingCart, Heart } from "lucide-react";
 import { motion } from "framer-motion";
 import { useDanhMucID } from "@/hooks/useDanhMuc";
 
@@ -42,7 +41,7 @@ const getMainImageUrl = (product: KhuyenMaiTheoSanPham) => {
   const anhUrls = product.anhUrls;
 
   if (!anhUrls || anhUrls.length === 0) {
-    return '/images/placeholder-product.png';
+    return '/images/avatar-admin.png';
   }
 
   // Tìm ảnh chính (anhChinh: true)
@@ -53,34 +52,33 @@ const getMainImageUrl = (product: KhuyenMaiTheoSanPham) => {
     return `http://localhost:8080/api/anhsp/images/${imgToUse.url}`;
   }
 
-  return '/images/placeholder-product.png';
+  return '/images/avatar-admin.png';
 };
 
 export default function SanPhamList({ ps }: SanPhamListProps) {
-  const [currentPage, setCurrentPage] = useState(1);
   const [isClient, setIsClient] = useState(false);
-  const itemsPerPage = 6;
+  const [showAddToCartSuccess, setShowAddToCartSuccess] = useState(false);
+
+  console.log(`SanPhamList: Nhận được ${ps.length} sản phẩm`);
 
   // Fix hydration mismatch
   useEffect(() => {
     setIsClient(true);
   }, []);
 
-  // Memoize pagination calculations
-  const totalPages = useMemo(() => Math.ceil(ps.length / itemsPerPage), [ps.length]);
-
-  const paginatedProducts = useMemo(() =>
-    ps.slice(
-      (currentPage - 1) * itemsPerPage,
-      currentPage * itemsPerPage
-    ), [ps, currentPage, itemsPerPage]
-  );
-
   // Hàm thêm vào giỏ hàng localStorage
   const addToCartLocal = (sp: KhuyenMaiTheoSanPham) => {
     if (!isClient) return;
 
-    const cart: Array<{ id: number, name: string, image: string, price: number, quantity: number }> = JSON.parse(localStorage.getItem("cartItems") || "[]");
+    let cart: Array<{ id: number, name: string, image: string, price: number, quantity: number }> = [];
+    try {
+      const cartData = localStorage.getItem("cartItems");
+      cart = cartData ? JSON.parse(cartData) : [];
+    } catch (error) {
+      console.error("Lỗi khi đọc giỏ hàng từ localStorage:", error);
+      cart = [];
+    }
+
     const index = cart.findIndex((item: { id: number }) => item.id === sp.id);
     if (index !== -1) {
       cart[index].quantity += 1;
@@ -96,26 +94,39 @@ export default function SanPhamList({ ps }: SanPhamListProps) {
       });
     }
     localStorage.setItem("cartItems", JSON.stringify(cart));
-    toast.success("🛒 Đã thêm vào giỏ hàng!", {
-      description: `${sp.tenSanPham} đã được thêm vào giỏ hàng`,
-      duration: 3000,
-    });
+    // Trigger custom event để Header cập nhật ngay lập tức
+    window.dispatchEvent(new Event("cartUpdated"));
+    // Hiển thị thông báo thành công
+    setShowAddToCartSuccess(true);
+    setTimeout(() => {
+      setShowAddToCartSuccess(false);
+    }, 3000);
   };
 
-  // Badge logic cải tiến
+  // Badge logic cải tiến - thay đổi thứ tự ưu tiên
   const getProductBadge = (product: KhuyenMaiTheoSanPham) => {
+    // 1. Khuyến mãi (ưu tiên cao nhất)
     if (product.giaKhuyenMai && product.giaKhuyenMai < product.gia) {
-      const discountPercent = Math.round(((product.gia - product.giaKhuyenMai) / product.gia) * 100);
-      return { text: `-${discountPercent}%`, color: "bg-red-500" };
+      return { text: "Khuyến mãi", color: "bg-red-500 text-white" };
     }
+
+    // 2. Hàng mới (ưu tiên thứ 2)
+    if (product.id >= 20) {
+      return { text: "Hàng mới", color: "bg-green-500 text-white" };
+    }
+
+    // 3. Hàng hiếm (ưu tiên thứ 3)
     const price = product.giaKhuyenMai || product.gia;
     if (price >= 3000000) {
-      return { text: "Premium", color: "bg-purple-600" };
+      return { text: "Hàng hiếm", color: "bg-purple-600 text-white" };
     }
+
+    // 4. Nổi bật (ưu tiên thấp nhất)
     if (product.noiBat) {
-      return { text: "Hot", color: "bg-orange-500" };
+      return { text: "Nổi bật", color: "bg-blue-600 text-white" };
     }
-    return { text: "New", color: "bg-green-500" };
+
+    return { text: "", color: "" };
   };
 
   // Render loading state during hydration
@@ -138,189 +149,146 @@ export default function SanPhamList({ ps }: SanPhamListProps) {
   }
 
   return (
-    <div className="min-h-screen">
-      {/* Header */}
-      <div className="mb-8">
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">Sản phẩm nổi bật</h2>
-        <p className="text-gray-600">Khám phá những sản phẩm tuyệt vời nhất của chúng tôi</p>
-      </div>
+    <>
+      <div className="min-h-screen pt-5">
+        {/* Product Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6 mb-8">
+          {ps.map((p, idx) => {
+            const badge = getProductBadge(p);
+            const mainImageUrl = getMainImageUrl(p);
 
-      {/* Product Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6 mb-8">
-        {paginatedProducts.map((p, idx) => {
-          const badge = getProductBadge(p);
-          const mainImageUrl = getMainImageUrl(p);
-
-          // Tính phần trăm giảm giá
-          const discountPercent = p.giaKhuyenMai && p.giaKhuyenMai < p.gia
-            ? Math.round(((p.gia - p.giaKhuyenMai) / p.gia) * 100)
-            : 0;
-
-          return (
-            <motion.div
-              key={`product-${p.id}-${currentPage}`}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: idx * 0.1 }}
-              viewport={{ once: true }}
-            >
-              <Card className="group overflow-hidden rounded-2xl shadow-md hover:shadow-xl border-0 bg-white transition-all duration-300 hover:-translate-y-1">
-                <CardHeader className="p-0 relative">
-                  <div className="relative w-full h-64 overflow-hidden">
-                    {/* Badge */}
-                    <div className="absolute top-3 left-3 z-20">
-                      <span className={`${badge.color} text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg`}>
-                        {badge.text}
-                      </span>
-                    </div>
-
-                    {/* Heart Icon */}
-                    <div className="absolute top-3 right-3 z-20">
-                      <Button
-                        className="bg-white/90 hover:bg-white rounded-full shadow-lg backdrop-blur-sm transition-all duration-200 hover:scale-110 w-10 h-10 flex items-center justify-center"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                        }}
-                        type="button"
-                      >
-                        <Heart className="w-4 h-4 text-gray-600 hover:text-red-500 transition-colors" />
-                      </Button>
-                    </div>
-
-                    {/* Product Image */}
-                    <Link href={`/product/${p.id}`} className="block w-full h-full">
-                      <div className="relative w-full h-full bg-gradient-to-br from-gray-50 to-gray-100 group-hover:from-blue-50 group-hover:to-blue-100 transition-all duration-300">
-                        <Image
-                          src={mainImageUrl}
-                          alt={p.tenSanPham}
-                          fill
-                          className="object-contain p-4 group-hover:scale-105 transition-transform duration-300"
-                          loading="lazy"
-                        />
-                      </div>
-                    </Link>
-                  </div>
-                </CardHeader>
-
-                <CardContent className="p-5">
-                  <div className="mb-3">
-                    <CategoryName danhMucId={p.danhMucId} />
-                    <div className="flex items-center justify-between">
-                      <div className="text-xs text-gray-400 font-mono">
-                        #{p.maSanPham}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                        <span className="text-xs text-gray-500">4.8</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <Link href={`/product/${p.id}`}>
-                    <CardTitle className="text-lg font-bold line-clamp-2 h-[56px] text-gray-900 group-hover:text-blue-700 transition-colors duration-200 mb-3 leading-tight">
-                      {p.tenSanPham}
-                    </CardTitle>
-                  </Link>
-
-                  <div className="flex items-center gap-2 mb-4">
-                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">
-                      {p.doTuoi}+ tuổi
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex flex-col">
-                      <div className="text-xl font-bold text-blue-600">
-                        {(p.giaKhuyenMai || p.gia).toLocaleString("vi-VN")}₫
-                      </div>
-                      {p.giaKhuyenMai && p.giaKhuyenMai < p.gia && (
-                        <div className="text-sm text-gray-400 line-through">
-                          {p.gia.toLocaleString("vi-VN")}₫
-                        </div>
-                      )}
-                    </div>
-                    {discountPercent > 0 && (
-                      <div className="text-sm font-bold text-red-500">
-                        Tiết kiệm {discountPercent}%
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-
-                <CardFooter className="p-5 pt-0">
-                  <div className="flex gap-3 w-full">
-                    <button
-                      className="flex-1 bg-gradient-to-r from-violet-50-50 bg-yellow-400 text-blue-800 hover:bg-yellow-500 text-white rounded-xl font-semibold h-11 shadow-lg hover:shadow-xl transition-all duration-200 inline-flex items-center justify-center gap-2"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        addToCartLocal(p);
-                      }}
-                      type="button"
-                    >
-                      <ShoppingCart className="w-4 h-4" />
-                      Thêm vào giỏ
-                    </button>
-                    <Button
-                      className="h-11 w-11 border border-gray-200 hover:bg-red-50 hover:border-red-300 rounded-xl transition-all duration-200 inline-flex items-center justify-center"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                      }}
-                      type="button"
-                    >
-                      <Heart className="w-4 h-4 text-gray-600" />
-                    </Button>
-                  </div>
-                </CardFooter>
-              </Card>
-            </motion.div>
-          );
-        })}
-      </div>
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex justify-center items-center gap-3 mt-12 pb-8">
-          <button
-            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-            disabled={currentPage === 1}
-            className="px-4 py-2 rounded-xl border border-gray-200 hover:bg-blue-50 hover:border-blue-300 disabled:opacity-50 inline-flex items-center gap-1 transition-colors"
-            type="button"
-          >
-            <ChevronLeft className="w-4 h-4" />
-            Trước
-          </button>
-
-          <div className="flex gap-2">
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-              <button
-                key={page}
-                onClick={() => setCurrentPage(page)}
-                className={`w-10 h-10 rounded-xl transition-colors ${currentPage === page
-                  ? "bg-blue-600 text-white shadow-lg"
-                  : "border border-gray-200 hover:bg-blue-50 hover:border-blue-300"
-                  }`}
-                type="button"
+            return (
+              <motion.div
+                key={`product-${p.id}`}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: idx * 0.1 }}
+                viewport={{ once: true }}
               >
-                {page}
-              </button>
-            ))}
-          </div>
+                <Link href={`/product/${p.id}`} className="block">
+                  <Card className="group overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl border border-gray-100 bg-white transition-all duration-300 hover:-translate-y-1 hover:scale-105">
+                    <CardHeader className="p-0 relative">
+                      <div className="relative w-full h-64 overflow-hidden">
+                        {/* Badge */}
+                        {badge.text && (
+                          <div className="absolute top-3 left-3 z-20">
+                            <span className={`${badge.color} px-3 py-1 rounded-full text-xs font-medium shadow-sm group-hover:scale-110 transition-transform duration-200`}>
+                              {badge.text}
+                            </span>
+                          </div>
+                        )}
 
-          <button
-            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-            disabled={currentPage === totalPages}
-            className="px-4 py-2 rounded-xl border border-gray-200 hover:bg-blue-50 hover:border-blue-300 disabled:opacity-50 inline-flex items-center gap-1 transition-colors"
-            type="button"
-          >
-            Sau
-            <ChevronRight className="w-4 h-4" />
-          </button>
+                        {/* Heart Icon */}
+                        <div className="absolute top-3 right-3 z-20">
+                          <Button
+                            className="bg-white/90 hover:bg-white rounded-full shadow-lg backdrop-blur-sm transition-all duration-200 hover:scale-110 w-10 h-10 flex items-center justify-center"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                            }}
+                            type="button"
+                          >
+                            <Heart className="w-4 h-4 text-gray-600 hover:text-red-500 transition-colors" />
+                          </Button>
+                        </div>
+
+                        {/* Product Image */}
+                        <div className="relative w-full h-full">
+                          <Image
+                            src={mainImageUrl}
+                            alt={p.tenSanPham}
+                            fill
+                            className="object-contain p-4 group-hover:scale-105 transition-transform duration-300"
+                            loading="lazy"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.src = '/images/avatar-admin.png';
+                              console.error(`Lỗi tải ảnh sản phẩm: ${p.tenSanPham}`);
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </CardHeader>
+
+                    <CardContent className="p-4 pb-1">
+                      <div className="mb-2">
+                        <div className="flex items-center justify-between">
+                          <CategoryName danhMucId={p.danhMucId} />
+                          <div className="text-xs text-gray-400">
+                            {p.maSanPham}
+                          </div>
+                        </div>
+                      </div>
+
+                      <CardTitle className="text-base font-semibold line-clamp-2 h-[44px] text-gray-800 group-hover:text-blue-600 transition-colors mb-2">
+                        {p.tenSanPham}
+                      </CardTitle>
+                      <div className="flex items-center gap-2 mb-4">
+                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">
+                          Độ tuổi: {p.doTuoi}+
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between mb-0 pb-0">
+                        <div className="text-lg font-bold text-gray-800">
+                          {(p.giaKhuyenMai || p.gia).toLocaleString("vi-VN")}₫
+                        </div>
+                        {p.giaKhuyenMai && p.giaKhuyenMai < p.gia && (
+                          <div className="text-xs text-gray-400 line-through">
+                            {p.gia.toLocaleString("vi-VN")}₫
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+
+                    <CardFooter className="p-3 pt-0">
+                      <div className="flex gap-3 w-full">
+                        <Button
+                          className="flex-1 bg-orange-500 text-white hover:bg-orange-600 rounded-xl font-semibold h-11 shadow-lg hover:shadow-xl transition-all duration-200 inline-flex items-center justify-center gap-2 group-hover:scale-105"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            addToCartLocal(p);
+                          }}
+                        >
+                          <ShoppingCart className="w-4 h-4" />
+                          Thêm vào giỏ hàng
+                        </Button>
+                        <Button
+                          className="h-11 w-11 border border-gray-200 hover:bg-red-50 hover:border-red-300 rounded-xl transition-all duration-200 inline-flex items-center justify-center group-hover:scale-105"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                          }}
+                        >
+                          <Heart className="w-4 h-4 text-gray-600" />
+                        </Button>
+                      </div>
+                    </CardFooter>
+                  </Card>
+                </Link>
+              </motion.div>
+            );
+          })}
         </div>
-      )}
-    </div>
+
+        {/* Thông báo thêm giỏ hàng thành công */}
+        {showAddToCartSuccess && (
+          <div className="fixed inset-0 bg-opacity-30 flex items-center justify-center z-50">
+            <div className="bg-gray-800 rounded-xl p-8 flex flex-col items-center shadow-2xl max-w-sm w-full mx-4 border border-gray-700">
+              <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mb-6">
+                <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <p className="text-xl font-semibold text-white text-center leading-tight">
+                Sản phẩm đã được thêm vào Giỏ hàng
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+    </>
   );
 }
 
