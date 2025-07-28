@@ -28,10 +28,10 @@ export const phieuGiamGiaSchema = z
     ngayKetThuc: z.date({ required_error: "Vui lòng chọn ngày kết thúc" }),
     noiBat: z.boolean().optional(),
   })
-  .refine((data) => data.ngayKetThuc > data.ngayBatDau, {
-    message: "Ngày kết thúc phải sau ngày bắt đầu",
-    path: ["ngayKetThuc"],
-  })
+  // .refine((data) => data.ngayKetThuc > data.ngayBatDau, {
+  //   message: "Ngày kết thúc phải sau ngày bắt đầu",
+  //   path: ["ngayKetThuc"],
+  // })
   .refine(
     (data) => {
       if (data.loaiPhieuGiam === "Theo %") {
