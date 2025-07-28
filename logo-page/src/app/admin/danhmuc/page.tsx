@@ -140,6 +140,7 @@ export default function LegoCategoryPage() {
               onOpenChange={() => setIsOpenLog(false)}
               title="Lịch sử  thay đổi"
               className="max-w-6xl"
+              scrollContentOnly
             >
               <LichSuLogTimeline bang="danhMuc" title="Lịch sử user log" />
             </Modal>

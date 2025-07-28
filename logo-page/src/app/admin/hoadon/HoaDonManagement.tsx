@@ -249,6 +249,7 @@ const HoaDonManagement = () => {
               onOpenChange={() => setIsOpenLog(false)}
               title="Lịch sử thay đổi"
               className="max-w-6xl"
+              scrollContentOnly
             >
               <LichSuLogTimeline bang="hoaDon" title="Lịch sử user log" />
             </Modal>
