@@ -26,6 +26,7 @@ export const phieuGiamGiaSchema = z
 
     ngayBatDau: z.date({ required_error: "Vui lòng chọn ngày bắt đầu" }),
     ngayKetThuc: z.date({ required_error: "Vui lòng chọn ngày kết thúc" }),
+    noiBat: z.boolean().optional(),
   })
   .refine((data) => data.ngayKetThuc > data.ngayBatDau, {
     message: "Ngày kết thúc phải sau ngày bắt đầu",

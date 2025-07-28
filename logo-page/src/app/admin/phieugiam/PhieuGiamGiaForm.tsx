@@ -22,11 +22,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useAddPhieuGiamGia, useEditPhieuGiamGia } from "@/hooks/usePhieuGiam";
+import { Switch } from "@/components/ui/switch";
+import {
+  useAddPhieuGiamGia,
+  useEditPhieuGiamGia,
+  useGetPhieuGiam,
+} from "@/hooks/usePhieuGiam";
 import { PhieuGiamGiaData, phieuGiamGiaSchema } from "@/lib/phieugiamgiaschema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format, parse } from "date-fns";
-import React, { useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -48,13 +53,17 @@ export default function PhieuGiamGia({ editing, setEditing, onSucess }: Props) {
       giaTriGiam: undefined,
       giamToiDa: undefined,
       giaTriToiThieu: undefined,
-      loaiPhieuGiam: undefined,
+      loaiPhieuGiam: "Theo số tiền",
       ngayBatDau: new Date(),
       ngayKetThuc: new Date(),
     },
   });
 
   const loaiPhieu = form.watch("loaiPhieuGiam");
+  console.log("Phiếu", loaiPhieu);
+  useEffect(() => {
+    console.log("Loại phiếu đã thay đổi:", loaiPhieu);
+  }, [loaiPhieu]);
 
   useEffect(() => {
     if (editing) {
@@ -65,8 +74,16 @@ export default function PhieuGiamGia({ editing, setEditing, onSucess }: Props) {
         giamToiDa: editing.giamToiDa,
         giaTriToiThieu: editing.giaTriToiThieu,
         loaiPhieuGiam: editing.loaiPhieuGiam,
-        ngayBatDau: parse(editing.ngayBatDau, "dd-MM-yyyy", new Date()),
-        ngayKetThuc: parse(editing.ngayKetThuc, "dd-MM-yyyy", new Date()),
+        ngayBatDau: parse(
+          editing.ngayBatDau,
+          "dd-MM-yyyy HH:mm:ss",
+          new Date()
+        ),
+        ngayKetThuc: parse(
+          editing.ngayKetThuc,
+          "dd-MM-yyyy HH:mm:ss",
+          new Date()
+        ),
       });
     }
   }, [editing, form]);
@@ -78,6 +95,7 @@ export default function PhieuGiamGia({ editing, setEditing, onSucess }: Props) {
       ngayKetThuc: format(data.ngayKetThuc, "dd-MM-yyyy HH:mm:ss"),
       giamToiDa:
         data.loaiPhieuGiam === "Theo %" ? data.giamToiDa ?? 0 : undefined,
+      noiBat: data.noiBat !== undefined ? (data.noiBat ? 1 : 0) : undefined,
     };
 
     if (editing) {
@@ -116,6 +134,14 @@ export default function PhieuGiamGia({ editing, setEditing, onSucess }: Props) {
     }
   }
 
+  // Thêm nhanh
+  const [suggestVisible, setSuggestVisible] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+  const { data: phieuGiamList = [] } = useGetPhieuGiam();
+  const matchingPhieuGG = phieuGiamList.filter((pgg) =>
+    pgg.tenPhieu.toLowerCase().includes(searchValue.toLowerCase())
+  );
   return (
     <div className="w-full mx-auto">
       <Form {...form}>
@@ -127,8 +153,73 @@ export default function PhieuGiamGia({ editing, setEditing, onSucess }: Props) {
               <FormItem>
                 <FormLabel>Tên phiếu</FormLabel>
                 <FormControl>
-                  <Input type="text" placeholder="Nhập tên phiếu" {...field} />
+                  <Input
+                    type="text"
+                    placeholder="Nhập tên phiếu"
+                    {...field}
+                    ref={inputRef}
+                    onFocus={() => setSuggestVisible(true)}
+                    onBlur={() =>
+                      setTimeout(() => setSuggestVisible(false), 200)
+                    }
+                    onChange={(e) => {
+                      field.onChange(e);
+                      setSearchValue(e.target.value);
+                    }}
+                  />
                 </FormControl>
+                {suggestVisible && searchValue.trim() && (
+                  <div className="  bg-gray-600 border border-gray-200 rounded shadow  w-full max-h-60 overflow-y-auto">
+                    {matchingPhieuGG.length > 0 ? (
+                      matchingPhieuGG.map((pgg) => (
+                        <div
+                          key={pgg.id}
+                          className="px-3 py-2 text-sm hover:bg-gray-800 cursor-pointer"
+                          onClick={() => {
+                            form.setValue("tenPhieu", pgg.tenPhieu);
+                            form.setValue("soLuong", pgg.soLuong);
+                            form.setValue("loaiPhieuGiam", pgg.loaiPhieuGiam, {
+                              shouldDirty: true,
+                              shouldValidate: true,
+                            });
+
+                            form.setValue("giaTriGiam", pgg.giaTriGiam);
+                            form.setValue("giamToiDa", pgg.giamToiDa);
+                            form.setValue("giaTriToiThieu", pgg.giaTriToiThieu);
+                            form.setValue(
+                              "ngayBatDau",
+                              parse(
+                                pgg.ngayBatDau,
+                                "dd-MM-yyyy HH:mm:ss",
+                                new Date()
+                              )
+                            );
+                            form.setValue(
+                              "ngayKetThuc",
+                              parse(
+                                pgg.ngayKetThuc,
+                                "dd-MM-yyyy HH:mm:ss",
+                                new Date()
+                              )
+                            );
+
+                            setSuggestVisible(false);
+                            setSearchValue("");
+                            toast.success(
+                              "Đã lấy dữ liệu từ phiếu giảm giá gợi ý!!"
+                            );
+                          }}
+                        >
+                          {pgg.tenPhieu}
+                        </div>
+                      ))
+                    ) : (
+                      <div className="px-3 py-2 text-sm text-muted-foreground">
+                        Không tìm thấy phiếu giảm giá
+                      </div>
+                    )}
+                  </div>
+                )}
                 <FormMessage />
               </FormItem>
             )}
@@ -164,6 +255,7 @@ export default function PhieuGiamGia({ editing, setEditing, onSucess }: Props) {
                   <Select
                     value={field.value ?? ""}
                     onValueChange={(val) => {
+                      console.log("Đã chọn:", val);
                       field.onChange(val);
                     }}
                   >
@@ -290,6 +382,24 @@ export default function PhieuGiamGia({ editing, setEditing, onSucess }: Props) {
               )}
             />
           </div>
+          {/* Toggle nổi bật (controlled) */}
+          <FormField
+            control={form.control}
+            name="noiBat"
+            render={({ field }) => (
+              <FormItem>
+                <div className="flex items-center gap-3">
+                  <FormLabel>Nổi bật</FormLabel>
+                  <FormControl>
+                    <Switch
+                      checked={!!field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </div>
+              </FormItem>
+            )}
+          />
 
           <div className="flex gap-2 pt-4">
             <Button type="submit">{editing ? "Cập nhật" : "Thêm mới"}</Button>
