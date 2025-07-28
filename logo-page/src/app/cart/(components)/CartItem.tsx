@@ -1,84 +1,171 @@
+import React, { useState } from "react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
+import { Minus, Plus, Heart, Trash2 } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
+import { ProductBadges } from "./ProductBadges";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 
 interface CartItemProps {
-  id: number;
-  name: string;
-  image: string;
-  price: number;
-  quantity: number;
-  onRemove: (id: number) => void;
-  onQuantityChange: (id: number, delta: number) => void;
-  selectedIds: number[];
+  item: any;
+  isSelected: boolean;
+  imageUrl: string | null;
+  productDetails: any;
+  categoryNames: { [key: number]: string };
+  brandNames: { [key: number]: string };
+  originNames: { [key: number]: string };
   onSelect: (id: number) => void;
-  imageUrls: Record<number, string | null>;
+  onQuantityChange: (id: number, delta: number) => void;
+  onRemove: (id: number) => void;
+  formatCurrency: (amount: number) => string;
 }
 
-const CartItem = ({
-  id,
-  name,
-  image,
-  price,
-  quantity,
-  onRemove,
-  onQuantityChange,
-  selectedIds,
+export const CartItem = ({
+  item,
+  isSelected,
+  imageUrl,
+  productDetails,
+  categoryNames,
+  brandNames,
+  originNames,
   onSelect,
-  imageUrls,
+  onQuantityChange,
+  onRemove,
+  formatCurrency,
 }: CartItemProps) => {
-  const isSelected = selectedIds.includes(id);
-  const imageUrl = imageUrls[id] || image || "/fallback.jpg";
-  const totalPrice = price * quantity;
+  const [quantityChangeOpen, setQuantityChangeOpen] = useState(false);
+  const [quantityAction, setQuantityAction] = useState<{ id: number; delta: number } | null>(null);
+
+  const handleQuantityChange = (id: number, delta: number) => {
+    if (delta < 0 && item.quantity <= 1) {
+      return; // Prevent going below 1
+    }
+    setQuantityAction({ id, delta });
+    setQuantityChangeOpen(true);
+  };
+
+  const confirmQuantityChange = () => {
+    if (quantityAction) {
+      onQuantityChange(quantityAction.id, quantityAction.delta);
+      setQuantityChangeOpen(false);
+      setQuantityAction(null);
+      toast.success(
+        quantityAction.delta > 0
+          ? "Đã tăng số lượng sản phẩm!"
+          : "Đã giảm số lượng sản phẩm!"
+      );
+    }
+  };
 
   return (
-    <tr className="border-b hover:bg-gray-50">
-      <td className="px-4 py-3">
-        <input
-          type="checkbox"
+    <>
+      <div className="flex items-center gap-4 p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
+        <Checkbox
           checked={isSelected}
-          onChange={() => onSelect(id)}
-          className="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
-          aria-label={`Chọn sản phẩm ${name}`}
+          onCheckedChange={() => onSelect(item.id)}
+          className="border-gray-400"
         />
-      </td>
-      <td className="px-4 py-3">
-        <Image
-          src={imageUrl}
-          alt={name}
-          width={80}
-          height={80}
-          className="rounded-lg object-contain"
-        />
-      </td>
-      <td className="px-4 py-3 font-medium">{name}</td>
-      <td className="px-4 py-3 text-red-600 font-medium">{price.toLocaleString()}₫</td>
-      <td className="px-4 py-3">
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={() => onQuantityChange(id, -1)}
-            className="w-8 h-8 border rounded-full flex items-center justify-center text-red-600 font-bold hover:bg-red-50"
-          >
-            -
-          </button>
-          <span className="px-3 py-1 border rounded min-w-[40px] text-center">{quantity}</span>
-          <button
-            onClick={() => onQuantityChange(id, 1)}
-            className="w-8 h-8 border rounded-full flex items-center justify-center text-red-600 font-bold hover:bg-red-50"
-          >
-            +
-          </button>
+
+        <Link href={`/product/${item.id}`} className="w-20 h-20 relative hover:opacity-80 transition-opacity">
+          <Image
+            src={imageUrl || "/images/placeholder-product.png"}
+            alt={item.name}
+            fill
+            className="object-cover rounded-md"
+          />
+        </Link>
+
+        <div className="flex-1 min-w-0">
+          <Link href={`/product/${item.id}`}>
+            <h3 className="font-medium text-gray-900 mb-2 line-clamp-2 hover:text-blue-600 transition-colors cursor-pointer">
+              {item.name}
+            </h3>
+          </Link>
+          <ProductBadges
+            productDetails={productDetails}
+            categoryNames={categoryNames}
+            brandNames={brandNames}
+            originNames={originNames}
+            itemId={item.id}
+          />
         </div>
-      </td>
-      <td className="px-4 py-3 font-bold text-lg">{totalPrice.toLocaleString()}₫</td>
-      <td className="px-4 py-3">
-        <button
-          onClick={() => onRemove(id)}
-          className="text-red-500 hover:text-red-700 underline text-sm"
-        >
-          Xoá
-        </button>
-      </td>
-    </tr>
+
+        <div className="text-right">
+          <div className="text-lg font-bold text-red-600">
+            {formatCurrency(item.price)}
+          </div>
+          <div className="text-sm text-gray-500 line-through">
+            {formatCurrency(Math.floor(item.price * 1.2))}
+          </div>
+          <div className="text-sm text-green-600">
+            Tiết kiệm {formatCurrency(Math.floor(item.price * 0.2))}
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 bg-gray-50 rounded-lg p-1">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleQuantityChange(item.id, -1)}
+            disabled={item.quantity <= 1}
+            className="h-8 w-8 p-0 bg-white border-gray-300 text-gray-700 hover:bg-gray-100"
+          >
+            <Minus className="w-4 h-4" />
+          </Button>
+          <span className="w-8 text-center text-gray-900 font-medium">{item.quantity}</span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleQuantityChange(item.id, 1)}
+            className="h-8 w-8 p-0 bg-white border-gray-300 text-gray-700 hover:bg-gray-100"
+          >
+            <Plus className="w-4 h-4" />
+          </Button>
+        </div>
+
+        <div className="flex gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-gray-600 hover:text-red-500 hover:bg-red-50"
+          >
+            <Heart className="w-4 h-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onRemove(item.id)}
+            className="text-gray-600 hover:text-red-500 hover:bg-red-50"
+          >
+            <Trash2 className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
+
+      {/* AlertDialog for quantity change confirmation */}
+      <AlertDialog open={quantityChangeOpen} onOpenChange={setQuantityChangeOpen}>
+        <AlertDialogContent className="bg-white">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-black">Xác nhận thay đổi số lượng</AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-600">
+              Bạn có chắc chắn muốn {quantityAction?.delta && quantityAction.delta > 0 ? "tăng" : "giảm"} số lượng sản phẩm này?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="text-black border-gray-300">Hủy</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmQuantityChange}
+              className="bg-blue-500 hover:bg-blue-600 text-white"
+            >
+              Xác nhận
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 };
 
-export default CartItem;
+

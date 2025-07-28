@@ -5,34 +5,34 @@ interface CartItem {
   id: number;
   tenSanPham: string;
   gia: number;
-  soLuong: number;
-  hinhAnh: string;
+  quantity: number;
 }
 
 interface CartState {
-  items: CartItem[];
+  cart: CartItem[];
   addItem: (item: CartItem) => void;
   removeItem: (id: number) => void;
   clearCart: () => void;
-  total: () => number;
+  getTotalPrice: () => number;
 }
 
 export const useCartStore = create<CartState>((set, get) => ({
-  items: [],
+  cart: [],
   addItem: (item) => {
-    const existing = get().items.find((i) => i.id === item.id);
+    const existing = get().cart.find((i) => i.id === item.id);
     if (existing) {
       set({
-        items: get().items.map((i) =>
-          i.id === item.id ? { ...i, soLuong: i.soLuong + item.soLuong } : i
+        cart: get().cart.map((i) =>
+          i.id === item.id ? { ...i, quantity: i.quantity + item.quantity } : i
         ),
       });
     } else {
-      set({ items: [...get().items, item] });
+      set({ cart: [...get().cart, item] });
     }
   },
-  removeItem: (id) => set({ items: get().items.filter((i) => i.id !== id) }),
-  clearCart: () => set({ items: [] }),
-  total: () =>
-    get().items.reduce((sum, item) => sum + item.gia * item.soLuong, 0),
+  removeItem: (id) => set({ cart: get().cart.filter((i) => i.id !== id) }),
+  clearCart: () => set({ cart: [] }),
+  getTotalPrice: () =>
+    get().cart.reduce((sum, item) => sum + item.gia * item.quantity, 0),
 }));
+
