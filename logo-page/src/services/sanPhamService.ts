@@ -5,7 +5,7 @@ import {
   CreateSanPhamResponse,
   SanPham,
 } from "@/components/types/product.type";
-import { ProductData } from "@/lib/sanphamschema";
+import { ProductData, ProductDataWithoutFiles } from "@/lib/sanphamschema";
 import { fetchWithAuth } from "./fetchWithAuth";
 
 const API_URL = "http://localhost:8080/api";
@@ -98,7 +98,7 @@ export const sanPhamService = {
   },
 
   // Sửa
-  async editSanPham(id: number, data: ProductData): Promise<SanPham> {
+  async editSanPham(id: number, data: ProductDataWithoutFiles): Promise<SanPham> {
     const formData = new FormData();
     formData.append("tenSanPham", data.tenSanPham);
     formData.append("gia", data.gia.toString());
@@ -112,11 +112,12 @@ export const sanPhamService = {
     formData.append("thuongHieuId", data.thuongHieuId.toString());
     formData.append("noiBat", data.noiBat ? "1" : "0");
 
-    if (data.files) {
-      Array.from(data.files).forEach((file) => {
-        formData.append("files", file);
-      });
-    }
+    // Không gửi ảnh trong API Update vì sẽ xử lý riêng bằng API addAnh
+    // if (data.files) {
+    //   Array.from(data.files).forEach((file) => {
+    //     formData.append("files", file);
+    //   });
+    // }
 
     try {
       const res = await fetchWithAuth(`${API_URL}/sanpham/Update/${id}`, {

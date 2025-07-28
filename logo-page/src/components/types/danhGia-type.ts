@@ -8,9 +8,17 @@ export interface DanhGia {
     hdct_id: number;
     tenNguoiDung: string;
     createdAt: string;
+    ngayDanhGia?: number[]; // Mảng số [year, month, day, hour, minute, second, nanosecond]
+    ngayTao?: string; // Thêm ngayTao nếu API trả về
     textPhanHoi?: string;
     images?: string[]; // tên file ảnh
     video?: string;    // tên file video
+    user?: {
+        id: number;
+        ten: string;
+        email: string;
+        ngayTao: number[];
+    };
 }
 
 export interface CreateDanhGiaDTO {

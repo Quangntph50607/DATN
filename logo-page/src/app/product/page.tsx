@@ -9,6 +9,9 @@ import { Button } from "@/components/ui/button";
 import { useBoSuutap } from "@/hooks/useBoSutap";
 import { useListKhuyenMaiTheoSanPham } from "@/hooks/useKhuyenmai";
 import SidebarFilter, { getGia, getTuoi } from "./[id]/SidebarFilter";
+import { Pagination } from "@/components/ui/pagination";
+import { KhuyenMaiTheoSanPham } from "@/components/types/khuyenmai-type";
+import Navbar from "@/components/layout/(components)/(pages)/Navbar";
 
 export default function AllProductsPage() {
   const { data: sanPhamTheoKhuyenMai = [] } = useListKhuyenMaiTheoSanPham();
@@ -21,6 +24,28 @@ export default function AllProductsPage() {
 
   const { keyword, setKeyword } = useSearchStore();
   const [currentPage, setCurrentPage] = useState(1);
+  // Hàm lấy badge cho sản phẩm (để sắp xếp)
+  const getProductBadge = (product: KhuyenMaiTheoSanPham) => {
+    if (product.giaKhuyenMai && product.giaKhuyenMai < product.gia) {
+      return { text: "Khuyến mãi", color: "bg-red-500 text-white" };
+    }
+
+    if (product.id >= 20) {
+      return { text: "Hàng mới", color: "bg-green-500 text-white" };
+    }
+
+    const price = product.giaKhuyenMai || product.gia;
+    if (price >= 3000000) {
+      return { text: "Hàng hiếm", color: "bg-purple-600 text-white" };
+    }
+
+    if (product.noiBat) {
+      return { text: "Nổi bật", color: "bg-blue-600 text-white" };
+    }
+
+    return { text: "", color: "" };
+  };
+
   // Lọc sản phẩm
   const filteredProducts = sanPhamTheoKhuyenMai.filter((sp) => {
     // Lọc theo danh mục
@@ -64,10 +89,34 @@ export default function AllProductsPage() {
       categoryMatch && collectionMatch && tuoiMatch && giaMatch && searchMatch
     );
   });
+
+  // Sắp xếp sản phẩm: ưu tiên sản phẩm có badge lên đầu
+  const sortedProducts = [...filteredProducts].sort((a, b) => {
+    const badgeA = getProductBadge(a);
+    const badgeB = getProductBadge(b);
+
+    // Sản phẩm có badge sẽ lên đầu
+    if (badgeA.text && !badgeB.text) return -1;
+    if (!badgeA.text && badgeB.text) return 1;
+
+    // Nếu cả hai đều có badge, sắp xếp theo thứ tự ưu tiên
+    if (badgeA.text && badgeB.text) {
+      const priorityOrder = {
+        "Khuyến mãi": 1,
+        "Hàng mới": 2,
+        "Hàng hiếm": 3,
+        "Nổi bật": 4
+      };
+      return (priorityOrder[badgeA.text as keyof typeof priorityOrder] || 5) -
+        (priorityOrder[badgeB.text as keyof typeof priorityOrder] || 5);
+    }
+
+    return 0;
+  });
   // Phân trang
-  const itemPerPage = 10;
-  const totalPage = Math.ceil(filteredProducts.length / itemPerPage);
-  const paginatedProdcuts = filteredProducts.slice(
+  const itemPerPage = 12; // Tăng từ 10 lên 12
+  const totalPage = Math.ceil(sortedProducts.length / itemPerPage);
+  const paginatedProdcuts = sortedProducts.slice(
     (currentPage - 1) * itemPerPage,
     currentPage * itemPerPage
   );
@@ -75,9 +124,10 @@ export default function AllProductsPage() {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
+      <Navbar />
       <main className="bg-white text-black">
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl mb-2 font-bold">MyKingDom-Thế giới Lego</h1>
+        <div className="mb-8 text-center mt-10">
+          <h1 className="text-4xl lg:text-4xl font-black mb-4 text-blue-900">Lego MyKingDom - Thế giới Lego</h1>
           <p className="text-gray-600">Khám phá bộ sưu tập của chúng tôi</p>
         </div>
         <div className="flex flex-col lg:flex-row gap-8 px-4">
@@ -100,55 +150,55 @@ export default function AllProductsPage() {
               selectedTuoi ||
               selectedBoSuuTap ||
               selectedGia) && (
-              <div className="mb-6 bg-blue-50 px-4 py-3 rounded-lg flex items-center flex-wrap gap-2">
-                {selectedDanhMuc && (
-                  <span className="text-blue-800">
-                    Danh mục:
-                    <strong>
-                      {
-                        categories.find((c) => c.id === selectedDanhMuc)
-                          ?.tenDanhMuc
-                      }
-                    </strong>
-                  </span>
-                )}
-                {selectedBoSuuTap && (
-                  <span className="text-blue-800">
-                    Bộ sưu tập:
-                    <strong>
-                      {
-                        bosuutaps.find((bst) => bst.id === selectedBoSuuTap)
-                          ?.tenBoSuuTap
-                      }
-                    </strong>
-                  </span>
-                )}
-                {selectedTuoi && (
-                  <span className="text-blue-800">
-                    Độ tuổi: <strong>{selectedTuoi}</strong>
-                  </span>
-                )}
-                {selectedGia && (
-                  <span className="text-blue-800">
-                    Giá: <strong>{selectedGia}</strong>
-                  </span>
-                )}
+                <div className="mb-6 bg-blue-50 px-4 py-3 rounded-lg flex items-center flex-wrap gap-2">
+                  {selectedDanhMuc && (
+                    <span className="text-blue-800">
+                      Danh mục:
+                      <strong>
+                        {
+                          categories.find((c) => c.id === selectedDanhMuc)
+                            ?.tenDanhMuc
+                        }
+                      </strong>
+                    </span>
+                  )}
+                  {selectedBoSuuTap && (
+                    <span className="text-blue-800">
+                      Bộ sưu tập:
+                      <strong>
+                        {
+                          bosuutaps.find((bst) => bst.id === selectedBoSuuTap)
+                            ?.tenBoSuuTap
+                        }
+                      </strong>
+                    </span>
+                  )}
+                  {selectedTuoi && (
+                    <span className="text-blue-800">
+                      Độ tuổi: <strong>{selectedTuoi}</strong>
+                    </span>
+                  )}
+                  {selectedGia && (
+                    <span className="text-blue-800">
+                      Giá: <strong>{selectedGia}</strong>
+                    </span>
+                  )}
 
-                <Button
-                  onClick={() => {
-                    setSelectedDanhMuc(null);
-                    setSelectedBoSutap(null);
-                    setSelectedGia(null);
-                    setSelectedTuoi(null);
-                    setKeyword("");
-                  }}
-                  className="ml-auto text-sm text-blue-600 hover:underline"
-                  variant="link"
-                >
-                  [Xóa tất cả]
-                </Button>
-              </div>
-            )}
+                  <Button
+                    onClick={() => {
+                      setSelectedDanhMuc(null);
+                      setSelectedBoSutap(null);
+                      setSelectedGia(null);
+                      setSelectedTuoi(null);
+                      setKeyword("");
+                    }}
+                    className="ml-auto text-sm text-blue-600 hover:underline"
+                    variant="link"
+                  >
+                    [Xóa tất cả]
+                  </Button>
+                </div>
+              )}
 
             {/* Product Grid */}
             {filteredProducts.length === 0 ? (
@@ -159,30 +209,21 @@ export default function AllProductsPage() {
               <>
                 <h2 className="text-2xl font-medium">Danh sách sản phẩm</h2>
                 <SanPhamList ps={paginatedProdcuts} />
+
+                {/* Pagination - ở giữa các sản phẩm */}
+                <div className="flex justify-center mt-8 mb-10">
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPage}
+                    onPageChange={setCurrentPage}
+                    maxVisiblePages={5}
+                  />
+                </div>
               </>
             )}
           </div>
         </div>
-        {/* Pagination */}
-        <div className="flex gap-2 mt-6 mb-5 items-center justify-center">
-          <Button
-            disabled={currentPage === 1}
-            variant="secondary"
-            onClick={() => setCurrentPage((prev) => prev - 1)}
-          >
-            Trang trước
-          </Button>
-          <span className="font-medium">
-            Trang {currentPage} / {totalPage}
-          </span>
-          <Button
-            disabled={currentPage === totalPage}
-            variant="secondary"
-            onClick={() => setCurrentPage((prev) => prev + 1)}
-          >
-            Trang sau
-          </Button>
-        </div>
+
       </main>
       <Footer />
     </div>
