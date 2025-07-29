@@ -53,20 +53,20 @@ export default function PhieuGiamGia({ editing, setEditing, onSucess }: Props) {
       giaTriGiam: undefined,
       giamToiDa: undefined,
       giaTriToiThieu: undefined,
-      loaiPhieuGiam: "Theo số tiền",
+      loaiPhieuGiam: "theo_so_tien",
       ngayBatDau: new Date(),
       ngayKetThuc: new Date(),
     },
   });
 
   const loaiPhieu = form.watch("loaiPhieuGiam");
-  console.log("Phiếu", loaiPhieu);
   useEffect(() => {
     console.log("Loại phiếu đã thay đổi:", loaiPhieu);
   }, [loaiPhieu]);
 
   useEffect(() => {
     if (editing) {
+      console.log("Giá trị loại phiếu:", editing.loaiPhieuGiam);
       form.reset({
         tenPhieu: editing.tenPhieu,
         soLuong: editing.soLuong,
@@ -94,7 +94,9 @@ export default function PhieuGiamGia({ editing, setEditing, onSucess }: Props) {
       ngayBatDau: format(data.ngayBatDau, "dd-MM-yyyy HH:mm:ss"),
       ngayKetThuc: format(data.ngayKetThuc, "dd-MM-yyyy HH:mm:ss"),
       giamToiDa:
-        data.loaiPhieuGiam === "Theo %" ? data.giamToiDa ?? 0 : undefined,
+        data.loaiPhieuGiam === "theo_phan_tram"
+          ? data.giamToiDa ?? 0
+          : undefined,
       noiBat: data.noiBat !== undefined ? (data.noiBat ? 1 : 0) : undefined,
     };
 
@@ -263,8 +265,8 @@ export default function PhieuGiamGia({ editing, setEditing, onSucess }: Props) {
                       <SelectValue placeholder="Chọn loại phiếu" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Theo %">Theo %</SelectItem>
-                      <SelectItem value="Theo số tiền">Theo số tiền</SelectItem>
+                      <SelectItem value="theo_phan_tram">Theo %</SelectItem>
+                      <SelectItem value="theo_so_tien">Theo số tiền</SelectItem>
                     </SelectContent>
                   </Select>
                 </FormControl>
@@ -279,7 +281,7 @@ export default function PhieuGiamGia({ editing, setEditing, onSucess }: Props) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Giá trị giảm ({loaiPhieu === "Theo %" ? "%" : "VNĐ"})
+                  Giá trị giảm ({loaiPhieu === "theo_phan_tram" ? "%" : "VNĐ"})
                 </FormLabel>
                 <FormControl>
                   <div className="relative">
@@ -293,7 +295,7 @@ export default function PhieuGiamGia({ editing, setEditing, onSucess }: Props) {
                       className="pr-12"
                     />
                     <span className="absolute top-1/2 right-3 -translate-y-1/2 text-sm text-gray-500">
-                      {loaiPhieu === "Theo %" ? "%" : "VNĐ"}
+                      {loaiPhieu === "theo_phan_tram" ? "%" : "VNĐ"}
                     </span>
                   </div>
                 </FormControl>
@@ -302,7 +304,7 @@ export default function PhieuGiamGia({ editing, setEditing, onSucess }: Props) {
             )}
           />
 
-          {loaiPhieu === "Theo %" && (
+          {loaiPhieu === "theo_phan_tram" && (
             <FormField
               control={form.control}
               name="giamToiDa"

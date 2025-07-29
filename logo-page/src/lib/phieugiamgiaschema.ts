@@ -10,7 +10,7 @@ export const phieuGiamGiaSchema = z
       .number({ required_error: "Số lượng không được để trống" })
       .min(1, { message: "Số lượng phải lớn hơn hoặc bằng 1" }),
 
-    loaiPhieuGiam: z.enum(["Theo %", "Theo số tiền"], {
+    loaiPhieuGiam: z.enum(["theo_phan_tram", "theo_so_tien"], {
       required_error: "Không để trống loại phiếu giảm",
     }),
 
@@ -34,7 +34,7 @@ export const phieuGiamGiaSchema = z
   // })
   .refine(
     (data) => {
-      if (data.loaiPhieuGiam === "Theo %") {
+      if (data.loaiPhieuGiam === "theo_phan_tram") {
         return data.giaTriGiam < 100;
       }
       return true;
@@ -46,7 +46,7 @@ export const phieuGiamGiaSchema = z
   )
   .refine(
     (data) => {
-      if (data.loaiPhieuGiam === "Theo %") {
+      if (data.loaiPhieuGiam === "theo_phan_tram") {
         return data.giamToiDa != null && data.giamToiDa > 0;
       }
       return true;
@@ -58,7 +58,7 @@ export const phieuGiamGiaSchema = z
   )
   .refine(
     (data) => {
-      if (data.loaiPhieuGiam === "Theo số tiền" && data.giamToiDa != null) {
+      if (data.loaiPhieuGiam === "theo_so_tien" && data.giamToiDa != null) {
         return data.giaTriGiam <= data.giamToiDa;
       }
       return true;

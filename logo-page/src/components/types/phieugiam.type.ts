@@ -3,7 +3,7 @@ export interface PhieuGiamGia {
   maPhieu?: string;
   tenPhieu: string;
   soLuong: number;
-  loaiPhieuGiam: "Theo %" | "Theo số tiền";
+  loaiPhieuGiam: "theo_phan_tram" | "theo_so_tien";
   giaTriGiam: number;
   giamToiDa?: number;
   giaTriToiThieu: number;

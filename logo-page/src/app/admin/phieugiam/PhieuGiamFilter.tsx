@@ -12,8 +12,8 @@ import { useSearchStore } from "@/context/useSearch.store";
 import React from "react";
 
 interface Props {
-  selectedLoaiPhieuGiam: "" | "Theo %" | "Theo số tiền";
-  onChangeLoaiPhieuGiam: (val: "" | "Theo %" | "Theo số tiền") => void;
+  selectedLoaiPhieuGiam: "" | "theo_phan_tram" | "theo_so_tien";
+  onChangeLoaiPhieuGiam: (val: "" | "theo_phan_tram" | "theo_so_tien") => void;
   fromDate: string;
   toDate: string;
   onChangeFromDate: (date: string) => void;
@@ -51,15 +51,15 @@ export default function PhieuGiamFilter({
         <Select
           value={selectedLoaiPhieuGiam}
           onValueChange={(val) =>
-            onChangeLoaiPhieuGiam(val as "" | "Theo %" | "Theo số tiền")
+            onChangeLoaiPhieuGiam(val as "" | "theo_phan_tram" | "theo_so_tien")
           }
         >
           <SelectTrigger className="w-full">
             <SelectValue placeholder="Tìm theo loại" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="Theo %">Theo %</SelectItem>
-            <SelectItem value="Theo số tiền">Theo số tiền</SelectItem>
+            <SelectItem value="theo_phan_tram">Theo %</SelectItem>
+            <SelectItem value="theo_so_tien">Theo số tiền</SelectItem>
           </SelectContent>
         </Select>
       </div>
