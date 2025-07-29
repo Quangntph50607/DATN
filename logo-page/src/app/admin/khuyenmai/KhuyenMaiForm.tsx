@@ -89,7 +89,7 @@ export default function KhuyenMaiForm({
       return;
     }
     const now = new Date();
-    if (data.ngayBatDau < now) {
+    if (!editing && data.ngayBatDau < now) {
       toast.error("Ngày bắt đầu phải từ hôm nay trở đi");
       return;
     }

@@ -23,7 +23,7 @@ export default function Page() {
   const { keyword, setKeyword } = useSearchStore();
   const [currentPage, setCurrentPage] = useState(1);
   const [viewingId, setViewingId] = useState<number | null>(null);
-  const itemPerPage = 5;
+  const itemPerPage = 10;
   const tableRef = useRef<HTMLDivElement | null>(null);
   const [isOpenLog, setIsOpenLog] = useState(false);
   const [activedTabs, setActivetedTabs] = useState<
@@ -32,7 +32,7 @@ export default function Page() {
 
   // Bộ lọc thêm
   const [selectedLoaiPhieuGiam, setSelectedLoaiPhieuGiam] = useState<
-    "" | "Theo %" | "Theo số tiền"
+    "" | "theo_phan_tram" | "theo_so_tien"
   >("");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
