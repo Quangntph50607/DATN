@@ -10,6 +10,7 @@ export interface PhieuGiamGia {
   ngayBatDau: string;
   ngayKetThuc: string;
   trangThai?: string;
+  isNoiBat?: number;
 }
 export type PhieuGiamGiaCreate = Omit<
   PhieuGiamGia,

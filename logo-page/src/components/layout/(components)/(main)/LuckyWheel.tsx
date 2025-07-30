@@ -6,8 +6,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Gift, RotateCcw, Star } from "lucide-react";
 import { motion } from "framer-motion";
-import { useGetPhieuGiam } from "@/hooks/usePhieuGiam";
+import { useGetPhieuGiam, useGetPhieuGiamGiaNoiBat } from "@/hooks/usePhieuGiam";
 import { PhieuGiamGia } from "@/components/types/phieugiam.type";
+import { viPhieuGiamService } from "@/services/viPhieuGiamService";
+import { toast } from "sonner";
+
 
 interface VoucherPrize {
     id: number;
@@ -17,6 +20,17 @@ interface VoucherPrize {
     color: string;
     bgColor: string;
 }
+const getUserIdFromLocalStorage = (): number | null => {
+    try {
+        const stored = localStorage.getItem("lego-store");
+        if (!stored) return null;
+        const parsed = JSON.parse(stored);
+        return parsed?.state?.user?.id ?? null;
+    } catch (err) {
+        console.error("Lỗi lấy userId:", err);
+        return null;
+    }
+};
 
 // Hàm helper để lấy màu
 const getColorByIndex = (index: number): string => {
@@ -31,12 +45,19 @@ const getBgColorByIndex = (index: number): string => {
 };
 
 export default function LuckyWheel() {
-    const { data: phieuGiamList, isLoading } = useGetPhieuGiam();
+    const { data: phieuGiamList, isLoading } = useGetPhieuGiamGiaNoiBat();
     const [isSpinning, setIsSpinning] = useState(false);
     const [rotation, setRotation] = useState(0);
     const [selectedPrize, setSelectedPrize] = useState<VoucherPrize | null>(null);
     const [showResult, setShowResult] = useState(false);
     const wheelRef = useRef<HTMLDivElement>(null);
+    const [userId, setUserId] = useState<number | null>(null);
+
+    useEffect(() => {
+        const id = getUserIdFromLocalStorage();
+        setUserId(id);
+    }, []);
+
 
     React.useEffect(() => {
         if (phieuGiamList) {
@@ -146,9 +167,37 @@ export default function LuckyWheel() {
         localStorage.setItem('luckyWheelLastSpinDate', getToday());
 
         // Hiển thị kết quả sau khi quay xong
-        setTimeout(() => {
+        setTimeout(async () => {
             setIsSpinning(false);
             setShowResult(true);
+
+            if (prize.id > 0 && userId) {
+                try {
+                    await viPhieuGiamService.themPhieuGiamChoUser({
+                        userId: Number(userId),
+                        phieuGiamGiaId: prize.id,
+                    });
+                    console.log("Đã thêm phiếu giảm giá cho userID:", userId + "với phiếu giảm giá cóa ID:" + prize.id);
+                } catch (error) {
+                    const err = error as any;
+                    let message = "Lỗi không xác định khi thêm phiếu giảm giá.";
+
+                    try {
+                        const parsed = JSON.parse(err.message);
+                        message = parsed.message;
+                    } catch {
+                        message = err?.response?.data?.message || err.message;
+                    }
+
+                    if (message.includes("đã nhận")) {
+                        toast.error("❌ Bạn đã nhận phiếu giảm giá này rồi!");
+                    } else {
+                        toast.error(`❌ ${message}`);
+                    }
+
+                    console.error("Lỗi khi thêm phiếu giảm giá:", err);
+                }
+            }
         }, 3000);
     };
 
