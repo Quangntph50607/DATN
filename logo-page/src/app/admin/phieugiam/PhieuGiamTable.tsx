@@ -64,6 +64,7 @@ export default function PhieuGiamTable({
             <TableHead>Giá Trị Tối Thiểu</TableHead>
             <TableHead>Ngày Bắt Đầu</TableHead>
             <TableHead>Ngày Kết Thúc</TableHead>
+            <TableHead>Nổi bật</TableHead>
             <TableHead>Trạng Thái</TableHead>
             <TableHead className="text-center">Hành Động</TableHead>
           </TableRow>
@@ -94,6 +95,13 @@ export default function PhieuGiamTable({
                   <TableCell>{formatVND(pgg.giaTriToiThieu)}</TableCell>
                   <TableCell>{pgg.ngayBatDau}</TableCell>
                   <TableCell>{pgg.ngayKetThuc}</TableCell>
+                  <TableCell>
+                    {pgg.noiBat === 1 || pgg.noiBat === true ? (
+                      <span className="text-yellow-500 font-bold">★</span>
+                    ) : (
+                      <span className="text-gray-400">☆</span>
+                    )}
+                  </TableCell>
                   <TableCell className={`font-bold ${status.className}`}>
                     {status.text}
                   </TableCell>

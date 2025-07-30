@@ -50,10 +50,10 @@ export default function SanPhamTable({ sanPhams, onDelete, onEdit }: Props) {
             <TableHead className="whitespace-nowrap">SL Tồn</TableHead>
             <TableHead className="whitespace-nowrap">% Khuyến mãi</TableHead>
             <TableHead className="whitespace-nowrap">Giá khuyến mãi</TableHead>
-            <TableHead className="whitespace-nowrap">Trạng Thái</TableHead>
             <TableHead className="whitespace-nowrap">Xuất xứ</TableHead>
             <TableHead className="whitespace-nowrap">Thương hiệu</TableHead>
             <TableHead className="whitespace-nowrap">Nổi bật</TableHead>
+            <TableHead className="whitespace-nowrap">Trạng Thái</TableHead>
             <TableHead className="whitespace-nowrap text-center">
               Hành động
             </TableHead>
@@ -88,6 +88,16 @@ export default function SanPhamTable({ sanPhams, onDelete, onEdit }: Props) {
                     ? `${sp.giaKhuyenMai.toLocaleString()} đ`
                     : "-"}
                 </TableCell>
+
+                <TableCell>{getTenXuatXu(sp.xuatXuId ?? 0)}</TableCell>
+                <TableCell>{getTenThuongHieu(sp.thuongHieuId ?? 0)}</TableCell>
+                <TableCell>
+                  {sp.noiBat === 1 || sp.noiBat === true ? (
+                    <span className="text-yellow-500 font-bold">★</span>
+                  ) : (
+                    <span className="text-gray-400">☆</span>
+                  )}
+                </TableCell>
                 <TableCell>
                   {sp.trangThai === "Đang kinh doanh" ? (
                     <span className="text-green-600 font-semibold">
@@ -99,15 +109,6 @@ export default function SanPhamTable({ sanPhams, onDelete, onEdit }: Props) {
                     </span>
                   ) : (
                     <span className="text-red-400 font-semibold">Hết hàng</span>
-                  )}
-                </TableCell>
-                <TableCell>{getTenXuatXu(sp.xuatXuId ?? 0)}</TableCell>
-                <TableCell>{getTenThuongHieu(sp.thuongHieuId ?? 0)}</TableCell>
-                <TableCell>
-                  {sp.noiBat === 1 || sp.noiBat === true ? (
-                    <span className="text-yellow-500 font-bold">★</span>
-                  ) : (
-                    <span className="text-gray-400">☆</span>
                   )}
                 </TableCell>
                 <TableCell>
