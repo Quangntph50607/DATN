@@ -1,18 +1,19 @@
-export interface DanhGia {
+export interface DanhGiaResponse {
     id: number;
     tieuDe: string;
     textDanhGia: string;
-    soSao: number;
-    user_id: number;
-    sp_id: number;
-    hdct_id: number;
-    tenNguoiDung: string;
-    createdAt: string;
-    ngayDanhGia?: number[]; // Mảng số [year, month, day, hour, minute, second, nanosecond]
-    ngayTao?: string; // Thêm ngayTao nếu API trả về
     textPhanHoi?: string;
-    images?: string[]; // tên file ảnh
-    video?: string;    // tên file video
+    soSao: number;
+    ngayDanhGia: string | number[]; // LocalDateTime from Java - can be string or array
+    ngayPhanHoi?: string | number[]; // LocalDateTime from Java - can be string or array
+    userId?: number;
+    nvId?: number;
+    dhctId?: number;
+    spId?: number;
+    anhUrls?: AnhResponse[];
+    video?: AnhResponse;
+    // Thêm các field từ file cũ
+    tenNguoiDung?: string;
     user?: {
         id: number;
         ten: string;
@@ -21,11 +22,33 @@ export interface DanhGia {
     };
 }
 
+export interface AnhResponse {
+    id: number;
+    url: string;
+}
+
 export interface CreateDanhGiaDTO {
+    user_id: number;
+    sp_id: number;
     tieuDe: string;
     textDanhGia: string;
     soSao: number;
-    user_id: number;
-    sp_id: number;
-    hdct_id: number;
 }
+
+export interface UpdateDanhGiaDTO {
+    phanHoi: string;
+}
+
+export interface ErrorResponse {
+    status: number;
+    message: string;
+}
+
+export interface UploadResponse {
+    success: boolean;
+    message?: string;
+    urls?: string[];
+}
+
+// For backward compatibility
+export type DanhGia = DanhGiaResponse;
