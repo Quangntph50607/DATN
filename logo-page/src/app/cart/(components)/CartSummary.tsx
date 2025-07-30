@@ -31,7 +31,10 @@ export const CartSummary = ({
   onCheckout,
   formatCurrency,
 }: CartSummaryProps) => {
-  const subtotal = selectedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const subtotal = selectedItems.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0
+  );
   const totalAfterDiscount = Math.max(0, subtotal - discount);
 
   return (
@@ -43,13 +46,15 @@ export const CartSummary = ({
         <div className="space-y-2">
           <div className="flex justify-between text-gray-700">
             <span>Tạm tính ({selectedItems.length} sản phẩm):</span>
-            <span className="text-gray-900 font-medium">{formatCurrency(subtotal)}</span>
+            <span className="text-gray-900 font-medium">
+              {formatCurrency(subtotal)}
+            </span>
           </div>
-          <div className="flex justify-between text-gray-700">
+          {/* <div className="flex justify-between text-gray-700">
             <span>Phí vận chuyển:</span>
             <span className="text-green-600 font-medium">Miễn phí</span>
-          </div>
-          {discount > 0 && (
+          </div> */}
+          {discount >= 0 && (
             <div className="flex justify-between text-green-600">
               <span>Giảm giá:</span>
               <span className="font-medium">-{formatCurrency(discount)}</span>
@@ -65,13 +70,9 @@ export const CartSummary = ({
               placeholder="Nhập mã giảm giá"
               value={voucherInput}
               onChange={(e) => onVoucherInputChange(e.target.value)}
-              className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-500 focus:border-blue-500"
+              className="border border-gray-400 text-gray-900 placeholder:text-gray-500 focus:border-blue-500"
             />
-            <Button
-              variant="outline"
-              onClick={onApplyVoucher}
-              className="bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
-            >
+            <Button variant="secondary" onClick={onApplyVoucher}>
               Áp dụng
             </Button>
           </div>
@@ -83,7 +84,13 @@ export const CartSummary = ({
             Chọn voucher khả dụng
           </Button>
           {voucherMessage && (
-            <p className={`text-sm ${voucherMessage.includes('thành công') ? 'text-green-600' : 'text-red-600'}`}>
+            <p
+              className={`text-sm ${
+                voucherMessage.includes("thành công")
+                  ? "text-green-600"
+                  : "text-red-600"
+              }`}
+            >
               {voucherMessage}
             </p>
           )}
@@ -100,7 +107,9 @@ export const CartSummary = ({
 
         <div className="flex justify-between text-lg font-bold">
           <span className="text-gray-900">Tổng cộng:</span>
-          <span className="text-red-600">{formatCurrency(totalAfterDiscount)}</span>
+          <span className="text-red-600">
+            {formatCurrency(totalAfterDiscount)}
+          </span>
         </div>
 
         <Button
@@ -116,6 +125,3 @@ export const CartSummary = ({
     </Card>
   );
 };
-
-
-
