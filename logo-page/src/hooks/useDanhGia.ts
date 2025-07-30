@@ -1,46 +1,56 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { danhGiaService } from "@/services/danhGiaService";
-import { DanhGia } from "@/components/types/danhGia-type";
+import { CreateDanhGiaDTO } from "@/components/types/danhGia-type";
 
-// Lấy danh sách đánh giá theo sản phẩm
-export function useDanhGia(sanPhamId: number) {
-    return useQuery<DanhGia[]>({
-        queryKey: ["danhGia", sanPhamId],
-        queryFn: () => danhGiaService.getBySanPham(sanPhamId),
+export const useDanhGia = (spId: number) => {
+    return useQuery({
+        queryKey: ["danhGia", spId],
+        queryFn: () => danhGiaService.getBySanPham(spId),
+        staleTime: 5 * 60 * 1000, // 5 phút
     });
-}
+};
 
-// Thêm đánh giá mới
-export function useAddDanhGia(sanPhamId: number) {
+export const useAddDanhGiaWithImages = () => {
     const queryClient = useQueryClient();
+
     return useMutation({
-        mutationFn: (data: any) => danhGiaService.create(data),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["danhGia", sanPhamId] });
+        mutationFn: ({ data, images, video }: { data: CreateDanhGiaDTO; images: File[]; video?: File }) =>
+            danhGiaService.createWithImages(data, images, video),
+        onSuccess: (data, variables) => {
+            queryClient.invalidateQueries({ queryKey: ["danhGia", variables.data.sp_id] });
+        },
+        onError: (error) => {
+            console.error("❌ Error adding review:", error);
         },
     });
-}
+};
 
-// Upload ảnh cho đánh giá
-export function useUploadDanhGiaImages(sanPhamId: number) {
+export const useUpdateDanhGia = () => {
     const queryClient = useQueryClient();
+
     return useMutation({
-        mutationFn: ({ danhGiaId, files }: { danhGiaId: number; files: File[] }) =>
-            danhGiaService.uploadImages(danhGiaId, files),
+        mutationFn: ({ idDanhGia, idNv, phanHoi }: { idDanhGia: number; idNv: number; phanHoi: string }) =>
+            danhGiaService.update(idDanhGia, idNv, phanHoi),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["danhGia", sanPhamId] });
+            queryClient.invalidateQueries({ queryKey: ["danhGia"] });
+        },
+        onError: (error) => {
+            console.error("❌ Error updating review:", error);
         },
     });
-}
+};
 
-// Upload video cho đánh giá
-export function useUploadDanhGiaVideo(sanPhamId: number) {
+export const useDeleteDanhGia = () => {
     const queryClient = useQueryClient();
+
     return useMutation({
-        mutationFn: ({ danhGiaId, file }: { danhGiaId: number; file: File }) =>
-            danhGiaService.uploadVideo(danhGiaId, file),
+        mutationFn: ({ idDanhGia, idNv }: { idDanhGia: number; idNv: number }) =>
+            danhGiaService.delete(idDanhGia, idNv),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["danhGia", sanPhamId] });
+            queryClient.invalidateQueries({ queryKey: ["danhGia"] });
+        },
+        onError: (error) => {
+            console.error("❌ Error deleting review:", error);
         },
     });
-}
+};
