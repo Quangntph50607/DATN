@@ -1,81 +1,107 @@
+import { DanhGiaResponse, CreateDanhGiaDTO } from "@/components/types/danhGia-type";
 import { fetchWithAuth } from "./fetchWithAuth";
 
-const API_URL = "http://localhost:8080/api/lego-store/danh-gia";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/lego-store/danh-gia";
 
 export const danhGiaService = {
-    // Lấy danh sách đánh giá theo sản phẩm
-    getBySanPham: async (sanPhamId: number) => {
+    async getBySanPham(spId: number): Promise<DanhGiaResponse[]> {
         try {
-            console.log(`🔍 Fetching reviews for product ${sanPhamId}...`);
-            const res = await fetchWithAuth(`${API_URL}/${sanPhamId}`);
-            console.log(`📡 Response status: ${res.status}`);
+            const res = await fetchWithAuth(`${API_URL}/${spId}`);
 
             if (!res.ok) {
-                const errorText = await res.text();
-                console.error(`❌ Failed to fetch reviews: ${res.status} - ${errorText}`);
-                throw new Error(`Failed to fetch reviews: ${res.status} - ${errorText}`);
+                throw new Error(`Failed to fetch reviews: ${res.status}`);
             }
 
             const data = await res.json();
-            console.log(`✅ Reviews fetched for product ${sanPhamId}:`, data);
-            console.log(`📊 Total reviews: ${Array.isArray(data) ? data.length : 'Not an array'}`);
-            return data;
+            return Array.isArray(data) ? data : [];
         } catch (error) {
             console.error("❌ Error fetching reviews:", error);
-            throw error;
+            return [];
         }
     },
 
-    // Tạo đánh giá mới
-    create: async (data: any) => {
+    async createWithImages(data: CreateDanhGiaDTO, images: File[], video?: File): Promise<DanhGiaResponse> {
         try {
-            console.log("📝 Creating review with data:", data);
-            const res = await fetchWithAuth(`${API_URL}/create`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(data),
-            });
-            console.log(`📡 Create response status: ${res.status}`);
+            const formData = new FormData();
+            formData.append('tieuDe', data.tieuDe);
+            formData.append('textDanhGia', data.textDanhGia);
+            formData.append('soSao', data.soSao.toString());
+            formData.append('user_id', data.user_id.toString());
+            formData.append('sp_id', data.sp_id.toString());
 
-            if (!res.ok) {
-                const errorText = await res.text();
-                console.error(`❌ Failed to create review: ${res.status} - ${errorText}`);
-                throw new Error(`Failed to create review: ${res.status} - ${errorText}`);
+            if (images.length > 0) {
+                images.forEach((image) => {
+                    formData.append('fileAnh', image);
+                });
             }
 
-            const result = await res.json();
-            console.log("✅ Review created successfully:", result);
-            return result;
+            if (video) {
+                formData.append('fileVid', video);
+            }
+
+            const res = await fetchWithAuth(`${API_URL}/CreateWithFileImages`, {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (!res.ok) {
+                const errorData = await res.json().catch(() => ({}));
+                throw new Error(errorData.message || "Lỗi khi tạo đánh giá");
+            }
+
+            return await res.json();
         } catch (error) {
             console.error("❌ Error creating review:", error);
             throw error;
         }
     },
 
-    // Upload ảnh cho đánh giá
-    uploadImages: async (danhGiaId: number, files: File[]) => {
-        const formData = new FormData();
-        files.forEach((file) => formData.append("images", file));
-        const res = await fetchWithAuth(`${API_URL}/anh/${danhGiaId}`, {
-            method: "POST",
-            body: formData,
-        });
-        if (!res.ok) throw new Error(await res.text());
-        return res.json();
+    async update(idDanhGia: number, idNv: number, phanHoi: string): Promise<DanhGiaResponse> {
+        try {
+            const formData = new FormData();
+            formData.append('phanHoi', phanHoi);
+
+            const res = await fetchWithAuth(`${API_URL}/update/${idDanhGia}/${idNv}`, {
+                method: 'PUT',
+                body: formData,
+            });
+
+            if (!res.ok) {
+                const errorData = await res.json().catch(() => ({}));
+                throw new Error(errorData.message || "Lỗi khi cập nhật đánh giá");
+            }
+
+            return await res.json();
+        } catch (error) {
+            console.error("❌ Error updating review:", error);
+            throw error;
+        }
     },
 
-    // Upload video cho đánh giá
-    uploadVideo: async (danhGiaId: number, file: File) => {
-        const formData = new FormData();
-        formData.append("video", file);
-        const res = await fetchWithAuth(`${API_URL}/video/${danhGiaId}`, {
-            method: "POST",
-            body: formData,
-        });
-        if (!res.ok) throw new Error(await res.text());
-        return res.json();
+    async delete(idDanhGia: number, idNv: number): Promise<string> {
+        try {
+            const res = await fetchWithAuth(`${API_URL}/delete/${idDanhGia}/${idNv}`, {
+                method: 'DELETE',
+            });
+
+            if (!res.ok) {
+                const errorData = await res.json().catch(() => ({}));
+                throw new Error(errorData.message || "Lỗi khi xóa đánh giá");
+            }
+
+            const result = await res.json();
+            return result.message || "Xóa đánh giá thành công";
+        } catch (error) {
+            console.error("❌ Error deleting review:", error);
+            throw error;
+        }
     },
 
-    // Xem ảnh đánh giá
-    getImageUrl: (imgName: string) => `${API_URL}/images/${imgName}`,
+    getImageUrl(fileName: string): string {
+        return `${API_URL}/images/${fileName}`;
+    },
+
+    getVideoUrl(fileName: string): string {
+        return `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"}/api/lego-store/danh-gia/videos/${fileName}`;
+    },
 };
