@@ -1,3 +1,4 @@
+"use client";
 import MainLayout from "@/components/layout/layout";
 import React from "react";
 import { Toaster } from "sonner";

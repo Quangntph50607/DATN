@@ -1,20 +1,22 @@
+"use client";
 import React, { useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Minus, Plus, ShoppingCartIcon, Trash2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { ProductBadges } from "./ProductBadges";
 import { useRouter } from "next/navigation";
+import { CartItemType } from "@/components/types/cart";
+import { updateCartItem } from "@/context/cartLocal";
 
 interface CartProps {
-  items: any[];
+  items: CartItemType[];
   selectedIds: number[];
   imageUrls: Record<number, string | null>;
-  productDetails: any;
-  categoryNames: { [key: number]: string };
-  brandNames: { [key: number]: string };
-  originNames: { [key: number]: string };
+  // productDetails: any;
+  // categoryNames: { [key: number]: string };
+  // brandNames: { [key: number]: string };
+  // originNames: { [key: number]: string };
   onSelect: (id: number) => void;
   onQuantityChange: (id: number, delta: number) => void;
   onRemove: (id: number) => void;
@@ -25,20 +27,15 @@ export const CartItem = ({
   items,
   selectedIds,
   imageUrls,
-  productDetails,
-  categoryNames,
-  brandNames,
-  originNames,
+  // productDetails,
+  // categoryNames,
+  // brandNames,
+  // originNames,
   onSelect,
-  onQuantityChange,
+  // onQuantityChange,
   onRemove,
   formatCurrency,
 }: CartProps) => {
-  const [quantityChangeOpen, setQuantityChangeOpen] = useState(false);
-  const [quantityAction, setQuantityAction] = useState<{
-    id: number;
-    delta: number;
-  } | null>(null);
   const router = useRouter();
 
   if (items.length === 0) {
@@ -64,14 +61,18 @@ export const CartItem = ({
 
   const handleQuantityChange = (id: number, delta: number) => {
     const item = items.find((item) => item.id === id);
-    if (delta < 0 && item?.quantity <= 1) {
-      return; // Prevent going below 1
-    }
-    setQuantityAction({ id, delta });
-    setQuantityChangeOpen(true);
-    onQuantityChange(id, delta);
-  };
+    if (!item) return;
 
+    const result = updateCartItem(
+      { ...item, quantity: delta },
+      item.maxQuantity ?? 20, // fallback nếu không có
+      { override: true }
+    );
+
+    if (!result.success) {
+      alert(result.message);
+    }
+  };
   return (
     <div className="space-y-4">
       {items.map((item) => (
@@ -103,13 +104,13 @@ export const CartItem = ({
                 {item.name}
               </h3>
             </Link>
-            <ProductBadges
+            {/* <ProductBadges
               productDetails={productDetails}
               categoryNames={categoryNames}
               brandNames={brandNames}
               originNames={originNames}
               itemId={item.id}
-            />
+            /> */}
           </div>
 
           <div className="text-right">
@@ -131,7 +132,6 @@ export const CartItem = ({
             </span>
             <Button
               variant="default"
-              size="sm"
               onClick={() => handleQuantityChange(item.id, 1)}
             >
               <Plus className="w-4 h-4" />
@@ -141,7 +141,6 @@ export const CartItem = ({
           <div className="flex gap-2">
             <Button
               variant="default"
-              size="sm"
               onClick={() => onRemove(item.id)}
               className="text-gray-600 hover:text-red-500 hover:bg-red-50"
             >

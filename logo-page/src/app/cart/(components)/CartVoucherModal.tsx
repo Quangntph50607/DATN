@@ -84,7 +84,7 @@ const CartVoucherModal: React.FC<CartVoucherModalProps> = ({
                         HSD: {v.ngayKetThuc || "31.12.2025"}
                       </div>
                       <div className="text-xs text-gray-500">
-                        {v.loaiPhieuGiam === "Theo %"
+                        {v.loaiPhieuGiam === "theo_phan_tram"
                           ? `Giảm ${v.giaTriGiam}%`
                           : `Giảm ${v.giaTriGiam?.toLocaleString()}đ`}
                       </div>

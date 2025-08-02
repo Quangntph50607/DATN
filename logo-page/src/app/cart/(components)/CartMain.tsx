@@ -1,18 +1,20 @@
+"use client";
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
 import { CartItem } from "./CartItem";
+import { CartItemType } from "@/components/types/cart";
 
 interface CartMainProps {
-  items: any[];
+  items: CartItemType[];
   selectedIds: number[];
   imageUrls: Record<number, string | null>;
-  productDetails: any;
-  categoryNames: { [key: number]: string };
-  brandNames: { [key: number]: string };
-  originNames: { [key: number]: string };
+  // productDetails: any;
+  // categoryNames: { [key: number]: string };
+  // brandNames: { [key: number]: string };
+  // originNames: { [key: number]: string };
   onSelect: (id: number) => void;
   onSelectAll: () => void;
   onQuantityChange: (id: number, delta: number) => void;
@@ -25,10 +27,10 @@ export const CartMain = ({
   items,
   selectedIds,
   imageUrls,
-  productDetails,
-  categoryNames,
-  brandNames,
-  originNames,
+  // productDetails,
+  // categoryNames,
+  // brandNames,
+  // originNames,
   onSelect,
   onSelectAll,
   onQuantityChange,
@@ -70,10 +72,10 @@ export const CartMain = ({
           items={items}
           selectedIds={selectedIds}
           imageUrls={imageUrls}
-          productDetails={productDetails}
-          categoryNames={categoryNames}
-          brandNames={brandNames}
-          originNames={originNames}
+          // productDetails={productDetails}
+          // categoryNames={categoryNames}
+          // brandNames={brandNames}
+          // originNames={originNames}
           onSelect={onSelect}
           onQuantityChange={onQuantityChange}
           onRemove={onRemove}
