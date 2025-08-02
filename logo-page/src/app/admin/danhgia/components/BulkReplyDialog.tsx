@@ -73,7 +73,17 @@ export default function BulkReplyDialog({ isOpen, onClose, onSave, selectedRevie
                                 <div key={review.id} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded-lg">
                                     <div className="flex-1 min-w-0">
                                         <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                                            {review.tenKH || review.tenNguoiDung || review.user?.ten || "Khách hàng"}
+                                            {(() => {
+                                                let displayName = "Khách hàng";
+                                                if (review.user?.ten && review.user.ten.trim()) {
+                                                    displayName = review.user.ten.trim();
+                                                } else if (review.tenNguoiDung && review.tenNguoiDung.trim()) {
+                                                    displayName = review.tenNguoiDung.trim();
+                                                } else if (review.tenKH && review.tenKH.trim()) {
+                                                    displayName = review.tenKH.trim();
+                                                }
+                                                return displayName;
+                                            })()}
                                         </p>
                                         <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                                             {review.tieuDe || "Không có tiêu đề"}

@@ -53,7 +53,18 @@ export default function ReviewItem({
             await onUpdateReview(review.id, { ...review, textPhanHoi: trimmedReply });
 
             if (trimmedReply.length > 0) {
-                toast.success(`Phản hồi cho ${review.tenKH || review.tenNguoiDung || review.user?.ten || "Khách hàng"} đã được cập nhật.`);
+                const customerName = (() => {
+                    let displayName = "Khách hàng";
+                    if (review.user?.ten && review.user.ten.trim()) {
+                        displayName = review.user.ten.trim();
+                    } else if (review.tenNguoiDung && review.tenNguoiDung.trim()) {
+                        displayName = review.tenNguoiDung.trim();
+                    } else if (review.tenKH && review.tenKH.trim()) {
+                        displayName = review.tenKH.trim();
+                    }
+                    return displayName;
+                })();
+                toast.success(`Phản hồi cho ${customerName} đã được cập nhật.`);
             } else {
                 toast.success("Đã xóa phản hồi!");
             }
@@ -130,11 +141,33 @@ export default function ReviewItem({
                         <Avatar className="ring-2 ring-blue-100 dark:ring-blue-900">
                             <AvatarImage src="/images/avatar-admin.png" />
                             <AvatarFallback className="bg-gradient-to-br from-blue-400 to-blue-600 text-white font-semibold">
-                                {(review.tenNguoiDung || review.user?.ten || "K").charAt(0)}
+                                {(() => {
+                                    let displayName = "K";
+                                    if (review.user?.ten && review.user.ten.trim()) {
+                                        displayName = review.user.ten.trim();
+                                    } else if (review.tenNguoiDung && review.tenNguoiDung.trim()) {
+                                        displayName = review.tenNguoiDung.trim();
+                                    } else if (review.tenKH && review.tenKH.trim()) {
+                                        displayName = review.tenKH.trim();
+                                    }
+                                    return displayName.charAt(0);
+                                })()}
                             </AvatarFallback>
                         </Avatar>
                         <div>
-                            <h4 className="font-semibold text-gray-900 dark:text-white">{review.tenKH || review.tenNguoiDung || review.user?.ten || "Khách hàng"}</h4>
+                            <h4 className="font-semibold text-gray-900 dark:text-white">
+                                {(() => {
+                                    let displayName = "Khách hàng";
+                                    if (review.user?.ten && review.user.ten.trim()) {
+                                        displayName = review.user.ten.trim();
+                                    } else if (review.tenNguoiDung && review.tenNguoiDung.trim()) {
+                                        displayName = review.tenNguoiDung.trim();
+                                    } else if (review.tenKH && review.tenKH.trim()) {
+                                        displayName = review.tenKH.trim();
+                                    }
+                                    return displayName;
+                                })()}
+                            </h4>
                             <p className="text-sm text-gray-500 dark:text-gray-400">
                                 {review.tenSP || "Sản phẩm"} - {review.maSP || review.spId}
                             </p>
@@ -261,7 +294,17 @@ export default function ReviewItem({
                 onSave={handleSaveReply}
                 replyText={replyText}
                 setReplyText={setReplyText}
-                customerName={review.tenKH || review.tenNguoiDung || review.user?.ten || "Khách hàng"}
+                customerName={(() => {
+                    let displayName = "Khách hàng";
+                    if (review.user?.ten && review.user.ten.trim()) {
+                        displayName = review.user.ten.trim();
+                    } else if (review.tenNguoiDung && review.tenNguoiDung.trim()) {
+                        displayName = review.tenNguoiDung.trim();
+                    } else if (review.tenKH && review.tenKH.trim()) {
+                        displayName = review.tenKH.trim();
+                    }
+                    return displayName;
+                })()}
                 hasExistingReply={!!hasReply}
             />
 
@@ -269,14 +312,34 @@ export default function ReviewItem({
                 isOpen={isDeleteReplyDialogOpen}
                 onClose={() => setIsDeleteReplyDialogOpen(false)}
                 onConfirm={confirmDeleteReply}
-                customerName={review.tenKH || review.tenNguoiDung || review.user?.ten || "Khách hàng"}
+                customerName={(() => {
+                    let displayName = "Khách hàng";
+                    if (review.user?.ten && review.user.ten.trim()) {
+                        displayName = review.user.ten.trim();
+                    } else if (review.tenNguoiDung && review.tenNguoiDung.trim()) {
+                        displayName = review.tenNguoiDung.trim();
+                    } else if (review.tenKH && review.tenKH.trim()) {
+                        displayName = review.tenKH.trim();
+                    }
+                    return displayName;
+                })()}
             />
 
             <DeleteReviewDialog
                 isOpen={isDeleteReviewDialogOpen}
                 onClose={() => setIsDeleteReviewDialogOpen(false)}
                 onConfirm={confirmDeleteReview}
-                customerName={review.tenKH || review.tenNguoiDung || review.user?.ten || "Khách hàng"}
+                customerName={(() => {
+                    let displayName = "Khách hàng";
+                    if (review.user?.ten && review.user.ten.trim()) {
+                        displayName = review.user.ten.trim();
+                    } else if (review.tenNguoiDung && review.tenNguoiDung.trim()) {
+                        displayName = review.tenNguoiDung.trim();
+                    } else if (review.tenKH && review.tenKH.trim()) {
+                        displayName = review.tenKH.trim();
+                    }
+                    return displayName;
+                })()}
             />
 
             <VideoModal
