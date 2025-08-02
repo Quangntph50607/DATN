@@ -22,18 +22,24 @@ export const ProductBadges = ({
 
   return (
     <div className="flex flex-wrap gap-1">
-      {product.danhMucId && categoryNames[product.danhMucId] && (
+      {/* {product.danhMucId && categoryNames[product.danhMucId] && (
         <Badge variant="secondary" className="text-xs bg-gray-100 text-gray-700 border-gray-300">
           {categoryNames[product.danhMucId]}
         </Badge>
-      )}
+      )} */}
       {product.thuongHieuId && brandNames[product.thuongHieuId] && (
-        <Badge variant="outline" className="text-xs border-blue-300 text-blue-700 bg-blue-50">
+        <Badge
+          variant="outline"
+          className="text-xs border-blue-300 text-blue-700 bg-blue-50"
+        >
           {brandNames[product.thuongHieuId]}
         </Badge>
       )}
       {product.xuatXuId && originNames[product.xuatXuId] && (
-        <Badge variant="default" className="text-xs bg-green-100 text-green-700 border-green-300">
+        <Badge
+          variant="default"
+          className="text-xs bg-green-100 text-green-700 border-green-300"
+        >
           {originNames[product.xuatXuId]}
         </Badge>
       )}
