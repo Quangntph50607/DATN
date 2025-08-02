@@ -1,5 +1,5 @@
 // /context/cartStore.ts
-import { create } from 'zustand';
+import { create } from "zustand";
 
 interface CartItem {
   id: number;
@@ -35,4 +35,3 @@ export const useCartStore = create<CartState>((set, get) => ({
   getTotalPrice: () =>
     get().cart.reduce((sum, item) => sum + item.gia * item.quantity, 0),
 }));
-
