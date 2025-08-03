@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import type { PhieuGiamGia } from "@/components/types/phieugiam.type";
-
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,6 +13,7 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from "@/components/ui/alert-dialog";
+import Image from "next/image";
 
 interface OrderSummaryProps {
   products: any[];
@@ -57,18 +57,25 @@ export default function OrderSummary({
         {/* Danh sách sản phẩm */}
         <div className="space-y-3 mb-4 max-h-60 overflow-y-auto">
           {products.map((product) => (
-            <div key={product.id} className="flex items-center gap-3 p-2 border-b border-gray-100">
+            <div
+              key={product.id}
+              className="flex items-center gap-3 p-2 border-b border-gray-100"
+            >
               <div className="w-12 h-12 bg-white rounded overflow-hidden flex-shrink-0 border border-gray-200">
                 {imageUrls[product.id] && (
-                  <img
+                  <Image
                     src={imageUrls[product.id]!}
                     alt={product.name}
                     className="w-full h-full object-cover"
+                    width={48}
+                    height={48}
                   />
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium truncate">{product.name}</div>
+                <div className="text-sm font-medium truncate">
+                  {product.name}
+                </div>
                 <div className="text-xs">SL: {product.quantity}</div>
               </div>
               <div className="text-sm font-medium">
@@ -87,7 +94,9 @@ export default function OrderSummary({
             type="button"
           >
             <span className="text-sm">
-              {selectedVoucher ? `Voucher: ${selectedVoucher.tenPhieu}` : "Chọn voucher"}
+              {selectedVoucher
+                ? `Voucher: ${selectedVoucher.tenPhieu}`
+                : "Chọn voucher"}
             </span>
             <span className="text-orange-500">→</span>
           </Button>
@@ -102,11 +111,13 @@ export default function OrderSummary({
           <div className="flex justify-between text-sm">
             <span>Giảm giá</span>
             <span className="text-green-600">
-              -{selectedVoucher
+              -
+              {selectedVoucher
                 ? discount < 1
                   ? (total * discount).toLocaleString()
                   : discount.toLocaleString()
-                : 0}đ
+                : 0}
+              đ
             </span>
           </div>
           <div className="flex justify-between text-sm">
@@ -116,7 +127,9 @@ export default function OrderSummary({
           <div className="border-t border-gray-200 pt-2">
             <div className="flex justify-between font-bold">
               <span>Tổng cộng</span>
-              <span className="text-orange-500 text-lg">{totalAfterDiscount.toLocaleString()}đ</span>
+              <span className="text-orange-500 text-lg">
+                {totalAfterDiscount.toLocaleString()}đ
+              </span>
             </div>
           </div>
         </div>
@@ -124,7 +137,9 @@ export default function OrderSummary({
         {/* Nút hành động */}
         <div className="mt-6 space-y-3">
           {orderError && (
-            <div className="text-red-500 text-sm p-2 bg-white border border-red-200 rounded">{orderError}</div>
+            <div className="text-red-500 text-sm p-2 bg-white border border-red-200 rounded">
+              {orderError}
+            </div>
           )}
 
           <AlertDialog open={openAlert} onOpenChange={setOpenAlert}>
@@ -171,7 +186,9 @@ export default function OrderSummary({
           </Button>
 
           <div className="text-center">
-            <span className="text-xs text-black/60">🔒 Thanh toán được bảo mật 100%</span>
+            <span className="text-xs text-black/60">
+              🔒 Thanh toán được bảo mật 100%
+            </span>
           </div>
         </div>
       </CardContent>

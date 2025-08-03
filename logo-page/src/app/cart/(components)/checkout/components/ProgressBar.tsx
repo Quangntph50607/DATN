@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 
 export default function ProgressBar() {
@@ -6,9 +6,6 @@ export default function ProgressBar() {
     <Card className="mb-6 bg-white text-black">
       <CardContent className="p-0 bg-white text-black">
         <div className="flex items-center gap-2 mb-4 px-6 pt-6">
-          <div className="w-8 h-8 bg-orange-500 rounded flex items-center justify-center">
-            <span className="text-white">📦</span>
-          </div>
           <h1 className="text-xl font-bold">Thanh toán đơn hàng</h1>
         </div>
 

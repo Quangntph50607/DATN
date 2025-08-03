@@ -11,14 +11,15 @@ import Header from "@/components/layout/(components)/(pages)/Header";
 import Footer from "@/components/layout/(components)/(pages)/Footer";
 import { ShippingCalculator } from "@/utils/shippingCalculator";
 
-import ProgressBar from './components/ProgressBar';
-import CustomerInfoSection from './components/CustomerInfoSection';
-import PaymentMethodSection from './components/PaymentMethodSection';
-import ShippingMethodSection from './components/ShippingMethodSection';
+import ProgressBar from "./components/ProgressBar";
+import CustomerInfoSection from "./components/CustomerInfoSection";
+
 import AddressSection from "./components/AddressSection";
 import OrderSummary from "./components/OrderSummary";
 import VoucherModal from "./components/VoucherModal";
 import AddressModal from "./components/AddressModal";
+import PhuongThucThanhToan from "./components/PhuongThucThanhToan";
+import PhuongThucVanChuyen from "./components/PhuongThucVanChuyen";
 
 export default function CheckoutPage() {
   const { user } = useUserStore();
@@ -36,7 +37,9 @@ export default function CheckoutPage() {
   const [shippingMethod, setShippingMethod] = useState("Nhanh");
   const [shippingFee, setShippingFee] = useState(0);
   const [soNgayGiao, setSoNgayGiao] = useState(0);
-  const [selectedVoucher, setSelectedVoucher] = useState<PhieuGiamGia | null>(null);
+  const [selectedVoucher, setSelectedVoucher] = useState<PhieuGiamGia | null>(
+    null
+  );
   const [discount, setDiscount] = useState(0);
   const [isLoadingOrder, setIsLoadingOrder] = useState(false);
   const [orderError, setOrderError] = useState("");
@@ -56,7 +59,7 @@ export default function CheckoutPage() {
       try {
         const [provinceRes, wardRes] = await Promise.all([
           fetch("/data/province.json"),
-          fetch("/data/ward.json")
+          fetch("/data/ward.json"),
         ]);
         const provinceData = await provinceRes.json();
         const wardData = await wardRes.json();
@@ -69,7 +72,9 @@ export default function CheckoutPage() {
           if (w.parent_code) parentCodes.add(w.parent_code);
         });
 
-        const filteredProvinces = Object.entries(provinceData as Record<string, any>)
+        const filteredProvinces = Object.entries(
+          provinceData as Record<string, any>
+        )
           .filter(([code]) => parentCodes.has(code))
           .map(([code, info]) => ({ code: Number(code), ...info }));
 
@@ -112,7 +117,9 @@ export default function CheckoutPage() {
     for (const product of products) {
       if (product.image) {
         try {
-          const imageBlob = await getAnhByFileName(product.image.replace(/^\//, ""));
+          const imageBlob = await getAnhByFileName(
+            product.image.replace(/^\//, "")
+          );
           urls[product.id] = URL.createObjectURL(imageBlob);
         } catch (error) {
           urls[product.id] = null;
@@ -139,7 +146,9 @@ export default function CheckoutPage() {
   const removeOrderedItemsFromCart = () => {
     const currentCart = JSON.parse(localStorage.getItem("cartItems") || "[]");
     const orderedProductIds = products.map((p) => p.id);
-    const updatedCart = currentCart.filter((item: any) => !orderedProductIds.includes(item.id));
+    const updatedCart = currentCart.filter(
+      (item: any) => !orderedProductIds.includes(item.id)
+    );
     localStorage.setItem("cartItems", JSON.stringify(updatedCart));
     localStorage.removeItem("selectedVoucher");
     localStorage.removeItem("checkoutDiscount");
@@ -198,20 +207,24 @@ export default function CheckoutPage() {
         tenNguoiNhan: tenNguoiNhan,
         sdt: cleanPhone,
         diaChiGiaoHang,
-        phuongThucThanhToan: paymentMethod === 'COD' ? 'COD' : 'Chuyển khoản',
+        phuongThucThanhToan: paymentMethod === "COD" ? "COD" : "Chuyển khoản",
         cartItems,
         idPhieuGiam: selectedVoucher?.id,
         loaiVanChuyen: shippingMethod === "Nhanh" ? 1 : 2,
         isFast: shippingMethod === "Nhanh" ? 1 : 0,
         ngayDatHang: new Date().toISOString(),
-        ngayGiaoHangDuKien: new Date(Date.now() + soNgayGiao * 24 * 60 * 60 * 1000).toISOString(),
+        ngayGiaoHangDuKien: new Date(
+          Date.now() + soNgayGiao * 24 * 60 * 60 * 1000
+        ).toISOString(),
       };
 
       const hoaDon = await HoaDonService.createHoaDon(orderData);
 
       if (paymentMethod === "COD") {
         setIsLoadingOrder(false);
-        toast.success("Đặt hàng thành công! Đơn hàng sẽ được giao và thanh toán khi nhận hàng.");
+        toast.success(
+          "Đặt hàng thành công! Đơn hàng sẽ được giao và thanh toán khi nhận hàng."
+        );
         removeOrderedItemsFromCart();
         router.push(`/cart/checkout/success?hoaDonId=${hoaDon.id}`);
       } else if (paymentMethod === "Chuyển khoản") {
@@ -229,7 +242,9 @@ export default function CheckoutPage() {
 
           if (data && data.status === "OK" && data.url) {
             removeOrderedItemsFromCart();
-            toast.success("Đặt hàng thành công! Đang chuyển sang cổng thanh toán VNPAY...");
+            toast.success(
+              "Đặt hàng thành công! Đang chuyển sang cổng thanh toán VNPAY..."
+            );
             setIsLoadingOrder(false);
             window.location.href = data.url;
           } else {
@@ -257,7 +272,7 @@ export default function CheckoutPage() {
 
     // Tìm tên tỉnh/thành
     if (provinceCode && provinces.length > 0) {
-      const selectedProv = provinces.find(p => p.code === provinceCode);
+      const selectedProv = provinces.find((p) => p.code === provinceCode);
       if (selectedProv) {
         setSelectedProvinceName(selectedProv.name);
       }
@@ -270,7 +285,7 @@ export default function CheckoutPage() {
     setWard(wardCode);
 
     if (wardCode && wards.length > 0) {
-      const selectedWardObj = wards.find(w => w.code === wardCode);
+      const selectedWardObj = wards.find((w) => w.code === wardCode);
       if (selectedWardObj) {
         setSelectedWardName(selectedWardObj.name);
       }
@@ -289,7 +304,10 @@ export default function CheckoutPage() {
 
     try {
       const isFast = shippingMethod === "Nhanh" ? 1 : 0;
-      const totalWeight = products.reduce((sum, p) => sum + (p.quantity * 0.5), 0);
+      const totalWeight = products.reduce(
+        (sum, p) => sum + p.quantity * 0.5,
+        0
+      );
 
       const result = ShippingCalculator.calculateShipping(
         address,
@@ -305,7 +323,13 @@ export default function CheckoutPage() {
       setShippingFee(0);
       setSoNgayGiao(0);
     }
-  }, [selectedProvinceName, selectedWardName, address, shippingMethod, products]);
+  }, [
+    selectedProvinceName,
+    selectedWardName,
+    address,
+    shippingMethod,
+    products,
+  ]);
 
   return (
     <>
@@ -332,8 +356,6 @@ export default function CheckoutPage() {
                 onProvinceChange={handleProvinceChange}
                 onWardChange={handleWardChange}
                 onShowAddressForm={() => setShowAddressForm(true)}
-                onShippingFeeChange={setShippingFee}
-                onDeliveryDaysChange={setSoNgayGiao}
                 products={products}
                 shippingMethod={shippingMethod}
                 onTenNguoiNhanChange={setTenNguoiNhan}
@@ -343,12 +365,12 @@ export default function CheckoutPage() {
                 allWards={allWards}
               />
 
-              <PaymentMethodSection
+              <PhuongThucThanhToan
                 paymentMethod={paymentMethod}
                 onPaymentMethodChange={setPaymentMethod}
               />
 
-              <ShippingMethodSection
+              <PhuongThucVanChuyen
                 shippingMethod={shippingMethod}
                 onShippingMethodChange={setShippingMethod}
               />
@@ -395,11 +417,15 @@ export default function CheckoutPage() {
 
             // update tên cho phí ship
             if (addressData.province && provinces.length > 0) {
-              const selectedProv = provinces.find(p => p.code === addressData.province);
+              const selectedProv = provinces.find(
+                (p) => p.code === addressData.province
+              );
               if (selectedProv) setSelectedProvinceName(selectedProv.name);
             }
             if (addressData.ward && wards.length > 0) {
-              const selectedWardObj = wards.find(w => w.code === addressData.ward);
+              const selectedWardObj = wards.find(
+                (w) => w.code === addressData.ward
+              );
               if (selectedWardObj) setSelectedWardName(selectedWardObj.name);
             }
           }}
