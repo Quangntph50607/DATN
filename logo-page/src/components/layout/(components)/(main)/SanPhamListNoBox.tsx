@@ -12,7 +12,8 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { KhuyenMaiTheoSanPham } from "@/components/types/khuyenmai-type";
-import { ChevronLeft, ChevronRight, ShoppingCart, Heart } from "lucide-react";
+import { ChevronLeft, ChevronRight, ShoppingCart } from "lucide-react";
+import { AddToWishListButton } from "@/components/layout/(components)/(product)/AddToWishListButton";
 import { motion } from "framer-motion";
 import { useDanhMucID } from "@/hooks/useDanhMuc";
 
@@ -143,23 +144,22 @@ export default function SanPhamListNoBox({ ps }: SanPhamListProps) {
                                 whileInView={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.6, delay: idx * 0.08 }}
                             >
-                                <Link href={`/product/${p.id}`} className="block">
-                                    <Card className="overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl border border-gray-100 bg-white transition-all duration-300 group relative w-full mx-auto hover:-translate-y-1 hover:scale-105">
-                                        <CardHeader className="p-0">
-                                            <div className="relative w-full h-52">
-                                                {/* Badge */}
-                                                <div className="absolute top-3 left-3 z-10">
-                                                    <span className={`${badge.color} px-2 py-1 rounded-full text-xs font-medium shadow-sm group-hover:scale-110 transition-transform duration-200`}>
-                                                        {badge.text}
-                                                    </span>
-                                                </div>
+                                <Card className="overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl border border-gray-100 bg-white transition-all duration-300 group relative w-full mx-auto hover:-translate-y-1 hover:scale-105">
+                                    <CardHeader className="p-0">
+                                        <div className="relative w-full h-52">
+                                            {/* Badge */}
+                                            <div className="absolute top-3 left-3 z-10">
+                                                <span className={`${badge.color} px-2 py-1 rounded-full text-xs font-medium shadow-sm group-hover:scale-110 transition-transform duration-200`}>
+                                                    {badge.text}
+                                                </span>
+                                            </div>
 
+                                            <Link href={`/product/${p.id}`} className="block">
                                                 <Image
                                                     src={mainImageUrl}
                                                     alt={p.tenSanPham}
-                                                    width={320}
-                                                    height={208}
-                                                    className="object-contain w-full h-full p-3 group-hover:scale-110 transition-transform duration-300"
+                                                    fill
+                                                    className="object-contain w-full h-full p-3 group-hover:scale-110 transition-transform duration-300 cursor-pointer"
                                                     loading="lazy"
                                                     onError={(e) => {
                                                         const target = e.target as HTMLImageElement;
@@ -167,64 +167,61 @@ export default function SanPhamListNoBox({ ps }: SanPhamListProps) {
                                                         console.error(`Lỗi tải ảnh sản phẩm: ${p.tenSanPham}`);
                                                     }}
                                                 />
-                                            </div>
-                                        </CardHeader>
-                                        <CardContent className="p-4 pb-1">
-                                            <div className="mb-2">
-                                                <div className="flex items-center justify-between">
-                                                    <CategoryName danhMucId={p.danhMucId} />
-                                                    <div className="text-xs text-gray-400">
-                                                        {p.maSanPham}
-                                                    </div>
+                                            </Link>
+                                        </div>
+                                    </CardHeader>
+                                    <CardContent className="p-4 pb-1">
+                                        <div className="mb-2">
+                                            <div className="flex items-center justify-between">
+                                                <CategoryName danhMucId={p.danhMucId} />
+                                                <div className="text-xs text-gray-400">
+                                                    {p.maSanPham}
                                                 </div>
                                             </div>
+                                        </div>
 
-                                            <CardTitle className="text-base font-semibold line-clamp-2 h-[44px] text-gray-800 group-hover:text-blue-600 transition-colors mb-2">
+                                        <Link href={`/product/${p.id}`} className="block">
+                                            <CardTitle className="text-base font-semibold line-clamp-2 h-[44px] text-gray-800 group-hover:text-blue-600 transition-colors mb-2 cursor-pointer">
                                                 {p.tenSanPham}
                                             </CardTitle>
-                                            <div className="flex items-center gap-2 mb-4">
-                                                <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">
-                                                    Độ tuổi: {p.doTuoi}+
-                                                </span>
-                                            </div>
+                                        </Link>
+                                        <div className="flex items-center gap-2 mb-4">
+                                            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">
+                                                Độ tuổi: {p.doTuoi}+
+                                            </span>
+                                        </div>
 
-                                            <div className="flex items-center justify-between mb-0 pb-0">
-                                                <div className="text-lg font-bold text-gray-800">
-                                                    {(p.giaKhuyenMai || p.gia).toLocaleString("vi-VN")}₫
+                                        <div className="flex items-center justify-between mb-0 pb-0">
+                                            <div className="text-lg font-bold text-gray-800">
+                                                {(p.giaKhuyenMai || p.gia).toLocaleString("vi-VN")}₫
+                                            </div>
+                                            {p.giaKhuyenMai && p.giaKhuyenMai < p.gia && (
+                                                <div className="text-xs text-gray-400 line-through">
+                                                    {p.gia.toLocaleString("vi-VN")}₫
                                                 </div>
-                                                {p.giaKhuyenMai && p.giaKhuyenMai < p.gia && (
-                                                    <div className="text-xs text-gray-400 line-through">
-                                                        {p.gia.toLocaleString("vi-VN")}₫
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </CardContent>
-                                        <CardFooter className="p-3 pt-0">
-                                            <div className="flex gap-3 w-full">
-                                                <Button
-                                                    className="flex-1 bg-orange-500 text-white hover:bg-orange-600 rounded-xl font-semibold h-11 shadow-lg hover:shadow-xl transition-all duration-200 inline-flex items-center justify-center gap-2 group-hover:scale-105"
-                                                    onClick={(e) => {
-                                                        e.preventDefault();
-                                                        e.stopPropagation();
-                                                        addToCartLocal(p);
-                                                    }}
-                                                >
-                                                    <ShoppingCart className="w-4 h-4" />
-                                                    Thêm vào giỏ hàng
-                                                </Button>
-                                                <Button
-                                                    className="h-11 w-11 border border-gray-200 hover:bg-red-50 hover:border-red-300 rounded-xl transition-all duration-200 inline-flex items-center justify-center group-hover:scale-105"
-                                                    onClick={(e) => {
-                                                        e.preventDefault();
-                                                        e.stopPropagation();
-                                                    }}
-                                                >
-                                                    <Heart className="w-4 h-4 text-gray-600" />
-                                                </Button>
-                                            </div>
-                                        </CardFooter>
-                                    </Card>
-                                </Link>
+                                            )}
+                                        </div>
+                                    </CardContent>
+                                    <CardFooter className="p-3 pt-0">
+                                        <div className="flex gap-3 w-full">
+                                            <Button
+                                                className="flex-1 bg-orange-500 text-white hover:bg-orange-600 rounded-xl font-semibold h-11 shadow-lg hover:shadow-xl transition-all duration-200 inline-flex items-center justify-center gap-2 group-hover:scale-105"
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                    addToCartLocal(p);
+                                                }}
+                                            >
+                                                <ShoppingCart className="w-4 h-4" />
+                                                Thêm vào giỏ hàng
+                                            </Button>
+                                            <AddToWishListButton
+                                                productId={p.id}
+                                                className="h-11 w-11 border border-gray-200 hover:bg-red-50 hover:border-red-300 rounded-xl transition-all duration-200 inline-flex items-center justify-center group-hover:scale-105"
+                                            />
+                                        </div>
+                                    </CardFooter>
+                                </Card>
                             </motion.div>
                         );
                     })}

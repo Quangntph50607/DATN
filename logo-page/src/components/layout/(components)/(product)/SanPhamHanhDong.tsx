@@ -18,6 +18,7 @@ import ThongTinSanPham from "./ThongTinSanPham";
 import { AddToCartSuccessModal } from "./AddToCartSuccessModal";
 import { getCartItemQuantity, updateCartItem } from "@/context/cartLocal";
 import { CartItemType } from "@/components/types/cart";
+import { AddToWishListButton } from "./AddToWishListButton";
 
 type SanPhamChiTietWithAnhUrls = KhuyenMaiTheoSanPham & {
   anhUrls?: { url: string; anhChinh?: boolean }[];
@@ -165,7 +166,7 @@ export default function SanPhamHanhDong() {
                 {Math.round(
                   ((sanPhamChiTiet.gia - sanPhamChiTiet.giaKhuyenMai) /
                     sanPhamChiTiet.gia) *
-                    100
+                  100
                 )}
                 %
               </span>
@@ -253,6 +254,12 @@ export default function SanPhamHanhDong() {
         >
           <Zap className="w-5 h-5 mr-2" /> Mua ngay
         </Button>
+
+        <AddToWishListButton
+          productId={sanPhamChiTiet.id}
+          className="h-12 w-12 border border-gray-200 hover:border-red-300"
+          size="lg"
+        />
       </div>
 
       {sanPhamChiTiet.soLuongTon < 5 && (
