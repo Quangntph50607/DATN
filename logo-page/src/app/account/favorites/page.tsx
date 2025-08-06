@@ -7,9 +7,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Heart, Plus, Edit, Share2, Package, Trash2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { formatPrice } from '@/lib/utils';
-import { WishListModal } from '@/components/layout/(components)/(product)/WishListModal';
-import { WishListProductCard } from '@/components/layout/(components)/(product)/WishListProductCard';
-import { ConfirmDeleteDialog } from '@/components/layout/(components)/(product)/ConfirmDeleteDialog';
+import { WishListModal } from '@/components/layout/(components)/(wishlist)/WishListModal';
+import { WishListProductCard } from '@/components/layout/(components)/(wishlist)/WishListProductCard';
+import { ConfirmDeleteDialog } from '@/components/layout/(components)/(wishlist)/ConfirmDeleteDialog';
+import { ShareWishListDialog } from '@/components/layout/(components)/(wishlist)/ShareWishListDialog';
 import { toast, Toaster } from 'sonner';
 import { WishListProduct } from '@/components/types/wishlist-type';
 import { SuccessNotification } from '@/components/ui/success-notification';
@@ -46,6 +47,8 @@ export default function FavoritesPage() {
     // Tạo state để lưu số lượng sản phẩm và tổng giá của mỗi wish list
     const [wishListProductCounts, setWishListProductCounts] = useState<{ [key: number]: number }>({});
     const [wishListTotalCosts, setWishListTotalCosts] = useState<{ [key: number]: number }>({});
+    const [showShareDialog, setShowShareDialog] = useState(false);
+    const [selectedWishlistForShare, setSelectedWishlistForShare] = useState<{ id: number; name: string } | null>(null);
     const deleteWishList = useDeleteWishList();
     const removeFromWishList = useRemoveFromWishList();
 
@@ -121,14 +124,18 @@ export default function FavoritesPage() {
 
     const handleRemoveFromWishList = async (spId: number) => {
         if (!selectedWishList) return;
-
         try {
             await removeFromWishList.mutateAsync({ wishlistId: selectedWishList, spId });
-            toast.success('Đã xóa sản phẩm khỏi wish list');
+            // Không hiện thông báo gì cả
         } catch (error) {
             console.error('Error removing from wishlist:', error);
             toast.error('Có lỗi xảy ra khi xóa sản phẩm khỏi wish list');
         }
+    };
+
+    const handleShareWishList = (wishList: { id: number; ten: string }) => {
+        setSelectedWishlistForShare({ id: wishList.id, name: wishList.ten });
+        setShowShareDialog(true);
     };
 
     const confirmDeleteWishList = (wishList: { id: number; ten: string }) => {
@@ -136,7 +143,6 @@ export default function FavoritesPage() {
             toast.error('Dữ liệu wish list không hợp lệ');
             return;
         }
-
         setWishListToDelete(wishList);
         setShowDeleteDialog(true);
     };
@@ -335,6 +341,7 @@ export default function FavoritesPage() {
                                                 <Button
                                                     variant="outline"
                                                     size="sm"
+                                                    onClick={() => handleShareWishList(wishList)}
                                                     className="border-green-300 text-green-600"
                                                     style={{
                                                         backgroundColor: 'transparent',
@@ -467,6 +474,19 @@ export default function FavoritesPage() {
 
             {/* Toaster */}
             <Toaster position="top-center" richColors />
+
+            {/* Share Wish List Dialog */}
+            {selectedWishlistForShare && (
+                <ShareWishListDialog
+                    isOpen={showShareDialog}
+                    onClose={() => {
+                        setShowShareDialog(false);
+                        setSelectedWishlistForShare(null);
+                    }}
+                    wishlistName={selectedWishlistForShare.name}
+                    wishlistId={selectedWishlistForShare.id}
+                />
+            )}
 
             {/* Success Notification */}
             <SuccessNotification

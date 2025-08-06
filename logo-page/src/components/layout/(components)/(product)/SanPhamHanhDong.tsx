@@ -18,7 +18,7 @@ import ThongTinSanPham from "./ThongTinSanPham";
 import { AddToCartSuccessModal } from "./AddToCartSuccessModal";
 import { getCartItemQuantity, updateCartItem } from "@/context/cartLocal";
 import { CartItemType } from "@/components/types/cart";
-import { AddToWishListButton } from "./AddToWishListButton";
+import { AddToWishListButton } from "../(wishlist)/AddToWishListButton";
 
 type SanPhamChiTietWithAnhUrls = KhuyenMaiTheoSanPham & {
   anhUrls?: { url: string; anhChinh?: boolean }[];

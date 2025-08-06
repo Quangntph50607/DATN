@@ -144,7 +144,6 @@ export const AddToWishListButton = ({ productId, className, size = 'md' }: AddTo
                     newSet.delete(wishlistId);
                     return newSet;
                 });
-                toast.success('Đã xóa sản phẩm khỏi wish list');
             } else {
                 // Thêm vào wishlist
                 await addToWishList.mutateAsync({

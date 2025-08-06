@@ -13,7 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { KhuyenMaiTheoSanPham } from "@/components/types/khuyenmai-type";
 import { ChevronLeft, ChevronRight, ShoppingCart } from "lucide-react";
-import { AddToWishListButton } from "@/components/layout/(components)/(product)/AddToWishListButton";
+import { AddToWishListButton } from "@/components/layout/(components)/(wishlist)/AddToWishListButton";
 import { motion } from "framer-motion";
 import { useDanhMucID } from "@/hooks/useDanhMuc";
 

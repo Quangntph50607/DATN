@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 
 import { KhuyenMaiTheoSanPham } from "@/components/types/khuyenmai-type";
 import { ShoppingCart } from "lucide-react";
-import { AddToWishListButton } from "@/components/layout/(components)/(product)/AddToWishListButton";
+import { AddToWishListButton } from "@/components/layout/(components)/(wishlist)/AddToWishListButton";
 import { useDanhMucID } from "@/hooks/useDanhMuc";
 
 interface SanPhamListProps {
