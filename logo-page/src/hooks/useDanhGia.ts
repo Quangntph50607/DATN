@@ -45,13 +45,48 @@ export const useUpdateDanhGia = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: ({ idDanhGia, idNv, phanHoi }: { idDanhGia: number; idNv: number; phanHoi: string }) =>
-            danhGiaService.update(idDanhGia, idNv, phanHoi),
+        mutationFn: ({ idDanhGia, idNv, soSao, tieuDe, textDanhGia, textPhanHoi }: { idDanhGia: number; idNv: number; soSao: number; tieuDe: string; textDanhGia: string; textPhanHoi: string; }) =>
+            danhGiaService.update(idDanhGia, idNv, soSao, tieuDe, textDanhGia, textPhanHoi),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["reviews"] });
         },
         onError: (error) => {
             console.error("❌ Error updating review:", error);
+        },
+    });
+};
+
+export const useUpdateDanhGiaWithFiles = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: ({ 
+            idDanhGia, 
+            idNv, 
+            soSao, 
+            tieuDe, 
+            textDanhGia, 
+            textPhanHoi,
+            newImages,
+            newVideo
+        }: { 
+            idDanhGia: number; 
+            idNv: number; 
+            soSao: number; 
+            tieuDe: string; 
+            textDanhGia: string; 
+            textPhanHoi: string;
+            newImages?: File[];
+            newVideo?: File;
+        }) =>
+            danhGiaService.updateWithFiles(idDanhGia, idNv, soSao, tieuDe, textDanhGia, textPhanHoi, newImages, newVideo),
+        onSuccess: () => {
+            // Invalidate tất cả queries liên quan đến danhGia
+            queryClient.invalidateQueries({ queryKey: ["danhGia"] });
+            queryClient.invalidateQueries({ queryKey: ["reviews"] });
+        },
+        onError: (error) => {
+            console.error("❌ Error updating review with files:", error);
         },
     });
 };
@@ -67,6 +102,36 @@ export const useDeleteDanhGia = () => {
         },
         onError: (error) => {
             console.error("❌ Error deleting review:", error);
+        },
+    });
+};
+
+export const useDeleteAnhDanhGia = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: ({ idAnh, idNv }: { idAnh: number; idNv: number }) =>
+            danhGiaService.deleteAnh(idAnh, idNv),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["reviews"] });
+        },
+        onError: (error) => {
+            console.error("❌ Error deleting image:", error);
+        },
+    });
+};
+
+export const useDeleteVideoDanhGia = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: ({ idVideo, idNv }: { idVideo: number; idNv: number }) =>
+            danhGiaService.deleteVideo(idVideo, idNv),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["reviews"] });
+        },
+        onError: (error) => {
+            console.error("❌ Error deleting video:", error);
         },
     });
 };
