@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 
 interface PaymentMethodSectionProps {
@@ -6,7 +6,7 @@ interface PaymentMethodSectionProps {
   onPaymentMethodChange: (method: string) => void;
 }
 
-export default function PaymentMethodSection({
+export default function PhuongThucThanhToan({
   paymentMethod,
   onPaymentMethodChange,
 }: PaymentMethodSectionProps) {
@@ -21,8 +21,11 @@ export default function PaymentMethodSection({
         <div className="space-y-3">
           <label
             htmlFor="payment-cod"
-            className={`flex items-center gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-white transition-colors ${paymentMethod === "COD" ? "ring-2 ring-orange-500 border-orange-400" : ""
-              }`}
+            className={`flex items-center gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-white transition-colors ${
+              paymentMethod === "COD"
+                ? "ring-2 ring-orange-500 border-orange-400"
+                : ""
+            }`}
           >
             <input
               type="radio"
@@ -35,15 +38,22 @@ export default function PaymentMethodSection({
             />
             <div className="flex-1">
               <div className="font-medium">Thanh toán khi nhận hàng (COD)</div>
-              <div className="text-sm text-black/70">Bạn chỉ phải thanh toán khi nhận được hàng</div>
+              <div className="text-sm text-black/70">
+                Bạn chỉ phải thanh toán khi nhận được hàng
+              </div>
             </div>
-            <span className="px-3 py-1 bg-green-500 text-white text-xs rounded-full">Miễn phí</span>
+            <span className="px-3 py-1 bg-green-500 text-white text-xs rounded-full">
+              Miễn phí
+            </span>
           </label>
 
           <label
             htmlFor="payment-chuyenkhoan"
-            className={`flex items-center gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-white transition-colors ${paymentMethod === "Chuyển khoản" ? "ring-2 ring-orange-500 border-orange-400" : ""
-              }`}
+            className={`flex items-center gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-white transition-colors ${
+              paymentMethod === "Chuyển khoản"
+                ? "ring-2 ring-orange-500 border-orange-400"
+                : ""
+            }`}
           >
             <input
               type="radio"
@@ -60,7 +70,9 @@ export default function PaymentMethodSection({
                 Thực hiện thanh toán vào ngay tài khoản ngân hàng của chúng tôi
               </div>
             </div>
-            <span className="px-3 py-1 bg-blue-500 text-white text-xs rounded-full">ATM</span>
+            <span className="px-3 py-1 bg-blue-500 text-white text-xs rounded-full">
+              ATM
+            </span>
           </label>
         </div>
       </CardContent>

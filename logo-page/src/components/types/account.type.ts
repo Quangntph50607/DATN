@@ -9,6 +9,7 @@ export interface DTOUser {
   email: string;
   matKhau: string;
   sdt: string;
+  sdt1: string;
   diaChi: string;
   ngaySinh?: string | Date;
   trangThai: number;
@@ -16,7 +17,6 @@ export interface DTOUser {
   ngayTao?: number[];
   role?: Role;
 }
-
 
 export type DTOUserWithId = DTOUser & {
   id: number;
