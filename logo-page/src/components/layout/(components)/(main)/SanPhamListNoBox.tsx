@@ -217,7 +217,8 @@ export default function SanPhamListNoBox({ ps }: SanPhamListProps) {
                                             </Button>
                                             <AddToWishListButton
                                                 productId={p.id}
-                                                className="h-11 w-11 border border-gray-200 hover:bg-red-50 hover:border-red-300 rounded-xl transition-all duration-200 inline-flex items-center justify-center group-hover:scale-105"
+                                                className="h-11 w-11 border-4 border-gray-400 hover:border-red-500 rounded-xl transition-all duration-200 inline-flex items-center justify-center group-hover:scale-105 shadow-lg hover:shadow-xl hover:bg-red-50"
+                                                style={{ backgroundColor: '#dbeafe' }}
                                             />
                                         </div>
                                     </CardFooter>

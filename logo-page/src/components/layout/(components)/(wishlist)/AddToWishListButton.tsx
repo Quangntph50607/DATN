@@ -67,9 +67,10 @@ interface AddToWishListButtonProps {
     productId: number;
     className?: string;
     size?: 'sm' | 'md' | 'lg';
+    style?: React.CSSProperties;
 }
 
-export const AddToWishListButton = ({ productId, className, size = 'md' }: AddToWishListButtonProps) => {
+export const AddToWishListButton = ({ productId, className, size = 'md', style }: AddToWishListButtonProps) => {
     const { user } = useUserStore();
     const { useGetWishLists, useAddToWishList, useRemoveFromWishList } = useWishList();
     const [isLoading, setIsLoading] = useState(false);
@@ -197,7 +198,7 @@ export const AddToWishListButton = ({ productId, className, size = 'md' }: AddTo
                         size="icon"
                         disabled={isLoading || isChecking}
                         className={cn(
-                            'transition-all duration-200 hover:scale-105 border-gray-200 bg-white',
+                            'transition-all duration-200 hover:scale-105 border-gray-200',
                             sizeClasses[size],
                             className
                         )}
@@ -205,6 +206,7 @@ export const AddToWishListButton = ({ productId, className, size = 'md' }: AddTo
                             e.preventDefault();
                             e.stopPropagation();
                         }}
+                        style={style}
                     >
                         <Heart className={cn("w-4 h-4", hasProductInAnyWishList ? "text-red-500 fill-current" : "text-gray-600")} />
                     </Button>

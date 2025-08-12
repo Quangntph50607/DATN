@@ -13,10 +13,6 @@ interface CartProps {
   items: CartItemType[];
   selectedIds: number[];
   imageUrls: Record<number, string | null>;
-  // productDetails: any;
-  // categoryNames: { [key: number]: string };
-  // brandNames: { [key: number]: string };
-  // originNames: { [key: number]: string };
   onSelect: (id: number) => void;
   onQuantityChange: (id: number, delta: number) => void;
   onRemove: (id: number) => void;
@@ -27,35 +23,35 @@ export const CartItem = ({
   items,
   selectedIds,
   imageUrls,
-  // productDetails,
-  // categoryNames,
-  // brandNames,
-  // originNames,
   onSelect,
-  // onQuantityChange,
+  onQuantityChange,
   onRemove,
   formatCurrency,
 }: CartProps) => {
   const router = useRouter();
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const showError = (message: string) => {
+    setErrorMessage(message);
+    setTimeout(() => setErrorMessage(null), 3000);
+  };
 
   if (items.length === 0) {
     return (
-      <>
-        <div className="flex-col flex justify-center items-center gap-5">
-          <div className="flex nb-5 gap-2">
-            <ShoppingCartIcon className=" size-8 text-black" />
-            <p className="text-gray-800 font-bold text-2xl">
-              Giỏ hàng của bạn đang trống
-            </p>
-          </div>
-          <Button
-            className="lego-login-button"
-            onClick={() => router.push("/product")}
-          >
-            Tiếp tục mua sắm
-          </Button>
+      <div className="flex flex-col justify-center items-center gap-6 py-12">
+        <div className="flex items-center gap-3 mb-4">
+          <ShoppingCartIcon className="w-10 h-10 text-gray-600" />
+          <p className="text-gray-800 font-semibold text-2xl">
+            Giỏ hàng của bạn đang trống
+          </p>
         </div>
-      </>
+        <Button
+          className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium px-6 py-3 rounded-lg shadow-md hover:shadow-lg transition-all"
+          onClick={() => router.push("/product")}
+        >
+          Tiếp tục mua sắm
+        </Button>
+      </div>
     );
   }
 
@@ -63,90 +59,93 @@ export const CartItem = ({
     const item = items.find((item) => item.id === id);
     if (!item) return;
 
+    const newQty = item.quantity + delta;
     const result = updateCartItem(
-      { ...item, quantity: delta },
-      item.maxQuantity ?? 20, // fallback nếu không có
+      { ...item, quantity: newQty },
+      item.maxQuantity ?? 20,
       { override: true }
     );
 
     if (!result.success) {
-      alert(result.message);
+      showError(result.message || "Có lỗi xảy ra!");
+    } else {
+      onQuantityChange(id, delta);
     }
   };
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 p-4">
+      {errorMessage && (
+        <div className="fixed top-4 right-4 bg-red-100 border border-red-200 text-red-700 p-3 rounded-lg shadow-md animate-fade-in">
+          {errorMessage}
+        </div>
+      )}
       {items.map((item) => (
         <div
           key={item.id}
-          className="flex items-center gap-4 p-4 bg-white rounded-lg border border-gray-200 shadow-sm"
+          className="flex items-center gap-4 p-4 bg-white rounded-lg border border-gray-200 hover:shadow-md transition-shadow duration-200"
         >
           <Checkbox
             checked={selectedIds.includes(item.id)}
             onCheckedChange={() => onSelect(item.id)}
-            className="border-gray-400"
+            className="border-gray-400 w-5 h-5 data-[state=checked]:bg-indigo-600"
+            aria-label={`Chọn sản phẩm ${item.name}`}
           />
 
           <Link
             href={`/product/${item.id}`}
-            className="w-20 h-20 relative hover:opacity-80 transition-opacity"
+            className="w-20 h-20 relative group flex-shrink-0"
           >
             <Image
               src={imageUrls[item.id] || "/images/placeholder-product.png"}
               alt={item.name}
               fill
-              className="object-cover rounded-md"
+              className="object-cover rounded-md group-hover:opacity-90 transition-opacity duration-200"
             />
           </Link>
 
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 space-y-1">
             <Link href={`/product/${item.id}`}>
-              <h3 className="font-medium text-gray-900 mb-2 line-clamp-2 hover:text-blue-600 transition-colors cursor-pointer">
+              <h3 className="font-medium text-gray-800 line-clamp-2 hover:text-indigo-600 transition-colors duration-200">
                 {item.name}
               </h3>
             </Link>
-            {/* <ProductBadges
-              productDetails={productDetails}
-              categoryNames={categoryNames}
-              brandNames={brandNames}
-              originNames={originNames}
-              itemId={item.id}
-            /> */}
-          </div>
-
-          <div className="text-right">
-            <div className="text-lg font-bold text-red-600">
+            <div className="text-lg font-semibold text-indigo-600">
               {formatCurrency(item.price)}
             </div>
           </div>
 
-          <div className="flex items-center gap-2 bg-gray-50 rounded-lg p-1">
+          <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
             <Button
               size="sm"
               onClick={() => handleQuantityChange(item.id, -1)}
               disabled={item.quantity <= 1}
+              className="bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-md w-8 h-8 transition-colors duration-200"
+              aria-label="Giảm số lượng"
             >
-              <Minus className="w-4 h-4" />
+              <Minus className="w-3 h-3" />
             </Button>
-            <span className="w-8 text-center text-gray-900 font-medium">
+            <span className="w-8 text-center text-gray-800 font-medium">
               {item.quantity}
             </span>
             <Button
-              variant="default"
+              size="sm"
               onClick={() => handleQuantityChange(item.id, 1)}
+              disabled={item.quantity >= (item.maxQuantity ?? 20)}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-md w-8 h-8 transition-colors duration-200"
+              aria-label="Tăng số lượng"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-3 h-3" />
             </Button>
           </div>
 
-          <div className="flex gap-2">
-            <Button
-              variant="default"
-              onClick={() => onRemove(item.id)}
-              className="text-gray-600 hover:text-red-500 hover:bg-red-50"
-            >
-              <Trash2 className="w-4 h-4" />
-            </Button>
-          </div>
+          <Button
+            size="sm"
+            onClick={() => onRemove(item.id)}
+            className="bg-red-50 hover:bg-red-100 text-red-600 rounded-md w-8 h-8 transition-colors duration-200"
+          >
+            <Trash2 className="w-4 h-4" />
+          </Button>
         </div>
       ))}
     </div>
