@@ -103,10 +103,6 @@ function HoaDonTable({
     }
   };
 
-  // Helper: kiểm tra trạng thái đang vận chuyển (SHIPPED)
-  const isShipped = (trangThai: string) =>
-    trangThai === TrangThaiHoaDon.SHIPPED;
-
   return (
     <>
       {/* AlertDialog xác nhận chuyển trạng thái */}
@@ -199,7 +195,7 @@ function HoaDonTable({
                   {hd.user?.ten || hd.ten || "Khách lẻ"}
                 </TableCell>
                 <TableCell className="text-white ">
-                  {hd.user?.sdt || hd.sdt || "N/A"}
+                  {hd.user?.sdt1 || hd.sdt1 || "N/A"}
                 </TableCell>
                 <TableCell className="text-green-400 font-medium">
                   {hd.tongTien.toLocaleString("vi-VN")}₫

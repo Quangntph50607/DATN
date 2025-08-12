@@ -1,8 +1,22 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useThongTinNguoiNhan, useCreateThongTin, useUpdateThongTin, useDeleteThongTin } from "@/hooks/useThongTinTaiKhoan";
-import { DTOThongTinNguoiNhan, ThongTinNguoiNhan } from "@/components/types/thongTinTaiKhoan-types";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  useThongTinNguoiNhan,
+  useCreateThongTin,
+  useUpdateThongTin,
+  useDeleteThongTin,
+} from "@/hooks/useThongTinTaiKhoan";
+import {
+  DTOThongTinNguoiNhan,
+  ThongTinNguoiNhan,
+} from "@/components/types/thongTinTaiKhoan-types";
 import { useUserStore } from "@/context/authStore.store";
 import { toast } from "sonner";
 import { MapPin, Plus, Edit, Trash2, Star } from "lucide-react";
@@ -41,7 +55,11 @@ export default function AddressInfo() {
   const { user } = useUserStore();
   const currentUserId = user?.id;
 
-  const { data: thongTinList = [], isLoading, refetch } = useThongTinNguoiNhan(currentUserId || 0);
+  const {
+    data: thongTinList = [],
+    isLoading,
+    refetch,
+  } = useThongTinNguoiNhan(currentUserId || 0);
   const createMutation = useCreateThongTin();
   const updateMutation = useUpdateThongTin();
   const deleteMutation = useDeleteThongTin();
@@ -82,10 +100,13 @@ export default function AddressInfo() {
         });
 
         const filteredProvinces = Object.entries(provinceData)
-          .filter(([code]) => wardsByProvince[code] && wardsByProvince[code].length > 0)
+          .filter(
+            ([code]) =>
+              wardsByProvince[code] && wardsByProvince[code].length > 0
+          )
           .map(([code, info]) => ({
             code,
-            ...info as any,
+            ...(info as any),
             wards: wardsByProvince[code] || [],
           }));
 
@@ -102,7 +123,9 @@ export default function AddressInfo() {
   // Update wards khi chọn tỉnh
   useEffect(() => {
     if (selectedProvince) {
-      const selectedProvinceData = provinces.find((p) => p.code === selectedProvince);
+      const selectedProvinceData = provinces.find(
+        (p) => p.code === selectedProvince
+      );
       setWards(selectedProvinceData?.wards || []);
     } else {
       setWards([]);
@@ -112,7 +135,9 @@ export default function AddressInfo() {
 
   // Update formData khi chọn tỉnh/xã
   useEffect(() => {
-    const selectedProvinceData = provinces.find((p) => p.code === selectedProvince);
+    const selectedProvinceData = provinces.find(
+      (p) => p.code === selectedProvince
+    );
     const selectedWardData = wards.find((w) => w.code === selectedWard);
 
     setFormData((prev) => ({
@@ -377,7 +402,9 @@ export default function AddressInfo() {
           <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
             <MapPin className="w-5 h-5 text-orange-600" />
           </div>
-          <h1 className="text-xl font-semibold text-black">Địa chỉ nhận hàng</h1>
+          <h1 className="text-xl font-semibold text-black">
+            Địa chỉ nhận hàng
+          </h1>
         </div>
         <Button
           onClick={() => setShowDialog(true)}
@@ -390,94 +417,106 @@ export default function AddressInfo() {
 
       {/* Address List */}
       <div className="space-y-4">
-        {Array.from({ length: Math.ceil(thongTinList.length / 2) }, (_, rowIndex) => {
-          const startIndex = rowIndex * 2;
-          const rowItems = thongTinList.slice(startIndex, startIndex + 2);
+        {Array.from(
+          { length: Math.ceil(thongTinList.length / 2) },
+          (_, rowIndex) => {
+            const startIndex = rowIndex * 2;
+            const rowItems = thongTinList.slice(startIndex, startIndex + 2);
 
-          return (
-            <div
-              key={rowIndex}
-              className={`flex gap-4 ${rowItems.length === 1 ? "justify-center" : "justify-between"}`}
-            >
-              {rowItems.map((item) => (
-                <div
-                  key={item.id}
-                  className={`bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow ${rowItems.length === 1 ? "w-1/2" : "flex-1"
+            return (
+              <div
+                key={rowIndex}
+                className={`flex gap-4 ${
+                  rowItems.length === 1 ? "justify-center" : "justify-between"
+                }`}
+              >
+                {rowItems.map((item) => (
+                  <div
+                    key={item.id}
+                    className={`bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow ${
+                      rowItems.length === 1 ? "w-1/2" : "flex-1"
                     }`}
-                >
-                  {/* Name and Default Badge */}
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-semibold text-black text-lg">{item.hoTen}</h3>
-                    {item.isMacDinh === 1 && (
-                      <Badge className="bg-orange-500 text-white px-2 py-1 text-xs rounded">
-                        Mặc định
-                      </Badge>
-                    )}
-                  </div>
+                  >
+                    {/* Name and Default Badge */}
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="font-semibold text-black text-lg">
+                        {item.hoTen}
+                      </h3>
+                      {item.isMacDinh === 1 && (
+                        <Badge className="bg-orange-500 text-white px-2 py-1 text-xs rounded">
+                          Mặc định
+                        </Badge>
+                      )}
+                    </div>
 
-                  {/* Phone */}
-                  <p className="text-gray-700 mb-2">{item.sdt}</p>
+                    {/* Phone */}
+                    <p className="text-gray-700 mb-2">{item.sdt}</p>
 
-                  {/* Address */}
-                  <p className="text-gray-600 mb-4">
-                    {item.duong}, {item.xa}, {item.thanhPho}
-                  </p>
+                    {/* Address */}
+                    <p className="text-gray-600 mb-4">
+                      {item.duong}, {item.xa}, {item.thanhPho}
+                    </p>
 
-                  {/* Action Buttons */}
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      onClick={() => handleEdit(item)}
-                      className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 text-sm rounded flex items-center gap-1"
-                    >
-                      <Edit className="w-3 h-3" />
-                      Sửa
-                    </Button>
-
-                    {item.isMacDinh === 0 && (
+                    {/* Action Buttons */}
+                    <div className="flex gap-2">
                       <Button
                         size="sm"
-                        onClick={() => handleSetDefault(item.id)}
-                        className="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1 text-sm rounded flex items-center gap-1"
+                        onClick={() => handleEdit(item)}
+                        className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 text-sm rounded flex items-center gap-1"
                       >
-                        <Star className="w-3 h-3" />
-                        Đặt mặc định
+                        <Edit className="w-3 h-3" />
+                        Sửa
                       </Button>
-                    )}
 
-                    {item.isMacDinh === 1 && (
+                      {item.isMacDinh === 0 && (
+                        <Button
+                          size="sm"
+                          onClick={() => handleSetDefault(item.id)}
+                          className="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1 text-sm rounded flex items-center gap-1"
+                        >
+                          <Star className="w-3 h-3" />
+                          Đặt mặc định
+                        </Button>
+                      )}
+
+                      {item.isMacDinh === 1 && (
+                        <Button
+                          size="sm"
+                          onClick={() => handleUnsetDefault(item.id)}
+                          className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 text-sm rounded flex items-center gap-1"
+                        >
+                          <Star className="w-3 h-3" />
+                          Bỏ mặc định
+                        </Button>
+                      )}
+
                       <Button
                         size="sm"
-                        onClick={() => handleUnsetDefault(item.id)}
-                        className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 text-sm rounded flex items-center gap-1"
+                        onClick={() => setDeleteId(item.id as number)}
+                        className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 text-sm rounded flex items-center gap-1"
                       >
-                        <Star className="w-3 h-3" />
-                        Bỏ mặc định
+                        <Trash2 className="w-3 h-3" />
+                        Xóa
                       </Button>
-                    )}
-
-                    <Button
-                      size="sm"
-                      onClick={() => setDeleteId(item.id as number)}
-                      className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 text-sm rounded flex items-center gap-1"
-                    >
-                      <Trash2 className="w-3 h-3" />
-                      Xóa
-                    </Button>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          );
-        })}
+                ))}
+              </div>
+            );
+          }
+        )}
       </div>
 
       {/* Empty State */}
       {thongTinList.length === 0 && (
         <div className="text-center py-12">
           <MapPin className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Chưa có địa chỉ nào</h3>
-          <p className="text-gray-500 mb-4">Thêm địa chỉ đầu tiên để bắt đầu mua sắm</p>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            Chưa có địa chỉ nào
+          </h3>
+          <p className="text-gray-500 mb-4">
+            Thêm địa chỉ đầu tiên để bắt đầu mua sắm
+          </p>
           <Button
             onClick={() => setShowDialog(true)}
             className="bg-orange-500 hover:bg-orange-600 text-white"
@@ -511,7 +550,9 @@ export default function AddressInfo() {
                 <Input
                   id="hoTen"
                   value={formData.hoTen}
-                  onChange={(e) => setFormData({ ...formData, hoTen: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, hoTen: e.target.value })
+                  }
                   className="bg-white border-gray-300 text-black"
                   required
                 />
@@ -523,7 +564,9 @@ export default function AddressInfo() {
                 <Input
                   id="sdt"
                   value={formData.sdt}
-                  onChange={(e) => setFormData({ ...formData, sdt: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, sdt: e.target.value })
+                  }
                   className="bg-white border-gray-300 text-black"
                   required
                 />
@@ -535,13 +578,20 @@ export default function AddressInfo() {
                 <Label className="text-black">
                   Tỉnh/Thành phố <span className="text-red-500">*</span>
                 </Label>
-                <Select value={selectedProvince} onValueChange={handleProvinceChange}>
+                <Select
+                  value={selectedProvince}
+                  onValueChange={handleProvinceChange}
+                >
                   <SelectTrigger className="bg-white border-gray-300 text-black">
                     <SelectValue placeholder="Chọn tỉnh/thành phố" />
                   </SelectTrigger>
                   <SelectContent className="bg-white">
                     {provinces.map((province) => (
-                      <SelectItem key={province.code} value={province.code} className="text-black">
+                      <SelectItem
+                        key={province.code}
+                        value={province.code}
+                        className="text-black"
+                      >
                         {province.name}
                       </SelectItem>
                     ))}
@@ -562,7 +612,11 @@ export default function AddressInfo() {
                   </SelectTrigger>
                   <SelectContent className="bg-white">
                     {wards.map((ward) => (
-                      <SelectItem key={ward.code} value={ward.code} className="text-black">
+                      <SelectItem
+                        key={ward.code}
+                        value={ward.code}
+                        className="text-black"
+                      >
                         {ward.name}
                       </SelectItem>
                     ))}
@@ -578,7 +632,9 @@ export default function AddressInfo() {
               <Input
                 id="duong"
                 value={formData.duong}
-                onChange={(e) => setFormData({ ...formData, duong: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, duong: e.target.value })
+                }
                 placeholder="Số nhà, tên đường..."
                 className="bg-white border-gray-300 text-black"
                 required
@@ -589,7 +645,9 @@ export default function AddressInfo() {
               <div className="flex items-center space-x-2">
                 <Checkbox
                   id="isMacDinh"
-                  checked={formData.isMacDinh === 1 || thongTinList.length === 0}
+                  checked={
+                    formData.isMacDinh === 1 || thongTinList.length === 0
+                  }
                   onCheckedChange={(checked) =>
                     setFormData({ ...formData, isMacDinh: checked ? 1 : 0 })
                   }
@@ -631,13 +689,18 @@ export default function AddressInfo() {
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent className="bg-white">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-black">Xác nhận xóa</AlertDialogTitle>
+            <AlertDialogTitle className="text-black">
+              Xác nhận xóa
+            </AlertDialogTitle>
             <AlertDialogDescription className="text-gray-600">
-              Bạn có chắc chắn muốn xóa địa chỉ này? Hành động này không thể hoàn tác.
+              Bạn có chắc chắn muốn xóa địa chỉ này? Hành động này không thể
+              hoàn tác.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="text-black border-gray-300">Hủy</AlertDialogCancel>
+            <AlertDialogCancel className="text-black border-gray-300">
+              Hủy
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               className="bg-red-500 hover:bg-red-600 text-white"

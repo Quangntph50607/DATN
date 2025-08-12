@@ -1,5 +1,6 @@
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Car } from "lucide-react";
 
 interface ShippingMethodSectionProps {
   shippingMethod: string;
@@ -14,7 +15,9 @@ export default function PhuongThucVanChuyen({
     <Card className="p-6 border-gray-200 bg-white text-black">
       <CardContent className="p-0 bg-white text-black">
         <div className="flex items-center gap-2 mb-4">
-          <span className="text-orange-500">🚚</span>
+          <span className="text-orange-500">
+            <Car />
+          </span>
           <h2 className="text-lg font-semibold">Phương thức vận chuyển</h2>
         </div>
 

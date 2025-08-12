@@ -18,14 +18,14 @@ export interface DTOThongTinNguoiNhan {
   isMacDinh: number; // Đổi từ boolean thành number
   idUser: number;
 }
-
-export interface Province {
-  code: number;
+export interface Ward {
+  code: string;
   name: string;
+  parent_code: string;
 }
 
-export interface Ward {
-  code: number;
+export interface Province {
+  code: string;
   name: string;
-  parent_code: number;
+  wards: Ward[];
 }

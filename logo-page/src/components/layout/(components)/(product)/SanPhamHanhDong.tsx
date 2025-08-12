@@ -18,6 +18,7 @@ import ThongTinSanPham from "./ThongTinSanPham";
 import { AddToCartSuccessModal } from "./AddToCartSuccessModal";
 import { getCartItemQuantity, updateCartItem } from "@/context/cartLocal";
 import { CartItemType } from "@/components/types/cart";
+import { cn } from "@/lib/utils";
 
 type SanPhamChiTietWithAnhUrls = KhuyenMaiTheoSanPham & {
   anhUrls?: { url: string; anhChinh?: boolean }[];
@@ -115,6 +116,13 @@ export default function SanPhamHanhDong() {
     setIsModalOpen(true);
     setTimeout(() => setIsModalOpen(false), 1000);
   };
+  // Xác định trạng thái hiển thị
+  const trangThai =
+    sanPhamChiTiet.soLuongTon === 0
+      ? "Hết hàng"
+      : sanPhamChiTiet.soLuongTon <= 5
+      ? "Sắp hết"
+      : "Đang kinh doanh";
 
   return (
     <div className="w-full md:w-1/2 space-y-8 p-6 bg-white rounded-xl shadow-sm">
@@ -134,8 +142,15 @@ export default function SanPhamHanhDong() {
           </span>
         </div>
 
-        <span className="text-green-600 text-sm font-medium bg-green-50 px-2 py-1 rounded-full">
-          {sanPhamChiTiet.trangThai}
+        <span
+          className={cn(
+            "text-sm font-medium px-2 py-1 rounded-full",
+            trangThai === "Hết hàng" && "text-red-600 bg-red-50",
+            trangThai === "Sắp hết" && "text-yellow-600 bg-yellow-50",
+            trangThai === "Đang kinh doanh" && "text-green-600 bg-green-50"
+          )}
+        >
+          {trangThai}
         </span>
       </div>
 
@@ -169,11 +184,11 @@ export default function SanPhamHanhDong() {
                 )}
                 %
               </span>
-              <span className="text-sm text-gray-600">
-                Tiết kiệm
+              <span className="text-sm  text-gray-600">
+                Tiết kiệm:
                 {(
                   sanPhamChiTiet.gia - sanPhamChiTiet.giaKhuyenMai
-                ).toLocaleString()}{" "}
+                ).toLocaleString()}
                 đ
               </span>
             </div>
