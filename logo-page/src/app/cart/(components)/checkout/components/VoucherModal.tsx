@@ -1,10 +1,17 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import { useGetPhieuGiam } from "@/hooks/usePhieuGiam";
 import type { PhieuGiamGia } from "@/components/types/phieugiam.type";
 
 // shadcn/ui components
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -26,7 +33,8 @@ export default function VoucherModal({
 }: VoucherModalProps) {
   const [voucherInput, setVoucherInput] = useState("");
   const [selectedVoucherCode, setSelectedVoucherCode] = useState<string>("");
-  const { data: voucherList = [], isLoading: loadingVouchers } = useGetPhieuGiam();
+  const { data: voucherList = [], isLoading: loadingVouchers } =
+    useGetPhieuGiam();
 
   const handleApplyVoucher = () => {
     const v = voucherList.find(
@@ -34,8 +42,10 @@ export default function VoucherModal({
     );
     if (v) {
       onVoucherSelect(v);
-      if (v.loaiPhieuGiam === "Theo %") onDiscountChange((v.giaTriGiam || 0) / 100);
-      else if (v.loaiPhieuGiam === "Theo số tiền") onDiscountChange(v.giaTriGiam || 0);
+      if (v.loaiPhieuGiam === "theo_phan_tram")
+        onDiscountChange((v.giaTriGiam || 0) / 100);
+      else if (v.loaiPhieuGiam === "theo_so_tien")
+        onDiscountChange(v.giaTriGiam || 0);
     } else {
       onDiscountChange(0);
       onVoucherSelect(null);
@@ -52,8 +62,10 @@ export default function VoucherModal({
     const v = voucherList.find((v) => v.maPhieu === selectedVoucherCode);
     if (v) {
       onVoucherSelect(v);
-      if (v.loaiPhieuGiam === "Theo %") onDiscountChange((v.giaTriGiam || 0) / 100);
-      else if (v.loaiPhieuGiam === "Theo số tiền") onDiscountChange(v.giaTriGiam || 0);
+      if (v.loaiPhieuGiam === "theo_phan_tram")
+        onDiscountChange((v.giaTriGiam || 0) / 100);
+      else if (v.loaiPhieuGiam === "theo_so_tien")
+        onDiscountChange(v.giaTriGiam || 0);
     }
     onClose();
   };
@@ -73,7 +85,10 @@ export default function VoucherModal({
             placeholder="Mã Voucher"
             className="flex-1 bg-white text-black"
           />
-          <Button onClick={handleApplyVoucher} className="bg-blue-500 hover:bg-blue-600 text-white">
+          <Button
+            onClick={handleApplyVoucher}
+            className="bg-blue-500 hover:bg-blue-600 text-white"
+          >
             Áp dụng
           </Button>
         </div>
@@ -90,10 +105,13 @@ export default function VoucherModal({
               return (
                 <label
                   key={v.id}
-                  className={`flex items-center gap-3 border rounded-lg p-3 mb-2 cursor-pointer transition ${selectedVoucherCode === v.maPhieu
-                    ? "border-orange-500 bg-orange-50"
-                    : "border-gray-200"
-                    } ${notEnough ? "opacity-50 cursor-not-allowed" : ""} bg-white text-black`}
+                  className={`flex items-center gap-3 border rounded-lg p-3 mb-2 cursor-pointer transition ${
+                    selectedVoucherCode === v.maPhieu
+                      ? "border-orange-500 bg-orange-50"
+                      : "border-gray-200"
+                  } ${
+                    notEnough ? "opacity-50 cursor-not-allowed" : ""
+                  } bg-white text-black`}
                 >
                   <span className="text-2xl">🧧</span>
                   <div className="flex-1">
@@ -104,14 +122,13 @@ export default function VoucherModal({
                       HSD: {v.ngayKetThuc || "31.12.2025"}
                     </div>
                     <div className="text-xs text-black/60">
-                      {v.loaiPhieuGiam === "Theo %"
+                      {v.loaiPhieuGiam === "theo_phan_tram"
                         ? `Giảm ${v.giaTriGiam}%`
                         : `Giảm ${v.giaTriGiam?.toLocaleString()}đ`}
                     </div>
                     {notEnough && (
                       <div className="text-xs text-red-500 mt-1">
-                        Đơn tối thiểu{" "}
-                        {v.giaTriToiThieu?.toLocaleString()}đ
+                        Đơn tối thiểu {v.giaTriToiThieu?.toLocaleString()}đ
                       </div>
                     )}
                   </div>
@@ -131,7 +148,11 @@ export default function VoucherModal({
 
         <DialogFooter className="flex justify-end gap-2 mt-4">
           <DialogClose asChild>
-            <Button variant="outline" onClick={onClose} className="bg-white text-black">
+            <Button
+              variant="outline"
+              onClick={onClose}
+              className="bg-white text-black"
+            >
               Trở lại
             </Button>
           </DialogClose>

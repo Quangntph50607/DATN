@@ -80,6 +80,7 @@ export interface HoaDonDTO {
   trangThai: TrangThaiHoaDon | string;
   phuongThucThanhToan: PaymentMethods | string | null;
   sdt: string;
+  sdt1: string;
   user: DTOUser;
   ten: string;
   nvId?: DTOUserWithId;
@@ -97,4 +98,12 @@ export interface HoaDonChiTietDTO {
   soLuong: number;
   gia: number;
   tongTien: number;
+}
+export interface PhiShipRequest {
+  diaChi: string;
+  isFast?: number;
+}
+export interface PhiShipResponse {
+  phiShip: number;
+  soNgayGiao: number;
 }

@@ -167,40 +167,6 @@ function HoaDonTable({
     return next;
   };
 
-
-  const onConfirmChange = async () => {
-    if (pendingStatus) {
-      try {
-        if (pendingStatus.id === -1) {
-          const idNV = await getCurrentUserId();
-          if (idNV === null) {
-            toast.error("Không tìm thấy ID nhân viên hiện tại. Vui lòng đăng nhập lại.");
-            return;
-          }
-
-          const dto = {
-            hoaDonIds: selectedIds,
-            trangThai: pendingStatus.next,
-            idNV: idNV,
-          };
-          const res = await HoaDonService.updateTrangThaiNhieuHoaDon(dto);
-          toast.error(`Cập nhật thành công ${res.thanhCong.length} hóa đơn\nThất bại: ${res.loi.length}`);
-        } else {
-          // ✅ Hành động đơn
-          await HoaDonService.updateTrangThai(pendingStatus.id, pendingStatus.next);
-          handleStatusChange(pendingStatus.id, pendingStatus.current, pendingStatus.next);
-        }
-      } catch (error: any) {
-        console.error("Lỗi khi cập nhật trạng thái:", error);
-        alert(`Lỗi cập nhật trạng thái: ${error.message}`);
-      } finally {
-        setDialogOpen(false);
-        setPendingStatus(null);
-        setSelectedIds([]); // clear sau khi xong
-        onReload();
-      }
-    }
-  };
   return (
     <>
       {/* Dialog xác nhận */}
@@ -310,8 +276,8 @@ function HoaDonTable({
                 <TableCell className="text-white">
                   {hd.user?.ten || hd.ten || "Khách lẻ"}
                 </TableCell>
-                <TableCell className="text-white">
-                  {hd.user?.sdt || hd.sdt || "N/A"}
+                <TableCell className="text-white ">
+                  {hd.user?.sdt1 || hd.sdt1 || "N/A"}
                 </TableCell>
                 <TableCell className="text-green-400 font-medium">
                   {hd.tongTien.toLocaleString("vi-VN")}₫
