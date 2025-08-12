@@ -117,13 +117,10 @@ export const HoaDonService = {
             if (!nvId) {
                 throw new Error('No logged-in employee found. Please log in again.');
             }
-
-            // Validate trangThai using TrangThaiHoaDon enum values
             const validStatuses = Object.values(TrangThaiHoaDon);
-            if (!validStatuses.includes(trangThai)) {
+            if (!validStatuses.includes(trangThai as any)) {
                 throw new Error(`Invalid status: ${trangThai}. Valid statuses are: ${validStatuses.join(', ')}`);
             }
-
             const requestBody = {
                 hoaDonIds: [id],
                 trangThai,
@@ -131,7 +128,7 @@ export const HoaDonService = {
             };
             console.log('Request body for status update:', requestBody);
 
-            const res = await fetchWithAuth(`${API_URL}/${id}/trang-thai`, {
+            const res = await fetchWithAuth(`${API_URL}/trang-thai`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -202,6 +199,34 @@ export const HoaDonService = {
             throw error;
         }
     },
+    // Lấy chi tiết hóa đơn theo ID
+    async gethoaDonChiTiet(orderId: string): Promise<HoaDonDTO[]> {
+        const apiUrl = `http://localhost:8080/api/lego-store/hoa-don/get-one-hoa-don/${orderId}`;
+        try {
+            const response = await fetch(apiUrl);
+            if (!response.ok) throw new Error("Network response was not ok");
+            return await response.json();
+        } catch (error) {
+            console.error("Error fetching order:", error);
+            throw error;
+        }
+    },
+
+    updateTrangThaiNhieuHoaDon: async (dto: {
+        hoaDonIds: number[];
+        trangThai: string;
+        idNV: number;
+    }) => {
+        const res = await fetch("http://localhost:8080/api/lego-store/hoa-don/trang-thai", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(dto),
+        });
+
+        if (!res.ok) throw new Error("Cập nhật hàng loạt thất bại");
+        return res.json(); // { thanhCong: [], loi: [] }
+    },
+
 };
 
 
