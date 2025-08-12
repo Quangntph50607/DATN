@@ -1,9 +1,18 @@
 export interface AnhSanPhamChiTiet {
   id: number;
-  url: string;
-  moTa: string;
-  // thuTu: number;
+  url: string; // Cloudinary URL
+  moTa: string; // Contains Cloudinary public_id
   anhChinh: boolean;
+  sanPhamId?: number;
+}
+
+// Backend response interface for image data
+export interface BEAnhResponse {
+  id?: number;
+  url: string;
+  moTa?: string;
+  anhChinh?: boolean;
+  sanpham?: number;
   sanPhamId?: number;
 }
 
