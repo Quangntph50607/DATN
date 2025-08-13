@@ -296,8 +296,8 @@ export default function EditReviewForm({
                             </div>
                         )}
 
-                        {/* Hiển thị ảnh bị ẩn */}
-                        {hiddenImageIds.length > 0 && (
+                        {/* Hiển thị ảnh bị ẩn - BỎ PHẦN NÀY */}
+                        {/* {hiddenImageIds.length > 0 && (
                             <div className="space-y-3">
                                 <Label className="flex items-center gap-2 text-base font-medium text-gray-500">
                                     <ImageIcon className="h-5 w-5" />
@@ -307,13 +307,12 @@ export default function EditReviewForm({
                                     {anhUrls.filter(img => hiddenImageIds.includes(img.id)).map((anh, index) => (
                                         <div key={anh.id} className="relative group">
                                             <Image
-                                                src={anh.url} // Sửa lại: dùng trực tiếp url từ API
+                                                src={anh.url}
                                                 alt={`Ảnh ẩn ${index + 1}`}
                                                 width={80}
                                                 height={80}
                                                 className="w-full h-20 object-cover rounded-lg border border-gray-200 shadow-sm opacity-50"
                                             />
-                                            {/* Nút hiện lại ảnh */}
                                             <button
                                                 type="button"
                                                 onClick={() => toggleImageVisibility(anh.id)}
@@ -329,7 +328,7 @@ export default function EditReviewForm({
                                     ))}
                                 </div>
                             </div>
-                        )}
+                        )} */}
                     </div>
 
                     {/* Phần Video */}
@@ -412,8 +411,8 @@ export default function EditReviewForm({
                             </div>
                         )}
 
-                        {/* Hiển thị video bị ẩn */}
-                        {video && isVideoHidden && (
+                        {/* Hiển thị video bị ẩn - BỎ PHẦN NÀY */}
+                        {/* {video && isVideoHidden && (
                             <div className="space-y-3">
                                 <Label className="flex items-center gap-2 text-base font-medium text-gray-500">
                                     <Video className="h-5 w-5" />
@@ -421,12 +420,11 @@ export default function EditReviewForm({
                                 </Label>
                                 <div className="relative group">
                                     <video
-                                        src={video.url} // Dùng trực tiếp url từ API
+                                        src={video.url}
                                         controls
                                         className="w-full h-32 object-cover rounded-lg border border-gray-200 shadow-sm opacity-50"
                                         preload="metadata"
                                     />
-                                    {/* Nút hiện lại video */}
                                     <button
                                         type="button"
                                         onClick={toggleVideoVisibility}
@@ -440,7 +438,7 @@ export default function EditReviewForm({
                                     </div>
                                 </div>
                             </div>
-                        )}
+                        )} */}
                     </div>
 
                     <div className="flex flex-col sm:flex-row gap-4 pt-4">

@@ -157,7 +157,6 @@ export const AddToWishListButton = ({ productId, className, size = 'md', style }
                     newSet.add(wishlistId);
                     return newSet;
                 });
-                toast.success('Đã thêm sản phẩm vào wish list');
             }
         } catch (error) {
             console.error('Error toggling wishlist:', error);
@@ -182,8 +181,27 @@ export const AddToWishListButton = ({ productId, className, size = 'md', style }
         lg: 'h-12 w-12',
     };
 
+    // Nếu chưa đăng nhập, hiển thị nút nhưng không có dropdown
     if (!user) {
-        return null;
+        return (
+            <Button
+                variant="outline"
+                size="icon"
+                className={cn(
+                    sizeClasses[size],
+                    "bg-blue-100 hover:bg-blue-200 rounded-2xl transition-all duration-200 inline-flex items-center justify-center hover:scale-105 shadow-sm",
+                    className
+                )}
+                style={style}
+                onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toast.error('Vui lòng đăng nhập để thêm vào wish list');
+                }}
+            >
+                <Heart className="w-5 h-5 text-gray-600" />
+            </Button>
+        );
     }
 
     // Kiểm tra sản phẩm có trong bất kỳ wishlist nào không
@@ -213,7 +231,7 @@ export const AddToWishListButton = ({ productId, className, size = 'md', style }
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
                     align="end"
-                    className="w-40 bg-white border border-gray-200 shadow-lg p-3"
+                    className="w-40 bg-white border border-gray-500 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] p-3 rounded-xl"
                     onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();

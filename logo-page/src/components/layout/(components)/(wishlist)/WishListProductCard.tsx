@@ -69,7 +69,7 @@ export function WishListProductCard({ product, onRemove, onAddToCart }: WishList
                         {/* Product Image */}
                         <div className="relative w-full h-full">
                             <Image
-                                src={product.anhSps?.[0]?.url ? `http://localhost:8080/api/anhsp/images/${product.anhSps[0].url}` : '/images/placeholder.jpg'}
+                                src={product.anhSps?.[0]?.url || '/images/placeholder.jpg'}
                                 alt={product.tenSP}
                                 fill
                                 className="object-contain p-4 group-hover:scale-105 transition-transform duration-300"

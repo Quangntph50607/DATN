@@ -133,7 +133,7 @@ export default function SanPhamListNoBox({ ps }: SanPhamListProps) {
                 >
                     {filtered.map((p, idx) => {
                         const imgToUse = p.anhUrls?.find(img => img.anhChinh) || p.anhUrls?.[0];
-                        const mainImageUrl = imgToUse?.url ? `http://localhost:8080/api/anhsp/images/${imgToUse.url}` : '/images/avatar-admin.png';
+                        const mainImageUrl = imgToUse?.url || '/images/avatar-admin.png';
                         const badge = getProductBadge(p);
 
                         return (

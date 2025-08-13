@@ -10,7 +10,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Share2, Copy, Check, Mail, MessageSquare } from 'lucide-react';
+import { Share2, Copy, Check } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface ShareWishListDialogProps {
@@ -39,17 +39,6 @@ export function ShareWishListDialog({
             console.error('Error removing from wishListShareLink:', error);
             toast.error('Không thể sao chép liên kết');
         }
-    };
-
-    const handleShareViaEmail = () => {
-        const subject = encodeURIComponent(`Chia sẻ Wish List: ${wishlistName}`);
-        const body = encodeURIComponent(`Tôi muốn chia sẻ wish list "${wishlistName}" với bạn:\n\n${shareUrl}`);
-        window.open(`mailto:?subject=${subject}&body=${body}`);
-    };
-
-    const handleShareViaSMS = () => {
-        const message = encodeURIComponent(`Chia sẻ Wish List: ${wishlistName}\n${shareUrl}`);
-        window.open(`sms:?body=${message}`);
     };
 
     return (

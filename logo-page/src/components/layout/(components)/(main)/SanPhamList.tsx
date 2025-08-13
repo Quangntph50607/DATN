@@ -49,7 +49,7 @@ const getMainImageUrl = (product: KhuyenMaiTheoSanPham) => {
   const imgToUse = mainImg || anhUrls[0];
 
   if (imgToUse && imgToUse.url) {
-    return `http://localhost:8080/api/anhsp/images/${imgToUse.url}`;
+    return imgToUse.url;
   }
 
   return '/images/avatar-admin.png';
