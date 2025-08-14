@@ -45,7 +45,6 @@ import {
   Phone,
   MapPin,
   Home,
-  Map,
   Navigation,
   Check,
   X,

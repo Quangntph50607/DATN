@@ -1,10 +1,8 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useUserStore } from "@/context/authStore.store";
 import { HoaDonService } from "@/services/hoaDonService";
 import type { HoaDonDTO } from "@/components/types/hoaDon-types";
-import { toast } from "sonner";
 import { getAnhByFileName } from "@/services/anhSanPhamService";
 
 export default function CheckoutSuccessPage() {
@@ -428,14 +426,10 @@ export default function CheckoutSuccessPage() {
 
         {/* Thông tin đơn hàng */}
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-orange-100 p-8 mb-8">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
-              <span className="text-orange-600 text-xl">📋</span>
-            </div>
-            <h2 className="text-2xl font-bold text-gray-800">
-              Thông tin đơn hàng
-            </h2>
-          </div>
+          <div className="flex items-center gap-3 mb-6"></div>
+          <h2 className="text-2xl font-bold text-gray-800">
+            Thông tin đơn hàng
+          </h2>
 
           <div className="grid lg:grid-cols-2 gap-8">
             <div className="space-y-6">

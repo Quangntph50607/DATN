@@ -37,9 +37,11 @@ function calculateDiscount(
 export function SanPhamCheckout({
   userId,
   shippingFee = 0,
+  onPlaceOrder,
 }: {
   readonly userId?: number;
   readonly shippingFee?: number;
+  readonly onPlaceOrder?: () => void;
 }) {
   const [checkoutItems, setCheckoutItems] = useState<CartItemType[]>([]);
   const [loading, setLoading] = useState(true);
@@ -224,7 +226,10 @@ export function SanPhamCheckout({
           />
 
           {/* Checkout Button */}
-          <Button className="w-full mt-6 bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 rounded-lg transition-all duration-200 transform hover:scale-105 disabled:scale-100">
+          <Button
+            onClick={onPlaceOrder}
+            className="w-full mt-6 bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 rounded-lg transition-all duration-200 transform hover:scale-105 disabled:scale-100"
+          >
             Đặt hàng
           </Button>
         </div>
