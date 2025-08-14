@@ -1,4 +1,3 @@
-import { PhieuGiamGia } from './phieugiam.type';
 import { SanPham } from './product.type';
 
 export interface CartItem extends SanPham {

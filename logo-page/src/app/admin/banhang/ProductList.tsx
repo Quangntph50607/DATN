@@ -11,6 +11,13 @@ import { AnhSanPhamChiTiet } from '@/components/types/product.type';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 
+function getValidImageUrl(url?: string) {
+  if (!url) return "/images/avatar-admin.png";
+  if (url.startsWith("http://") || url.startsWith("https://")) return url;
+  if (url.startsWith("/")) return url;
+  return "/images/avatar-admin.png";
+}
+
 interface Props {
   products: KhuyenMaiTheoSanPham[];
   searchTerm: string;
@@ -49,8 +56,12 @@ const ProductList: React.FC<Props> = ({ products, searchTerm, onSearch, onAddToC
     const imgToUse = mainImg || anhUrls[0];
 
     if (imgToUse && imgToUse.url) {
-      const imageUrl = `http://localhost:8080/api/anhsp/images/${imgToUse.url}`;
-      return imageUrl;
+      // Kiểm tra nếu đã là Cloudinary URL
+      if (imgToUse.url.startsWith('http://') || imgToUse.url.startsWith('https://')) {
+        return imgToUse.url;
+      }
+      // Fallback cho ảnh cũ
+      return '/images/avatar-admin.png';
     }
 
     return '/images/avatar-admin.png';
@@ -102,7 +113,7 @@ const ProductList: React.FC<Props> = ({ products, searchTerm, onSearch, onAddToC
                     <CardContent className="flex flex-col items-center text-center flex-1 justify-between p-2">
                       <div className="w-20 h-20 rounded-lg overflow-hidden mb-2 bg-white/10 relative border border-primary/20">
                         <Image
-                          src={image}
+                          src={getValidImageUrl(image)}
                           alt={product.tenSanPham}
                           width={80}
                           height={80}
