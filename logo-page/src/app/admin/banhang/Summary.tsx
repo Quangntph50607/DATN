@@ -28,6 +28,13 @@ import Image from 'next/image';
 import { CartItem } from '@/components/types/order.type';
 import { PhieuGiamGia } from '@/components/types/phieugiam.type';
 
+function getValidImageUrl(url?: string) {
+  if (!url) return "/images/avatar-admin.png";
+  if (url.startsWith("http://") || url.startsWith("https://")) return url;
+  if (url.startsWith("/")) return url;
+  return "/images/avatar-admin.png";
+}
+
 interface Props {
   customerName: string;
   customerEmail: string;
@@ -147,7 +154,7 @@ const Summary: React.FC<Props> = ({
                   <div key={item.id} className="flex justify-between items-center text-sm">
                     <div className="flex items-center gap-2">
                       <Image
-                        src={item.anhDaiDien || '/no-image.png'}
+                        src={getValidImageUrl(item.anhDaiDien)}
                         alt={item.tenSanPham}
                         width={40}
                         height={40}

@@ -45,6 +45,8 @@ export default function ReviewList({
                 typeMatch = !!review.video;
             } else if (filterType === 'withReply') {
                 typeMatch = !!review.textPhanHoi;
+            } else if (filterType === 'withoutReply') {
+                typeMatch = !review.textPhanHoi || review.textPhanHoi.trim() === '';
             }
 
             // Lọc theo ngày

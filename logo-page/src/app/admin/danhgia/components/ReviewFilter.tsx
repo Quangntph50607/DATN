@@ -45,6 +45,7 @@ const ReviewFilter = ({
                     <SelectItem value="withImages" className="hover:bg-blue-50 dark:hover:bg-blue-900/20">Có ảnh</SelectItem>
                     <SelectItem value="withVideo" className="hover:bg-blue-50 dark:hover:bg-blue-900/20">Có video</SelectItem>
                     <SelectItem value="withReply" className="hover:bg-blue-50 dark:hover:bg-blue-900/20">Có phản hồi</SelectItem>
+                    <SelectItem value="withoutReply" className="hover:bg-blue-50 dark:hover:bg-blue-900/20">Chưa có phản hồi</SelectItem>
                 </SelectContent>
             </Select>
 

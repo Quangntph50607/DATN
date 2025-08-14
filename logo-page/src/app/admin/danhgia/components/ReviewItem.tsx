@@ -238,12 +238,23 @@ export default function ReviewItem({
                         {review.anhUrls && review.anhUrls.map((anh, index) => (
                             <div key={anh.id} className="relative">
                                 <Image
-                                    src={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"}/api/lego-store/danh-gia/images/${anh.url}`}
+                                    src={
+                                        anh.url.startsWith("http")
+                                            ? anh.url
+                                            : `https://res.cloudinary.com/durppqsk4/image/upload/${anh.url}`
+                                    }
                                     alt={`Ảnh ${index + 1}`}
                                     width={80}
                                     height={80}
                                     className="w-20 h-20 object-cover rounded-lg border-2 border-gray-200 hover:border-blue-300 transition-colors cursor-pointer"
-                                    onClick={() => window.open(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"}/api/lego-store/danh-gia/images/${anh.url}`, '_blank')}
+                                    onClick={() =>
+                                        window.open(
+                                            anh.url.startsWith("http")
+                                                ? anh.url
+                                                : `https://res.cloudinary.com/durppqsk4/image/upload/${anh.url}`,
+                                            '_blank'
+                                        )
+                                    }
                                 />
                             </div>
                         ))}
@@ -255,7 +266,16 @@ export default function ReviewItem({
                                     className="w-20 h-20 bg-gray-100 rounded-lg border-2 border-gray-200 hover:border-blue-300 transition-colors cursor-pointer flex items-center justify-center"
                                     onClick={handleVideoClick}
                                 >
-                                    <div className="w-8 h-8 bg-black bg-opacity-70 rounded-full flex items-center justify-center">
+                                    <video
+                                        src={
+                                            review.video.url.startsWith("http")
+                                                ? review.video.url
+                                                : `https://res.cloudinary.com/durppqsk4/video/upload/${review.video.url}`
+                                        }
+                                        className="w-full h-full object-cover"
+                                        muted
+                                    />
+                                    <div className="w-8 h-8 bg-black bg-opacity-70 rounded-full flex items-center justify-center absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
                                         <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
                                             <path d="M8 5v14l11-7z" />
                                         </svg>
@@ -345,8 +365,14 @@ export default function ReviewItem({
             <VideoModal
                 isOpen={isVideoModalOpen}
                 onClose={() => setIsVideoModalOpen(false)}
-                videoUrl={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"}/api/lego-store/danh-gia/videos/${review.video?.url || ''}`}
+                videoUrl={
+                    review.video
+                        ? (review.video.url.startsWith("http")
+                            ? review.video.url
+                            : `https://res.cloudinary.com/durppqsk4/video/upload/${review.video.url}`)
+                        : ""
+                }
             />
         </>
     );
-} 
+}

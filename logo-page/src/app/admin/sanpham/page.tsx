@@ -23,6 +23,7 @@ import { PlusIcon } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ConfirmDialog } from "@/shared/ConfirmDialog";
 import { useListKhuyenMaiTheoSanPham } from "@/hooks/useKhuyenmai";
+import { Loader2 } from "lucide-react";
 
 export default function SanPhamPage() {
   const {
@@ -36,7 +37,6 @@ export default function SanPhamPage() {
     "Đang kinh doanh" | "Ngừng kinh doanh" | "Hết hàng"
   >("Đang kinh doanh");
   const [editSanPham, setEditSanPham] = useState<SanPham | null>(null);
-  const [formKey, setFormKey] = useState(0);
   const { keyword, setKeyword } = useSearchStore();
   const [selectedDanhMuc, setSelectedDanhMuc] = useState<number | null>(null);
   const [selectedBoSuuTap, setSelectedBoSuuTap] = useState<number | null>(null);
@@ -44,6 +44,7 @@ export default function SanPhamPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const addSanPhamMutation = useAddSanPham();
   const deleteSanPhamMutation = useXoaSanPham();
   const editSanPhamMutation = useEditSanPham();
@@ -88,8 +89,9 @@ export default function SanPhamPage() {
   };
 
   const handleSuccess = () => {
+    // Chỉ đóng modal, không reset formKey để tránh reset form
     setEditSanPham(null);
-    setFormKey((prev) => prev + 1);
+    // setFormKey((prev) => prev + 1); // Comment lại để không reset form
     refetch();
     setIsModalOpen(false);
   };
@@ -100,7 +102,19 @@ export default function SanPhamPage() {
   };
 
   return (
-    <Card className="p-4 bg-gray-800 shadow-md  w-full h-full">
+    <>
+      {/* Loading Overlay - hiển thị ở giữa toàn bộ màn hình */}
+      {isSubmitting && (
+        <div className="fixed inset-0 bg-black/50 z-[9999] flex items-center justify-center">
+          <div className="bg-white rounded-xl p-8 flex flex-col items-center shadow-2xl">
+            <div className="w-20 h-20 bg-blue-500 rounded-full flex items-center justify-center">
+              <Loader2 className="w-10 h-10 text-white animate-spin" />
+            </div>
+          </div>
+        </div>
+      )}
+      
+      <Card className="p-4 bg-gray-800 shadow-md  w-full h-full">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -122,11 +136,13 @@ export default function SanPhamPage() {
         className="max-w-5xl"
       >
         <SanPhamForm
-          key={formKey}
+          key={0} // Changed from formKey to 0
           onSubmit={handleSubmit}
           edittingSanPham={editSanPham}
           onSucces={handleSuccess}
           setEditing={setEditSanPham}
+          isSubmitting={isSubmitting}
+          setIsSubmitting={setIsSubmitting}
         />
       </Modal>
       <div className="space-y-6">
@@ -257,5 +273,6 @@ export default function SanPhamPage() {
         )}
       </div>
     </Card>
+    </>
   );
 }
