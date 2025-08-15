@@ -44,8 +44,12 @@ const getMainImageUrl = (anhUrls: AnhSanPhamChiTiet[]) => {
   const imgToUse = mainImg || anhUrls[0];
 
   if (imgToUse && imgToUse.url) {
-    const imageUrl = `http://localhost:8080/api/anhsp/images/${imgToUse.url}`;
-    return imageUrl;
+    // Kiểm tra nếu đã là Cloudinary URL
+    if (imgToUse.url.startsWith('http://') || imgToUse.url.startsWith('https://')) {
+      return imgToUse.url;
+    }
+    // Fallback cho ảnh cũ
+    return '/images/avatar-admin.png';
   }
 
   return '/images/avatar-admin.png';

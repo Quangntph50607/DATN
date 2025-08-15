@@ -8,6 +8,7 @@ export function useAnhSanPham() {
     queryFn: anhSanPhamSevice.getAnhSanPham,
   });
 }
+
 export function useAnhSanPhamID(id: number) {
   return useQuery<AnhSanPhamChiTiet>({
     queryKey: ["anhSanPhams", id],
@@ -15,28 +16,12 @@ export function useAnhSanPhamID(id: number) {
     enabled: !!id,
   });
 }
-// add
-// export function useAddAnhSanPham() {
-//   const queryClient = useQueryClient();
-//   return useMutation({
-//     mutationFn: (data: {
-//       file: File;
-//       thuTu: number;
-//       anhChinh: boolean;
-//       sanPhamId: number;
-//       moTa?: string;
-//     }) => anhSanPhamSevice.addAnhSanPham(data),
-//     onSuccess() {
-//       queryClient.invalidateQueries({ queryKey: ["anhSanPhams"] });
-//     },
-//   });
-// }
+
 export function useAddAnhSanPham() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (data: {
       files: File[];
-      // thuTu: number;
       anhChinh: boolean;
       sanPhamId: number;
       moTa?: string;
@@ -46,11 +31,12 @@ export function useAddAnhSanPham() {
       queryClient.invalidateQueries({
         queryKey: ["anhSanPhams", "sanpham", variables.sanPhamId],
       });
+      // Invalidate product queries to refresh the product data
+      queryClient.invalidateQueries({ queryKey: ["sanPhams"] });
+      queryClient.invalidateQueries({ queryKey: ["khuyenmai"] });
     },
     onError: (error: Error) => {
       console.error("Lỗi thêm ảnh: ", error.message);
-      // Không hiển thị toast lỗi vì có thể ảnh đã được thêm thành công
-      // Chỉ log để debug
     },
   });
 }
@@ -66,7 +52,6 @@ export function useSuaAnhSanPham() {
       id: number;
       data: {
         file?: File;
-        // thuTu: number;
         anhChinh: boolean;
         sanPhamId: number;
         moTa?: string;
@@ -85,6 +70,9 @@ export function useXoaAnhSanPham() {
     mutationFn: (id: number) => anhSanPhamSevice.deleteAnhSanPham(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["anhSanPhams"] });
+      // Invalidate product queries to refresh the product data
+      queryClient.invalidateQueries({ queryKey: ["sanPhams"] });
+      queryClient.invalidateQueries({ queryKey: ["khuyenmai"] });
     },
   });
 }

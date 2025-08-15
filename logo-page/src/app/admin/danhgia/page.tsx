@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ReviewStats from "./components/ReviewStats";
 import ReviewList from "./components/ReviewList";
 import ReviewFilter from "./components/ReviewFilter";
-import { useReviews, useUpdateDanhGia, useDeleteDanhGia } from "@/hooks/useDanhGia";
+import { useReviews, useUpdateDanhGiaWithFiles, useDeleteDanhGia } from "@/hooks/useDanhGia";
 import { DanhGiaResponse } from "@/components/types/danhGia-type";
 import { toast } from "sonner";
 import { useUserStore } from "@/context/authStore.store";
@@ -19,7 +19,7 @@ export default function DanhGiaPage() {
     // Debug: Log reviews để kiểm tra
     console.log('Reviews from API:', reviews);
     console.log('Filter Date:', filterDate);
-    const updateDanhGiaMutation = useUpdateDanhGia();
+    const updateDanhGiaMutation = useUpdateDanhGiaWithFiles();
     const deleteDanhGiaMutation = useDeleteDanhGia();
     const { user } = useUserStore();
 
@@ -48,15 +48,23 @@ export default function DanhGiaPage() {
             return;
         }
 
-        // Lấy phản hồi từ updatedReview
-        const phanHoi = updatedReview.textPhanHoi || '';
+        // Lấy phản hồi và các trường cần thiết từ updatedReview
+        const textPhanHoi = updatedReview.textPhanHoi || '';
+        const soSao = updatedReview.soSao;
+        const tieuDe = updatedReview.tieuDe;
+        const textDanhGia = updatedReview.textDanhGia;
 
         // Cập nhật qua API với ID của user đang đăng nhập
         return new Promise<void>((resolve, reject) => {
             updateDanhGiaMutation.mutate({
                 idDanhGia: reviewId,
                 idNv: user.id, // ID của tài khoản đang đăng nhập (admin hoặc nhân viên)
-                phanHoi: phanHoi
+                textPhanHoi,
+                soSao,
+                tieuDe,
+                textDanhGia,
+                newImages: undefined, // Admin không cần update images
+                newVideo: undefined, // Admin không cần update video
             }, {
                 onSuccess: () => {
                     resolve();
@@ -110,11 +118,19 @@ export default function DanhGiaPage() {
             // Thực hiện phản hồi hàng loạt - sử dụng sequential để tránh overload server
             for (let i = 0; i < reviewIds.length; i++) {
                 const reviewId = reviewIds[i];
+                // Lấy thông tin review từ danh sách reviews
+                const review = reviews.find(r => r.id === reviewId);
+                if (!review) continue;
                 await new Promise<void>((resolve, reject) => {
                     updateDanhGiaMutation.mutate({
                         idDanhGia: reviewId,
                         idNv: user.id,
-                        phanHoi: replyText
+                        soSao: review.soSao,
+                        tieuDe: review.tieuDe,
+                        textDanhGia: review.textDanhGia,
+                        textPhanHoi: replyText,
+                        newImages: undefined, // Admin không cần update images
+                        newVideo: undefined, // Admin không cần update video
                     }, {
                         onSuccess: () => resolve(),
                         onError: (error) => reject(error)

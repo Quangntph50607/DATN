@@ -14,6 +14,13 @@ import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '
 import { CartItem } from '@/components/types/order.type';
 import Image from 'next/image';
 
+function getValidImageUrl(url?: string) {
+  if (!url) return "/images/avatar-admin.png";
+  if (url.startsWith("http://") || url.startsWith("https://")) return url;
+  if (url.startsWith("/")) return url;
+  return "/images/avatar-admin.png";
+}
+
 interface Props {
   cart: CartItem[];
   updateQuantity: (id: number, amount: number) => void;
@@ -228,7 +235,7 @@ const Cart: React.FC<Props> = ({ cart, updateQuantity, removeFromCart, customerN
                 <div className="flex items-center">
                   <div className="w-14 h-14 rounded-lg overflow-hidden mr-4 bg-white/10 border border-primary/30 flex-shrink-0">
                     <Image
-                      src={image}
+                      src={getValidImageUrl(image)}
                       alt={item.tenSanPham}
                       width={56}
                       height={56}
