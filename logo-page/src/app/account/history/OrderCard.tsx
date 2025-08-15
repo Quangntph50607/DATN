@@ -221,7 +221,7 @@ export default function OrderCard({
                         </motion.div>
                     )}
 
-                    {order.trangThai === "Đã giao" && (
+                    {(order.trangThai === "Đã giao" || order.trangThai === "Hoàn tất") && (
                         <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                             <Button
                                 size="sm"
