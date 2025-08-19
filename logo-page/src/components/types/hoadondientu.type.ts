@@ -17,6 +17,7 @@ export interface GuiHoaDonRequest {
   ptvc: string; // Phương thức vận chuyển
   listSp: HoaDonSanPham[]; // Danh sách sản phẩm
   totalAmount: string; // Tổng tiền hóa đơn (VNĐ, dạng string)
+  tienGiam: string;
 }
 export interface GuiHoaDonResponse {
   status: number; // Mã trạng thái HTTP
