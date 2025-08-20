@@ -12,7 +12,11 @@ type RawUserFromApi = Omit<DTOUser, "role_id"> & {
 // Hàm helper để chuẩn hóa dữ liệu từ API về DTOUser
 function normalizeAccount(acc: RawUserFromApi): DTOUser {
   const { role, role_id, ...rest } = acc;
-  return { ...rest, role_id: Number(role?.id ?? role_id ?? 0) };
+  return {
+    ...rest,
+    role_id: Number(role?.id ?? role_id ?? 0),
+    role: role ? { id: role.id, name: role.name } : undefined,
+  };
 }
 
 const API_URL = "http://localhost:8080/api/lego-store/user";

@@ -5,6 +5,17 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
+// CSS để ẩn thanh cuộn
+const scrollbarHideStyles = `
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+`;
+
 import {
   LayoutDashboard,
   Package,
@@ -16,6 +27,7 @@ import {
   X,
   ChevronDown,
   ChevronRight,
+  Ticket,
   Star,
 } from "lucide-react";
 import { adminRoutes } from "@/lib/route";
@@ -29,11 +41,16 @@ const iconMap = {
   tag: Tag,
   users: Users,
   "bar-chart-3": BarChart3,
+  ticket: Ticket,
   star: Star,
 };
 
-export default function AdminSidebar() {
-  const [collapsed, setCollapsed] = useState(false);
+interface AdminSidebarProps {
+  collapsed: boolean;
+  onToggle: () => void;
+}
+
+export default function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openMenus, setOpenMenus] = useState<string[]>([]);
   const pathname = usePathname();
@@ -46,6 +63,9 @@ export default function AdminSidebar() {
 
   return (
     <>
+      {/* CSS để ẩn thanh cuộn */}
+      <style jsx>{scrollbarHideStyles}</style>
+      
       {/* Nút mở sidebar trên mobile */}
       <button
         className="fixed z-50 top-4 left-4 md:hidden bg-white p-2 rounded-md shadow-md"
@@ -65,14 +85,14 @@ export default function AdminSidebar() {
       {/* Sidebar chính */}
       <aside
         className={cn(
-          "fixed md:static top-0 left-0 z-40 min-h-screen",
+          "fixed md:static top-0 left-0 z-40 h-screen flex flex-col",
           "border-r bg-white dark:bg-gray-900 transition-all duration-300",
           collapsed ? "w-20" : "w-64",
           mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         )}
       >
-        {/* Logo và tiêu đề */}
-        <div className="flex items-center justify-between h-16 px-4 border-b dark:border-gray-700">
+        {/* Logo và tiêu đề - Cố định */}
+        <div className="flex items-center justify-between h-16 px-4 border-b border-gray-700 flex-shrink-0">
           <Image
             src="/images/logoM.jpg"
             alt="Logo"
@@ -80,18 +100,18 @@ export default function AdminSidebar() {
             height={32}
             className="h-8 object-contain"
           />
-          {!collapsed && <h1 className="text-sm font-bold">LEGO MYKINGDOM</h1>}
+          {!collapsed && <h1 className="text-sm font-bold text-white">LEGO MYKINGDOM</h1>}
           <Button
-            onClick={() => setCollapsed(!collapsed)}
-            className="hidden md:block"
+            onClick={onToggle}
+            className="hidden md:block text-white hover:bg-gray-700"
             variant="ghost"
           >
             <Menu size={20} />
           </Button>
         </div>
 
-        {/* Navigation */}
-        <nav className="p-2 space-y-1">
+        {/* Navigation - Có thể cuộn */}
+        <nav className="flex-1 overflow-y-auto scrollbar-hide p-2 space-y-1">
           {adminRoutes.map((item) => {
             const Icon = iconMap[item.icon as keyof typeof iconMap];
             const hasChildren = !!item.children;

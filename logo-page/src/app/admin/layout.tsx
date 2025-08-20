@@ -14,6 +14,7 @@ export default function AdminLayout({
   const user = useUserStore((state) => state.user);
   const router = useRouter();
   const [hydrated, setHydrated] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => {
     setHydrated(true);
@@ -47,15 +48,23 @@ export default function AdminLayout({
   return (
     <div>
       {/* Sidebar cố định bên trái */}
-      <div className="fixed left-0 top-0 h-screen w-64 bg-[#1a2233] z-30">
-        <AdminSidebar />
+      <div className={`fixed left-0 top-0 h-screen bg-[#1a2233] z-30 transition-all duration-300 ${
+        collapsed ? 'w-20' : 'w-64'
+      }`}>
+        <AdminSidebar collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
       </div>
+      
       {/* Header cố định trên cùng, bên phải sidebar */}
-      <div className="fixed top-0 left-64 right-0 h-16 bg-[#232b3e] z-40">
+      <div className={`fixed top-0 right-0 h-16 bg-[#232b3e] z-40 transition-all duration-300 ${
+        collapsed ? 'left-20' : 'left-64'
+      }`}>
         <HeaderAdmin />
       </div>
+      
       {/* Nội dung chính cuộn được */}
-      <main className="ml-64 mt-16 overflow-y-auto p-6 bg-gray-50 dark:bg-gray-900">
+      <main className={`mt-16 overflow-y-auto p-6 bg-gray-50 dark:bg-gray-900 transition-all duration-300 ${
+        collapsed ? 'ml-20' : 'ml-64'
+      }`}>
         {children}
         <Toaster position="top-right" />
       </main>
