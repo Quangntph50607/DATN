@@ -29,7 +29,9 @@ export default function AddressSection({
     null
   );
 
-  const defaultAddress = thongTinList.find((item) => item.isMacDinh === 1);
+  const defaultAddress = thongTinList.find(
+    (item) => item.isMacDinh === 1 || item.isMacDinh === true
+  );
   const displayAddress =
     thongTinList.find((item) => item.id === selectedAddressId) ||
     defaultAddress;
@@ -126,10 +128,6 @@ export default function AddressSection({
         onOpenChange={setIsListModalOpen}
         addresses={thongTinList}
         defaultId={defaultAddress?.id}
-        onAddAddress={() => {
-          setIsListModalOpen(false);
-          setIsFormModalOpen(true);
-        }}
         onSelect={(id) => setSelectedAddressId(id)}
         onConfirm={() => setIsListModalOpen(false)}
       />

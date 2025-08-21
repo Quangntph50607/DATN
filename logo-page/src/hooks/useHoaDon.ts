@@ -3,6 +3,10 @@ import {
   CreateHoaDonDTO,
   HoaDonChiTietDTO,
 } from "@/components/types/hoaDon-types";
+import {
+  GuiHoaDonRequest,
+  GuiHoaDonResponse,
+} from "@/components/types/hoadondientu.type";
 import { HoaDonService } from "@/services/hoaDonService";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -73,5 +77,17 @@ export function useHoaDonByUserId(userId: number) {
     queryKey: ["hoaDon", "user", userId],
     queryFn: () => HoaDonService.getHoaDonByUserId(userId),
     enabled: !!userId,
+  });
+}
+
+// hook gửi email
+export function useGuiEmail() {
+  const queryClient = useQueryClient();
+
+  return useMutation<GuiHoaDonResponse, Error, GuiHoaDonRequest>({
+    mutationFn: HoaDonService.addEmail,
+    onSuccess() {
+      queryClient.invalidateQueries({ queryKey: ["hoaDon"] });
+    },
   });
 }
