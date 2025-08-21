@@ -18,6 +18,7 @@ export interface GuiHoaDonRequest {
   listSp: HoaDonSanPham[]; // Danh sách sản phẩm
   totalAmount: string; // Tổng tiền hóa đơn (VNĐ, dạng string)
   tienGiam: string;
+  phiShip: string;
 }
 export interface GuiHoaDonResponse {
   status: number; // Mã trạng thái HTTP

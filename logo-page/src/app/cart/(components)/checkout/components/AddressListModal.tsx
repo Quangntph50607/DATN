@@ -169,16 +169,6 @@ export default function AddressListModal({
           {/* Action Buttons */}
           <div className="flex gap-2 md:gap-3 mt-4 md:mt-6 pt-4 md:pt-5 border-t">
             <Button
-              onClick={() => onOpenChange(false)}
-              className="h-9 md:h-11 font-medium flex-1 border-gray-300 hover:bg-gray-400 text-sm md:text-base"
-            >
-              <X
-                className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1 md:mr-2"
-                strokeWidth={2.5}
-              />
-              Hủy
-            </Button>
-            <Button
               className="bg-orange-500 hover:bg-orange-600 text-white flex-1 h-9 md:h-11 font-medium shadow-sm hover:shadow-md transition-shadow text-sm md:text-base"
               onClick={onConfirm}
               disabled={!selectedId}
@@ -188,6 +178,16 @@ export default function AddressListModal({
                 strokeWidth={2.5}
               />
               Xác nhận
+            </Button>
+            <Button
+              onClick={() => onOpenChange(false)}
+              className="h-9 md:h-11 font-medium flex-1 border-gray-300 hover:bg-gray-400 text-sm md:text-base"
+            >
+              <X
+                className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1 md:mr-2"
+                strokeWidth={2.5}
+              />
+              Hủy
             </Button>
           </div>
         </div>

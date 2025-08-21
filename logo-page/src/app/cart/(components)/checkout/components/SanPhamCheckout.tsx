@@ -14,6 +14,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { formatDateFlexible } from "@/app/admin/khuyenmai/formatDateFlexible";
+import Image from "next/image";
 
 // Constants
 const VOUCHER_MESSAGES = {
@@ -92,8 +93,8 @@ interface SanPhamCheckoutProps {
   readonly userId?: number;
   readonly shippingFee?: number;
   readonly onPlaceOrder?: () => void;
+  readonly onDataChange?: (total: number, discount: number) => void;
 }
-
 // Components
 function OrderItems({ checkoutItems }: OrderItemsProps) {
   if (checkoutItems.length === 0) {
@@ -112,13 +113,12 @@ function OrderItems({ checkoutItems }: OrderItemsProps) {
           key={item.id}
           className="flex items-center gap-3 p-3 bg-gray-50/50 rounded-lg border border-gray-200"
         >
-          <img
+          <Image
             src={item.image || "/images/placeholder-product.png"}
             alt={item.name}
             className="w-12 h-12 object-cover rounded-lg"
-            // onError={(e) => {
-            //   e.currentTarget.src = "/images/placeholder-product.png";
-            // }}
+            width={100}
+            height={100}
           />
           <div className="flex-1 min-w-0">
             <h4 className="font-medium text-gray-800 text-sm line-clamp-2">
@@ -284,7 +284,7 @@ function VoucherSection({
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogTrigger asChild>
-          <Button className="text-sm text-orange-600 hover:text-orange-700 hover:bg-orange-300 underline font-medium flex items-center gap-1 bg-none">
+          <Button className="text-sm text-orange-600 hover:text-orange-700 hover:bg-orange-300 underline font-medium flex items-center gap-1 bg-white shadow-2xl border-2 border-orange-300">
             <Gift className="h-4 w-4" />
             Xem voucher của tôi ({availableVouchers.length} khả dụng)
           </Button>
@@ -370,9 +370,8 @@ function VoucherSection({
             </div>
             <Button
               onClick={clearVoucher}
-              variant="ghost"
               size="sm"
-              className="text-sm text-red-500 hover:text-red-700 font-medium"
+              className="text-sm text-red-500 border-red-300 border hover:text-red-700 font-medium"
             >
               Bỏ chọn
             </Button>
@@ -387,6 +386,7 @@ export function SanPhamCheckout({
   userId,
   shippingFee = 0,
   onPlaceOrder,
+  onDataChange,
 }: SanPhamCheckoutProps) {
   const [checkoutItems, setCheckoutItems] = useState<CartItemType[]>([]);
   const [loading, setLoading] = useState(true);
@@ -430,6 +430,12 @@ export function SanPhamCheckout({
     const sum = subtotal - discount + shippingFee;
     return Math.max(0, sum); // Ensure total is never negative
   }, [subtotal, discount, shippingFee]);
+
+  useEffect(() => {
+    if (onDataChange) {
+      onDataChange(total, discount);
+    }
+  }, [total, discount, onDataChange]);
 
   // Voucher validation function
   const validateVoucher = useCallback(
