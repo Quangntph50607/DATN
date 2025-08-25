@@ -458,9 +458,9 @@ export default function ReturnForm() {
                             <Button
                                 className="w-full md:w-auto px-6 py-6 rounded-full bg-[#FFD400] hover:bg-[#FFE066] text-black font-semibold border border-yellow-300 shadow-lg transition-all duration-200 ease-out hover:shadow-xl"
                                 onClick={handleRequest}
-                                disabled={taoPhieuHoan.isLoading}
+                                disabled={taoPhieuHoan.isPending}
                             >
-                                {taoPhieuHoan.isLoading ? "Đang gửi..." : "Gửi Yêu Cầu Hoàn Hàng"}
+                                {taoPhieuHoan.isPending ? "Đang gửi..." : "Gửi Yêu Cầu Hoàn Hàng"}
                             </Button>
                         </AlertDialogTrigger>
                         <AlertDialogContent>
@@ -472,7 +472,7 @@ export default function ReturnForm() {
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                                 <AlertDialogCancel>Hủy</AlertDialogCancel>
-                                <AlertDialogAction onClick={handleConfirm} disabled={taoPhieuHoan.isLoading}>
+                                <AlertDialogAction onClick={handleConfirm} disabled={taoPhieuHoan.isPending}>
                                     Xác nhận
                                 </AlertDialogAction>
                             </AlertDialogFooter>
