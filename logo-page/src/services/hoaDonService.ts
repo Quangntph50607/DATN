@@ -5,6 +5,10 @@ import {
   TrangThaiHoaDon,
 } from "@/components/types/hoaDon-types";
 import { fetchWithAuth } from "./fetchWithAuth";
+import {
+  GuiHoaDonRequest,
+  GuiHoaDonResponse,
+} from "@/components/types/hoadondientu.type";
 
 const API_URL = "http://localhost:8080/api/lego-store/hoa-don";
 
@@ -240,5 +244,27 @@ export const HoaDonService = {
     }
 
     return res.json();
+  },
+
+  // Gửi email
+  async addEmail(data: GuiHoaDonRequest): Promise<GuiHoaDonResponse> {
+    try {
+      const res = await fetchWithAuth(`${API_URL}/send-order-email`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!res.ok) {
+        throw new Error("Không thể gửi email");
+      }
+
+      return (await res.json()) as GuiHoaDonResponse; // Ép kiểu cho chắc chắn
+    } catch (error) {
+      console.log("Lỗi gửi email", error);
+      throw error;
+    }
   },
 };

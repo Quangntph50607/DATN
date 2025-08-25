@@ -45,7 +45,6 @@ import {
   Phone,
   MapPin,
   Home,
-  Map,
   Navigation,
   Check,
   X,
@@ -433,19 +432,25 @@ export default function AddressForm({
         />
 
         {/* Buttons */}
-        <div className="flex gap-2 mt-6">
+        <div className="flex gap-2 md:gap-3 mt-4 md:mt-6 pt-4 md:pt-5 border-t">
           <Button
             type="submit"
-            className="bg-orange-500 hover:bg-orange-600 text-white h-10 px-4 flex items-center gap-2"
+            className="bg-orange-500 hover:bg-orange-600 text-white flex-1 h-9 md:h-11 font-medium shadow-sm hover:shadow-md transition-shadow text-sm md:text-base"
           >
             {editing ? (
               <>
-                <Check className="h-4 w-4" />
+                <Check
+                  className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1 md:mr-2"
+                  strokeWidth={2.5}
+                />
                 Cập nhật
               </>
             ) : (
               <>
-                <Plus className="h-4 w-4" />
+                <Plus
+                  className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1 md:mr-2"
+                  strokeWidth={2.5}
+                />
                 Thêm địa chỉ
               </>
             )}
@@ -453,7 +458,7 @@ export default function AddressForm({
           <Button
             type="button"
             variant="default"
-            className="border-gray-300 text-gray-700 hover:bg-gray-300 h-10 px-4 flex items-center gap-2"
+            className="h-9 md:h-11 font-medium flex-1 border-gray-300 hover:bg-gray-400 text-sm md:text-base"
             onClick={() => {
               setEditing(null);
               form.reset();
@@ -462,7 +467,10 @@ export default function AddressForm({
               onSuccess?.();
             }}
           >
-            <X className="h-4 w-4" />
+            <X
+              className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1 md:mr-2"
+              strokeWidth={2.5}
+            />
             Hủy
           </Button>
         </div>
