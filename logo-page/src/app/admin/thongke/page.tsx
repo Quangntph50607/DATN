@@ -1,110 +1,382 @@
-'use client'
+"use client";
 
-import React from 'react'
-import { UsersIcon, ShoppingCartIcon, CreditCardIcon, PackageIcon } from 'lucide-react'
-import { StatsCard } from '@/shared/StatsCard'
-import { ActivityItem, RecentActivity } from '@/shared/RecentActivity'
-import { BarChart } from '@/shared/BarChart'
-import { PieChart } from '@/shared/PieChart'
-import { AreaChart } from '@/shared/AreaChart'
+import React, { useState } from "react";
+import { Input } from "@/components/ui/input";
+import {
+  useDoanhThuTheoDanhMuc,
+  useDoanhThuTheoPTTT,
+  useDoanhThuTheoXuatXu,
+  useKhuyenMaiHieuQua,
+  useLyDoHoan,
+  useThongKeTheoNgay,
+  useTiLeHoan,
+  useTopKhachHang,
+  useTopSanPhamBanChay,
+} from "@/hooks/useThongKe";
+import {
+  Calendar,
+  TrendingUp,
+  ShoppingBag,
+  Users,
+  Package,
+  Gift,
+  RotateCcw,
+  DollarSign,
+  TrendingDown,
+  Star,
+  CreditCard,
+  LucideIcon,
+  BarChart3,
+} from "lucide-react";
+import { TableCell } from "@/components/ui/table";
+import { Label } from "@/components/ui/label";
+import StatCard from "./StatCard";
+import SimpleChart from "./SimpleChart";
+import DataTable from "./DataTable";
+import { format } from "date-fns";
+import { DateTimePicker } from "@/components/ui/date-picker";
 
+interface SimpleBarChartProps {
+  title: string;
+  data: Record<string, number> | null | undefined;
+  isLoading?: boolean;
+  icon: LucideIcon;
+}
 
-const salesData = [
-  { name: 'T1', value: 3200 },
-  { name: 'T2', value: 4500 },
-  { name: 'T3', value: 5800 },
-  { name: 'T4', value: 4900 },
-  { name: 'T5', value: 6200 },
-  { name: 'T6', value: 7100 },
-  { name: 'T7', value: 8500 },
-  { name: 'T8', value: 7800 },
-  { name: 'T9', value: 8900 },
-  { name: 'T10', value: 9500 },
-  { name: 'T11', value: 11000 },
-  { name: 'T12', value: 12500 },
-]
+export default function ThongKePage() {
+  const today = new Date();
+  const [startDate, setStartDate] = useState<Date | null>(
+    new Date(today.getFullYear(), today.getMonth(), today.getDate() - 30)
+  );
+  const [endDate, setEndDate] = useState<Date | null>(today);
 
-const topSellingData = [
-  { name: 'LEGO City', value: 4500 },
-  { name: 'LEGO Star Wars', value: 3800 },
-  { name: 'LEGO Technic', value: 3200 },
-  { name: 'LEGO Friends', value: 2900 },
-  { name: 'LEGO Duplo', value: 2500 },
-  { name: 'LEGO Ninjago', value: 2100 },
-  { name: 'LEGO Marvel', value: 1800 },
-]
+  // format yyyy-MM-dd để truyền vào hooks API
+  const startDateStr = startDate ? format(startDate, "yyyy-MM-dd") : "";
+  const endDateStr = endDate ? format(endDate, "yyyy-MM-dd") : "";
 
-const ageGroupData = [
-  { name: '3-6 tuổi', value: 350 },
-  { name: '7-12 tuổi', value: 480 },
-  { name: '13-18 tuổi', value: 280 },
-  { name: 'Trên 18 tuổi', value: 390 },
-  { name: 'Người sưu tầm', value: 200 },
-]
+  // Gọi các hook
+  const doanhThuNgay = useThongKeTheoNgay(startDateStr, endDateStr);
+  const doanhThuPTTT = useDoanhThuTheoPTTT(startDateStr, endDateStr);
+  const doanhThuDanhMuc = useDoanhThuTheoDanhMuc(startDateStr, endDateStr);
+  const doanhThuXuatXu = useDoanhThuTheoXuatXu(startDateStr, endDateStr);
+  const khuyenMaiHieuQua = useKhuyenMaiHieuQua(startDateStr, endDateStr);
+  const topSanPham = useTopSanPhamBanChay(startDateStr, endDateStr);
+  const topKhachHang = useTopKhachHang(startDateStr, endDateStr);
+  const tiLeHoan = useTiLeHoan(startDateStr, endDateStr);
+  const lyDoHoan = useLyDoHoan(startDateStr, endDateStr);
 
-const recentActivities: ActivityItem[] = [
-  {
-    id: 1,
-    title: 'Đơn hàng mới #L8734',
-    description: 'Khách hàng Nguyễn Văn A đã mua bộ LEGO Star Wars #75192',
-    time: '15 phút trước',
-    status: 'success',
-  },
-  {
-    id: 2,
-    title: 'Sản phẩm sắp hết hàng',
-    description: 'Bộ LEGO Technic Porsche 911 GT3 RS chỉ còn 5 sản phẩm',
-    time: '1 giờ trước',
-    status: 'warning',
-  },
-  {
-    id: 3,
-    title: 'Khiếu nại sản phẩm #L6723',
-    description: 'Khách hàng phản ánh thiếu chi tiết trong bộ LEGO City',
-    time: '3 giờ trước',
-    status: 'error',
-  },
-  {
-    id: 4,
-    title: 'Bộ sưu tập mới đã nhập kho',
-    description: 'Bộ sưu tập LEGO Harry Potter 2023 đã sẵn sàng bán',
-    time: '5 giờ trước',
-    status: 'success',
-  },
-]
+  // Hàm format tiền tệ
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+    }).format(amount);
+  };
 
-export default function Dashboard() {
+  function SimpleBarChart({
+    title,
+    data,
+    isLoading,
+    icon: Icon,
+  }: SimpleBarChartProps) {
+    return (
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow duration-200">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg">
+            <Icon className="h-5 w-5 text-white" />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
+        </div>
+        {isLoading || !data || !Object.keys(data).length ? (
+          <div className="text-center py-12">
+            <BarChart3 className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+            <p className="text-gray-500">Không có dữ liệu</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {Object.entries(data).map(([key, value], index) => (
+              <div
+                key={key}
+                className="flex justify-between items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-150"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  <span className="font-medium text-gray-700 text-sm">
+                    {key}
+                  </span>
+                </div>
+                <span className="text-gray-900 font-semibold text-sm">
+                  {formatCurrency(value)}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-6 p-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">LEGO Mykingdom - Bảng thống kê</h1>
-        <p className="text-gray-500 mt-1">Thống kê doanh số và hoạt động cửa hàng đồ chơi LEGO</p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatsCard title="Tổng khách hàng" value="8,756" change="15.3%" icon={<UsersIcon size={24} />} color="blue" />
-        <StatsCard title="Đơn hàng trong tháng" value="342" change="7.8%" icon={<ShoppingCartIcon size={24} />} color="green" />
-        <StatsCard title="Doanh thu" value="876,500,000đ" change="12.4%" icon={<CreditCardIcon size={24} />} color="purple" />
-        <StatsCard title="Số bộ LEGO đã bán" value="1,245" change="9.6%" icon={<PackageIcon size={24} />} color="orange" />
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <AreaChart data={salesData} title="Doanh số bán hàng theo tháng (triệu đồng)" color="#e31d1c" />
+    <div className="min-h-screen bg-gradient-to-brtext-card-foreground  gap-6 rounded-xl border p-4 bg-gray-800 shadow-md ">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="mb-10">
+          <div className="text-center">
+            <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent mb-4">
+              Thống Kê LEGO MyKingDomStore
+            </h1>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Dashboard tổng quan về hoạt động kinh doanh và phân tích dữ liệu
+              chi tiết
+            </p>
+          </div>
         </div>
-        <div>
-          <RecentActivity activities={recentActivities} />
-        </div>
-      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <BarChart data={topSellingData} title="Dòng sản phẩm LEGO bán chạy nhất (đơn vị)" color="#f5cd22" />
-        <PieChart
-          data={ageGroupData}
-          title="Phân bổ khách hàng theo độ tuổi"
-          colors={['#e31d1c', '#f5cd22', '#0d69ab', '#00af4d', '#f7901e']}
-        />
+        {/* Form nhập liệu */}
+        <div className="mb-10">
+          <div className="bg-blue-400 rounded-2xl shadow-sm border border-gray-100 p-8">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl">
+                <Calendar className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-50">
+                  Tùy chọn thống kê
+                </h2>
+                <p className="text-sm text-gray-100 mt-1">
+                  Chọn khoảng thời gian để xem báo cáo
+                </p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-3">
+                <Label className="block text-sm font-semibold text-gray-800">
+                  Ngày bắt đầu
+                </Label>
+                <div className="relative">
+                  <DateTimePicker
+                    value={startDate}
+                    onChange={setStartDate}
+                    placeholder="Chọn ngày bắt đầu"
+                    mode="date"
+                  />
+                </div>
+              </div>
+              <div className="space-y-3">
+                <Label className="block text-sm font-semibold text-gray-800">
+                  Ngày kết thúc
+                </Label>
+                <div className="relative">
+                  <DateTimePicker
+                    value={endDate}
+                    onChange={setEndDate}
+                    placeholder="Chọn ngày kết thúc"
+                    mode="date"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Overview Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+          <StatCard
+            title="Tổng Doanh Thu"
+            value={
+              doanhThuNgay.data ? formatCurrency(doanhThuNgay.data) : "0 ₫"
+            }
+            icon={DollarSign}
+            color="green"
+            isLoading={doanhThuNgay.isLoading}
+          />
+          <StatCard
+            title="Tỉ Lệ Hoàn Hàng"
+            value={tiLeHoan.data?.toString() || "0"}
+            icon={RotateCcw}
+            color="red"
+            suffix="%"
+            isLoading={tiLeHoan.isLoading}
+          />
+          <StatCard
+            title="Sản Phẩm Bán Chạy"
+            value={topSanPham.data?.length.toString() || "0"}
+            icon={TrendingUp}
+            color="blue"
+            isLoading={topSanPham.isLoading}
+          />
+        </div>
+
+        {/* Charts Section - Row 1 */}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 mb-10">
+          <SimpleBarChart
+            title="Doanh Thu Theo Phương Thức Thanh Toán"
+            data={doanhThuPTTT.data}
+            isLoading={doanhThuPTTT.isLoading}
+            icon={CreditCard}
+          />
+          <SimpleBarChart
+            title="Doanh Thu Theo Danh Mục"
+            data={doanhThuDanhMuc.data}
+            isLoading={doanhThuDanhMuc.isLoading}
+            icon={Package}
+          />
+        </div>
+
+        {/* Charts Section - Row 2 */}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 mb-10">
+          <SimpleBarChart
+            title="Doanh Thu Theo Xuất Xứ"
+            data={doanhThuXuatXu.data}
+            isLoading={doanhThuXuatXu.isLoading}
+            icon={ShoppingBag}
+          />
+
+          {/* Lý do hoàn hàng */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow duration-200">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-r from-red-500 to-pink-600 rounded-lg">
+                <TrendingDown className="h-5 w-5 text-white" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-800">
+                Lý Do Hoàn Hàng
+              </h3>
+            </div>
+            {lyDoHoan.isLoading ? (
+              <div className="space-y-4">
+                {Array(3)
+                  .fill(0)
+                  .map((_, idx) => (
+                    <div
+                      key={idx}
+                      className="h-16 bg-gray-100 rounded-lg animate-pulse"
+                    ></div>
+                  ))}
+              </div>
+            ) : lyDoHoan.data && lyDoHoan.data.length > 0 ? (
+              <div className="space-y-4">
+                {lyDoHoan.data.map((item, idx) => (
+                  <div
+                    key={idx}
+                    className="flex justify-between items-center p-4 bg-gradient-to-r from-red-50 to-pink-50 rounded-xl border-l-4 border-red-400 hover:shadow-sm transition-shadow duration-150"
+                  >
+                    <div className="flex-1">
+                      <span className="font-semibold text-gray-800 block">
+                        {item.lyDo || `Lý do ${idx + 1}`}
+                      </span>
+                      <span className="gap-1 flex text-sm text-gray-500 mt-1">
+                        Số lần hoàn:
+                        <span className="font-medium">{item.soLan}</span>
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      <span className="font-bold text-red-600 text-lg">
+                        {formatCurrency(item.tongTien)}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <TrendingDown className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                <p className="text-gray-500">Không có dữ liệu hoàn hàng</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Tables Section */}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 mb-10">
+          <DataTable
+            title="Top 10 Sản Phẩm Bán Chạy"
+            headers={["STT", "Tên Sản Phẩm", "Số Lượng", "Doanh Thu"]}
+            data={topSanPham.data}
+            isLoading={topSanPham.isLoading}
+            icon={Star}
+            renderRow={(item, indx) => (
+              <>
+                <TableCell className="px-6 py-4 text-sm font-bold text-gray-900">
+                  #{indx + 1}
+                </TableCell>
+                <TableCell className="px-6 py-4 text-sm max-w-[200px] truncate font-medium text-gray-800">
+                  {item.tenSanPham}
+                </TableCell>
+                <TableCell className="px-6 py-4 text-sm text-gray-600 font-medium">
+                  {item.soLuongBan?.toLocaleString() || 0}
+                </TableCell>
+                <TableCell className="px-6 py-4 text-sm font-bold text-green-600">
+                  {formatCurrency(item.doanhThu)}
+                </TableCell>
+              </>
+            )}
+          />
+
+          <DataTable
+            title="Top Khách Hàng"
+            headers={["STT", "Tên Khách Hàng", "Số Đơn", "Tổng Tiền"]}
+            data={topKhachHang.data}
+            isLoading={topKhachHang.isLoading}
+            icon={Users}
+            renderRow={(item, index) => (
+              <>
+                <TableCell className="px-6 py-4 text-sm font-bold text-gray-900">
+                  #{index + 1}
+                </TableCell>
+                <TableCell className="px-6 py-4 text-sm font-medium text-gray-800">
+                  {item.ten}
+                </TableCell>
+                <TableCell className="px-6 py-4 text-sm text-gray-600 font-medium">
+                  {item.soDon?.toLocaleString() || 0}
+                </TableCell>
+                <TableCell className="px-6 py-4 text-sm font-bold text-blue-600">
+                  {formatCurrency(item.tongTien)}
+                </TableCell>
+              </>
+            )}
+          />
+        </div>
+
+        {/* Full Width Tables */}
+        <div className="space-y-8">
+          <DataTable
+            title="Khuyến Mãi Hiệu Quả"
+            headers={[
+              "STT",
+              "Tên Khuyến Mãi",
+              "Số Đơn Áp Dụng",
+              "Doanh Thu Gốc",
+              "Sau Giảm Giá",
+              "Tiền Được Giảm",
+            ]}
+            data={khuyenMaiHieuQua.data}
+            isLoading={khuyenMaiHieuQua.isLoading}
+            icon={Gift}
+            renderRow={(item, index) => (
+              <>
+                <TableCell className="px-6 py-4 text-sm font-bold text-gray-900">
+                  #{index + 1}
+                </TableCell>
+                <TableCell className="px-6 py-4 text-sm font-medium text-gray-800 max-w-[200px] truncate">
+                  {item.tenKhuyenMai}
+                </TableCell>
+                <TableCell className="px-6 py-4 text-sm text-gray-600 font-medium">
+                  {item.soDonApDung?.toLocaleString() || 0}
+                </TableCell>
+                <TableCell className="px-6 py-4 text-sm text-gray-700 font-medium">
+                  {formatCurrency(item.tongDoanhThuGoc)}
+                </TableCell>
+                <TableCell className="px-6 py-4 text-sm font-bold text-green-600">
+                  {formatCurrency(item.tongDoanhThuSauGiam)}
+                </TableCell>
+                <TableCell className="px-6 py-4 text-sm font-bold text-red-500">
+                  -{formatCurrency(item.tongTienGiam)}
+                </TableCell>
+              </>
+            )}
+          />
+        </div>
       </div>
     </div>
-  )
+  );
 }

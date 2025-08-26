@@ -2,7 +2,14 @@
 
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Trash2 } from "lucide-react";
+import {
+  ArrowLeft,
+  Trash2,
+  ShoppingBag,
+  Tag,
+  Percent,
+  Star,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { anhSanPhamSevice } from "@/services/anhSanPhamService";
 import { toast } from "sonner";
@@ -152,57 +159,73 @@ export default function CartPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-6xl mx-auto p-4 md:p-6">
-        <div className="flex items-center gap-4 mb-6">
-          <Button
-            variant="ghost"
-            onClick={() => router.back()}
-            className="text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Quay lại
-          </Button>
-          <h1 className="text-2xl font-bold text-gray-900">Giỏ hàng của bạn</h1>
-        </div>
-
-        <div className="flex flex-col lg:flex-row gap-6">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-yellow-50 to-red-50">
+      <div className="max-w-7xl mx-auto p-4 md:p-6">
+        {/* Main Content */}
+        <div className="flex flex-col xl:flex-row gap-8">
+          {/* Left Section */}
           <div className="flex-1 space-y-6">
-            <div className="flex justify-between items-center bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-              <Button
-                variant="ghost"
-                onClick={handleSelectAll}
-                className="text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50"
-              >
-                {selectedIds.length === items.length && items.length > 0
-                  ? "Bỏ chọn tất cả"
-                  : "Chọn tất cả"}
-              </Button>
+            {/* Control Card */}
+            <div className="bg-white rounded-2xl shadow-xl border border-orange-100 p-6">
+              <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+                <div className="flex items-center gap-4">
+                  <Button
+                    variant="ghost"
+                    onClick={handleSelectAll}
+                    className="bg-gradient-to-r from-orange-100 to-yellow-100 text-orange-700 hover:text-orange-800 hover:from-orange-200 hover:to-yellow-200 rounded-xl px-6 py-3 font-medium transition-all duration-200 shadow-md"
+                  >
+                    {selectedIds.length === items.length && items.length > 0
+                      ? "Bỏ chọn tất cả"
+                      : "Chọn tất cả"}
+                  </Button>
 
-              {selectedIds.length > 0 && (
-                <Button
-                  variant="ghost"
-                  onClick={handleDeleteSelected}
-                  className="text-red-600 hover:text-red-800 hover:bg-red-50 flex items-center gap-2"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  Xóa đã chọn
-                </Button>
-              )}
+                  {selectedIds.length > 0 && (
+                    <div className="bg-orange-100 text-orange-700 px-4 py-2 rounded-full text-sm font-medium">
+                      {selectedIds.length} sản phẩm đã chọn
+                    </div>
+                  )}
+                </div>
+
+                {selectedIds.length > 0 && (
+                  <Button
+                    variant="ghost"
+                    onClick={handleDeleteSelected}
+                    className="bg-gradient-to-r from-red-100 to-pink-100 text-red-700 hover:text-red-800 hover:from-red-200 hover:to-pink-200 rounded-xl px-6 py-3 font-medium transition-all duration-200 shadow-md flex items-center gap-2"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Xóa đã chọn
+                  </Button>
+                )}
+              </div>
             </div>
 
-            <CartItem
-              items={items}
-              selectedIds={selectedIds}
-              imageUrls={imageUrls}
-              onSelect={handleSelect}
-              onQuantityChange={handleQuantityChange}
-              onRemove={handleRemove}
-              formatCurrency={formatCurrency}
-            />
+            {/* Product List Card */}
+            <div className="bg-white rounded-2xl shadow-xl border border-orange-100 overflow-hidden">
+              <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white p-6">
+                <h2 className="text-xl font-bold flex items-center gap-2">
+                  <ShoppingBag className="w-6 h-6" />
+                  Danh sách sản phẩm
+                </h2>
+                <p className="text-orange-100 mt-1">
+                  Xem lại các sản phẩm trong giỏ hàng
+                </p>
+              </div>
+
+              <CartItem
+                items={items}
+                selectedIds={selectedIds}
+                imageUrls={imageUrls}
+                onSelect={handleSelect}
+                onQuantityChange={handleQuantityChange}
+                onRemove={handleRemove}
+                formatCurrency={formatCurrency}
+              />
+            </div>
           </div>
 
-          <div className="lg:w-96 w-full">
+          {/* Right Section */}
+          <div className="xl:w-96 w-full space-y-6">
+            {/* Summary Card */}
             <CartSummary
               selectedItems={selectedItems}
               onCheckout={handleCheckout}

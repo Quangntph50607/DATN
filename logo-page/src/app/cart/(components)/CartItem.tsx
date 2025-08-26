@@ -46,7 +46,7 @@ export const CartItem = ({
           </p>
         </div>
         <Button
-          className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium px-6 py-3 rounded-lg shadow-md hover:shadow-lg transition-all"
+          className="bg-orange-500 hover:bg-orange-600 text-white font-medium px-6 py-3 rounded-lg shadow-md hover:shadow-lg transition-all"
           onClick={() => router.push("/product")}
         >
           Tiếp tục mua sắm
@@ -76,7 +76,7 @@ export const CartItem = ({
   return (
     <div className="space-y-4 p-4">
       {errorMessage && (
-        <div className="fixed top-4 right-4 bg-red-100 border border-red-200 text-red-700 p-3 rounded-lg shadow-md animate-fade-in">
+        <div className="fixed top-4 right-4 bg-red-100 border border-red-200 text-red-600 p-3 rounded-lg shadow-md animate-fade-in">
           {errorMessage}
         </div>
       )}
@@ -88,7 +88,7 @@ export const CartItem = ({
           <Checkbox
             checked={selectedIds.includes(item.id)}
             onCheckedChange={() => onSelect(item.id)}
-            className="border-gray-400 w-5 h-5 data-[state=checked]:bg-indigo-600"
+            className="border-gray-400 w-5 h-5 data-[state=checked]:bg-orange-500"
             aria-label={`Chọn sản phẩm ${item.name}`}
           />
 
@@ -106,16 +106,16 @@ export const CartItem = ({
 
           <div className="flex-1 min-w-0 space-y-1">
             <Link href={`/product/${item.id}`}>
-              <h3 className="font-medium text-gray-800 line-clamp-2 hover:text-indigo-600 transition-colors duration-200">
+              <h3 className="font-medium text-gray-800 line-clamp-2 hover:text-orange-600 transition-colors duration-200">
                 {item.name}
               </h3>
             </Link>
-            <div className="text-lg font-semibold text-indigo-600">
+            <div className="text-lg font-semibold text-orange-600">
               {formatCurrency(item.price)}
             </div>
           </div>
 
-          <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
+          <div className="flex items-center gap-2 bg-yellow-100 rounded-lg p-1">
             <Button
               size="sm"
               onClick={() => handleQuantityChange(item.id, -1)}
@@ -132,7 +132,7 @@ export const CartItem = ({
               size="sm"
               onClick={() => handleQuantityChange(item.id, 1)}
               disabled={item.quantity >= (item.maxQuantity ?? 20)}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-md w-8 h-8 transition-colors duration-200"
+              className="bg-orange-500 hover:bg-orange-600 text-white rounded-md w-8 h-8 transition-colors duration-200"
               aria-label="Tăng số lượng"
             >
               <Plus className="w-3 h-3" />
@@ -142,7 +142,7 @@ export const CartItem = ({
           <Button
             size="sm"
             onClick={() => onRemove(item.id)}
-            className="bg-red-50 hover:bg-red-100 text-red-600 rounded-md w-8 h-8 transition-colors duration-200"
+            className="bg-red-100 hover:bg-red-200 text-red-600 rounded-md w-8 h-8 transition-colors duration-200"
           >
             <Trash2 className="w-4 h-4" />
           </Button>
