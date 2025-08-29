@@ -14,7 +14,7 @@ import { SanPhamCheckout } from "./SanPhamCheckout";
 import { useCreateHoaDon, useGuiEmail } from "@/hooks/useHoaDon";
 import { GuiHoaDonRequest } from "@/components/types/hoadondientu.type";
 import { CartItemType } from "@/components/types/cart";
-import Link from "next/link";
+import { PhieuGiamGiaResponse } from "@/components/types/vi-phieu-giam-gia";
 
 export default function CheckoutPage() {
   const { user } = useUserStore();
@@ -27,9 +27,8 @@ export default function CheckoutPage() {
   const [shippingMethod, setShippingMethod] = useState("Nhanh");
   const [shippingFee, setShippingFee] = useState(0);
   const [soNgayGiao, setSoNgayGiao] = useState(0);
-  const [selectedVoucher, setSelectedVoucher] = useState<PhieuGiamGia | null>(
-    null
-  );
+  const [selectedVoucher, setSelectedVoucher] =
+    useState<PhieuGiamGiaResponse | null>(null);
   const [selectedAddress, setSelectedAddress] =
     useState<ThongTinNguoiNhan | null>(null);
 
@@ -101,6 +100,7 @@ export default function CheckoutPage() {
   };
 
   const handleOrder = async () => {
+    console.log("Voucher chọn:", selectedVoucher);
     if (!user) {
       toast.error("Vui lòng đăng nhập để đặt hàng!");
       return;
@@ -162,7 +162,6 @@ export default function CheckoutPage() {
 
     try {
       const hoaDon = await createHoaDonMutation.mutateAsync(orderData as any);
-
       const emailData: GuiHoaDonRequest = {
         idHD: hoaDon.id,
         toEmail: user?.email || "",
@@ -203,7 +202,6 @@ export default function CheckoutPage() {
 
       // Thanh toán VNPAY
       const amountInVND = Math.round(checkoutTotal);
-
       try {
         const res = await fetch(
           `http://localhost:8080/api/lego-store/payment/create-payment?amount=${amountInVND}`,
@@ -251,7 +249,7 @@ export default function CheckoutPage() {
           shippingFee={shippingFee}
           onPlaceOrder={handleOrder}
           onDataChange={handleCheckoutDataChange}
-          // isLoading={isLoadingOrder}
+          onVoucherChange={setSelectedVoucher}
         />
       </div>
     </>

@@ -80,12 +80,18 @@ export const HoaDonThongTin = ({ detail }: Props) => {
           label="Phương thức"
           value={
             detail.phuongThucThanhToan
-              ? PaymentMethods[detail.phuongThucThanhToan]
+              ? PaymentMethods[
+                  detail.phuongThucThanhToan as keyof typeof PaymentMethods
+                ]
               : "Tiền mặt"
           }
         />
         <InfoItem label="Tạm tính" value={format(detail.tamTinh)} />
-        <InfoItem label="Giảm giá" value={format(detail.soTienGiam)} />
+        <InfoItem label="Phí ship" value={format(detail.phiShip)} />
+        <InfoItem
+          label="Giảm giá"
+          value={format(detail.phieuGiamGia?.giamToiDa)}
+        />
         <InfoItem
           label="Tổng tiền"
           value={
@@ -101,7 +107,10 @@ export const HoaDonThongTin = ({ detail }: Props) => {
           label="Khách hàng"
           value={detail.ten || detail.user?.ten || "Khách lẻ"}
         />
-        <InfoItem label="SĐT" value={detail.sdt || detail.user?.sdt || "Chưa có"} />
+        <InfoItem
+          label="SĐT"
+          value={detail.sdt1 || detail.user?.sdt1 || "Chưa có"}
+        />
 
         {detail.qrCodeUrl && (
           <div className="mt-2 flex flex-col items-center">

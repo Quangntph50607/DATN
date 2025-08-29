@@ -135,14 +135,18 @@ export const HoaDonService = {
     try {
       const nvId = await getCurrentUserId();
       if (!nvId) {
-        throw new Error("Không tìm thấy nhân viên đang đăng nhập. Vui lòng đăng nhập lại.");
+        throw new Error(
+          "Không tìm thấy nhân viên đang đăng nhập. Vui lòng đăng nhập lại."
+        );
       }
 
       // Kiểm tra trạng thái hợp lệ
       const validStatuses = Object.values(TrangThaiHoaDon);
       if (!validStatuses.includes(trangThai)) {
         throw new Error(
-          `Trạng thái không hợp lệ: ${trangThai}. Các trạng thái hợp lệ: ${validStatuses.join(", ")}`
+          `Trạng thái không hợp lệ: ${trangThai}. Các trạng thái hợp lệ: ${validStatuses.join(
+            ", "
+          )}`
         );
       }
 
@@ -180,7 +184,6 @@ export const HoaDonService = {
       throw error;
     }
   },
-
 
   async getStatusCounts(): Promise<Record<string, number>> {
     const res = await fetchWithAuth(`${API_URL}/status-count`, {

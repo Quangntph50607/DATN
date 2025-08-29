@@ -22,7 +22,7 @@ export default function TrangThaiHoaDonPage() {
   const [statusCounts, setStatusCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
-  const PAGE_SIZE = 5;
+  const PAGE_SIZE = 10;
 
   const fetchHoaDons = useCallback(() => {
     setLoading(true);
@@ -77,7 +77,6 @@ export default function TrangThaiHoaDonPage() {
     });
   }, [hoaDonData, filterStatus, filterPayment, search]);
 
-  // ✅ Phân trang client-side từ danh sách đã lọc
   const pagedData = useMemo(() => {
     const start = page * PAGE_SIZE;
     const end = start + PAGE_SIZE;
@@ -128,10 +127,13 @@ export default function TrangThaiHoaDonPage() {
   function isValidTrangThaiTransition(current: string, next: string): boolean {
     if (!current || !next) return false;
 
-    const keyMap = Object.entries(TrangThaiHoaDon).reduce((acc, [key, value]) => {
-      acc[value] = key;
-      return acc;
-    }, {} as Record<string, string>);
+    const keyMap = Object.entries(TrangThaiHoaDon).reduce(
+      (acc, [key, value]) => {
+        acc[value] = key;
+        return acc;
+      },
+      {} as Record<string, string>
+    );
 
     const currentKey = keyMap[current];
     const nextKey = keyMap[next];
