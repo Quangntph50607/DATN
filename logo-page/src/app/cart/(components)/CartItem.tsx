@@ -12,25 +12,23 @@ import { updateCartItem } from "@/context/cartLocal";
 interface CartProps {
   items: CartItemType[];
   selectedIds: number[];
-  imageUrls: Record<number, string | null>;
   onSelect: (id: number) => void;
   onQuantityChange: (id: number, delta: number) => void;
   onRemove: (id: number) => void;
   formatCurrency: (amount: number) => string;
 }
 
-export const CartItem = ({
+export function CartItem({
   items,
   selectedIds,
-  imageUrls,
   onSelect,
   onQuantityChange,
   onRemove,
   formatCurrency,
-}: CartProps) => {
+}: CartProps) {
   const router = useRouter();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
+  console.log("ListCart:", items);
   const showError = (message: string) => {
     setErrorMessage(message);
     setTimeout(() => setErrorMessage(null), 3000);
@@ -97,7 +95,7 @@ export const CartItem = ({
             className="w-20 h-20 relative group flex-shrink-0"
           >
             <Image
-              src={imageUrls[item.id] || "/images/placeholder-product.png"}
+              src={item.image || "/images/placeholder-product.png"}
               alt={item.name}
               fill
               className="object-cover rounded-md group-hover:opacity-90 transition-opacity duration-200"
@@ -150,4 +148,4 @@ export const CartItem = ({
       ))}
     </div>
   );
-};
+}
