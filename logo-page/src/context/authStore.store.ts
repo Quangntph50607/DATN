@@ -11,6 +11,7 @@ interface User {
   roleId: number;
   message: string;
   token?: string; // Thêm dòng này
+  diemTichLuy?: number;
 
 }
 interface UserStore {

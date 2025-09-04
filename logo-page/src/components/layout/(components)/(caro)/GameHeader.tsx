@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useUserStore } from '@/context/authStore.store';
 import { Button } from '@/components/ui/button';
 import { Gamepad2, Sparkles } from 'lucide-react';
 
@@ -19,6 +20,7 @@ const GameHeader: React.FC<GameHeaderProps> = ({
   gameOver,
   gameStarted
 }) => {
+  const user = useUserStore((s) => s.user);
   return (
     <div className="border-b top-0 z-10">
       <div className="max-w-7xl mx-auto px-4 py-4">
@@ -35,6 +37,11 @@ const GameHeader: React.FC<GameHeaderProps> = ({
             </div>
           </div>
           <div className="flex items-center gap-4">
+            {user && (
+              <div className="text-sm text-gray-700">
+                Điểm của bạn: <span className="font-semibold">{user.diemTichLuy ?? 0}</span>
+              </div>
+            )}
             <Button
               onClick={onToggleTutorial}
               size="sm"

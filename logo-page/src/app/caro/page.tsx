@@ -1,6 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useUserStore } from "@/context/authStore.store";
+import { useAddPoints } from "@/hooks/useAccount";
+import { SuccessNotification } from "@/components/ui/success-notification";
 import {
   GameBoard,
   GameStatus,
@@ -36,6 +39,8 @@ const BOARD_SIZE = 15;
 const WIN_LENGTH = 5;
 
 const CaroGame: React.FC = () => {
+  const user = useUserStore((s) => s.user);
+  const { mutate: addPoints } = useAddPoints();
   const [gameState, setGameState] = useState<GameState>({
     board: Array(BOARD_SIZE).fill(null).map(() =>
       Array(BOARD_SIZE).fill(null).map(() => ({ value: null, isWinning: false, isLastMove: false }))
@@ -55,6 +60,9 @@ const CaroGame: React.FC = () => {
   const [showDifficultySelect, setShowDifficultySelect] = useState(false);
   const [gameStarted, setGameStarted] = useState(false);
   const [aiThinking, setAiThinking] = useState(false);
+  const [showWinNotice, setShowWinNotice] = useState(false);
+  const [winMessage, setWinMessage] = useState<string>("");
+  const [lastHumanMove, setLastHumanMove] = useState<[number, number] | null>(null);
 
   // Timer effect
   useEffect(() => {
@@ -141,166 +149,342 @@ const CaroGame: React.FC = () => {
     return false;
   };
 
-  // Evaluate position for AI
-  const evaluatePosition = (board: Cell[][], player: 'X' | 'O'): number => {
-    let score = 0;
+  // ====== AI Heuristics ======
+  // Tạo danh sách các ô trống gần quân cờ hiện có (bán kính 2) để giảm không gian tìm kiếm
+  const getCandidateMoves = (board: Cell[][]): [number, number][] => {
+    const candidates: Set<string> = new Set();
+    for (let r = 0; r < BOARD_SIZE; r++) {
+      for (let c = 0; c < BOARD_SIZE; c++) {
+        if (board[r][c].value !== null) {
+          for (let dr = -2; dr <= 2; dr++) {
+            for (let dc = -2; dc <= 2; dc++) {
+              const nr = r + dr;
+              const nc = c + dc;
+              if (
+                nr >= 0 && nr < BOARD_SIZE &&
+                nc >= 0 && nc < BOARD_SIZE &&
+                board[nr][nc].value === null
+              ) {
+                candidates.add(`${nr},${nc}`);
+              }
+            }
+          }
+        }
+      }
+    }
+    if (candidates.size === 0) {
+      // Nếu ván mới, chọn trung tâm
+      const mid = Math.floor(BOARD_SIZE / 2);
+      return [[mid, mid]];
+    }
+    return Array.from(candidates).map(s => s.split(',').map(Number) as [number, number]);
+  };
+
+  // Kiểm tra thắng nhanh sau khi đặt quân tại [row,col]
+  const isWinAfterMove = (board: Cell[][], row: number, col: number, player: 'X' | 'O'): boolean => {
+    const clone = board.map(r => r.map(cell => ({ ...cell })));
+    clone[row][col] = { value: player, isWinning: false, isLastMove: false };
+    return checkWinner(clone, row, col, player);
+  };
+
+  // Kiểm tra nếu đặt tại [row,col] sẽ tạo chuỗi 4 (mối đe dọa mạnh) cho player
+  const createsFourThreat = (board: Cell[][], row: number, col: number, player: 'X' | 'O'): boolean => {
+    const temp = board.map(r => r.map(cell => ({ ...cell })));
+    temp[row][col] = { value: player, isWinning: false, isLastMove: false };
+    const directions: [number, number][] = [[0,1],[1,0],[1,1],[1,-1]];
     const opponent = player === 'X' ? 'O' : 'X';
+    for (const [dx, dy] of directions) {
+      let count = 1;
+      // forward
+      let i = 1;
+      while (true) {
+        const r = row + i*dx, c = col + i*dy;
+        if (r < 0 || r >= BOARD_SIZE || c < 0 || c >= BOARD_SIZE) break;
+        if (temp[r][c].value === player) { count++; i++; }
+        else break;
+      }
+      // backward
+      i = 1;
+      while (true) {
+        const r = row - i*dx, c = col - i*dy;
+        if (r < 0 || r >= BOARD_SIZE || c < 0 || c >= BOARD_SIZE) break;
+        if (temp[r][c].value === player) { count++; i++; }
+        else break;
+      }
+      if (count >= 4) {
+        // ít nhất một đầu còn trống để có thể thành 5 ở nước sau
+        const beforeR = row - (count - 1) * dx - dx;
+        const beforeC = col - (count - 1) * dy - dy;
+        const afterR = row + (count - 1) * dx + dx;
+        const afterC = col + (count - 1) * dy + dy;
+        const beforeOpen = (beforeR >= 0 && beforeR < BOARD_SIZE && beforeC >= 0 && beforeC < BOARD_SIZE) && temp[beforeR][beforeC].value === null;
+        const afterOpen = (afterR >= 0 && afterR < BOARD_SIZE && afterC >= 0 && afterC < BOARD_SIZE) && temp[afterR][afterC].value === null;
+        if (beforeOpen || afterOpen) return true;
+      }
+      // broken-four (dạng _XXX_ hoặc XX_XX): kiểm tra ô trống nằm trong đoạn 5 ô có 4 quân ta và 1 trống
+      const seq: (null | 'X' | 'O')[] = [];
+      for (let k = -4; k <= 4; k++) {
+        const r = row + k*dx, c = col + k*dy;
+        if (r < 0 || r >= BOARD_SIZE || c < 0 || c >= BOARD_SIZE) { seq.push(null); continue; }
+        seq.push(temp[r][c].value);
+      }
+      for (let start = 0; start + 4 < seq.length; start++) {
+        const window = seq.slice(start, start + 5);
+        const ownCount = window.filter(v => v === player).length;
+        const emptyCount = window.filter(v => v === null).length;
+        const oppCount = window.filter(v => v === opponent).length;
+        if (oppCount === 0 && ownCount === 4 && emptyCount === 1) return true;
+      }
+    }
+    return false;
+  };
 
-    // Check all possible lines
-    for (let row = 0; row < BOARD_SIZE; row++) {
-      for (let col = 0; col < BOARD_SIZE; col++) {
-        if (board[row][col].value === player) {
-          // Check horizontal
-          let count = 1;
-          let blocked = 0;
-          for (let i = 1; i < WIN_LENGTH && col + i < BOARD_SIZE; i++) {
-            if (board[row][col + i].value === player) count++;
-            else if (board[row][col + i].value === opponent) { blocked++; break; }
-            else break;
-          }
-          for (let i = 1; i < WIN_LENGTH && col - i >= 0; i++) {
-            if (board[row][col - i].value === player) count++;
-            else if (board[row][col - i].value === opponent) { blocked++; break; }
-            else break;
-          }
-          score += Math.pow(10, count) * (2 - blocked);
+  // Tìm các ô chặn ngay sát hai đầu cho chuỗi đối thủ có độ dài >= 3
+  const getImmediateBlockingEnds = (board: Cell[][], minLen: number = 3): { four: [number, number][], three: [number, number][] } => {
+    const opponent: 'X' | 'O' = 'X';
+    const directions: [number, number][] = [[0,1],[1,0],[1,1],[1,-1]];
+    const endsFour: Set<string> = new Set();
+    const endsThree: Set<string> = new Set();
 
-          // Check vertical
-          count = 1;
-          blocked = 0;
-          for (let i = 1; i < WIN_LENGTH && row + i < BOARD_SIZE; i++) {
-            if (board[row + i][col].value === player) count++;
-            else if (board[row + i][col].value === opponent) { blocked++; break; }
-            else break;
+    for (let r = 0; r < BOARD_SIZE; r++) {
+      for (let c = 0; c < BOARD_SIZE; c++) {
+        for (const [dx, dy] of directions) {
+          // chỉ xét khi là bắt đầu của một dãy đối thủ
+          const prevR = r - dx, prevC = c - dy;
+          if (
+            r >= 0 && r < BOARD_SIZE && c >= 0 && c < BOARD_SIZE &&
+            board[r][c].value === opponent &&
+            (prevR < 0 || prevR >= BOARD_SIZE || prevC < 0 || prevC >= BOARD_SIZE || board[prevR][prevC].value !== opponent)
+          ) {
+            // đếm độ dài dãy
+            let len = 0;
+            let rr = r, cc = c;
+            while (rr >= 0 && rr < BOARD_SIZE && cc >= 0 && cc < BOARD_SIZE && board[rr][cc].value === opponent) {
+              len++;
+              rr += dx; cc += dy;
+            }
+            if (len >= minLen) {
+              const beforeR = r - dx;
+              const beforeC = c - dy;
+              const afterR = r + len * dx;
+              const afterC = c + len * dy;
+              const beforeOpen = beforeR >= 0 && beforeR < BOARD_SIZE && beforeC >= 0 && beforeC < BOARD_SIZE && board[beforeR][beforeC].value === null;
+              const afterOpen = afterR >= 0 && afterR < BOARD_SIZE && afterC >= 0 && afterC < BOARD_SIZE && board[afterR][afterC].value === null;
+              if (len >= 4) {
+                if (beforeOpen) endsFour.add(`${beforeR},${beforeC}`);
+                if (afterOpen) endsFour.add(`${afterR},${afterC}`);
+              } else if (len === 3) {
+                if (beforeOpen) endsThree.add(`${beforeR},${beforeC}`);
+                if (afterOpen) endsThree.add(`${afterR},${afterC}`);
+              }
+            }
           }
-          for (let i = 1; i < WIN_LENGTH && row - i >= 0; i++) {
-            if (board[row - i][col].value === player) count++;
-            else if (board[row - i][col].value === opponent) { blocked++; break; }
-            else break;
-          }
-          score += Math.pow(10, count) * (2 - blocked);
-
-          // Check diagonal down-right
-          count = 1;
-          blocked = 0;
-          for (let i = 1; i < WIN_LENGTH && row + i < BOARD_SIZE && col + i < BOARD_SIZE; i++) {
-            if (board[row + i][col + i].value === player) count++;
-            else if (board[row + i][col + i].value === opponent) { blocked++; break; }
-            else break;
-          }
-          for (let i = 1; i < WIN_LENGTH && row - i >= 0 && col - i >= 0; i++) {
-            if (board[row - i][col - i].value === player) count++;
-            else if (board[row - i][col - i].value === opponent) { blocked++; break; }
-            else break;
-          }
-          score += Math.pow(10, count) * (2 - blocked);
-
-          // Check diagonal down-left
-          count = 1;
-          blocked = 0;
-          for (let i = 1; i < WIN_LENGTH && row + i < BOARD_SIZE && col - i >= 0; i++) {
-            if (board[row + i][col - i].value === player) count++;
-            else if (board[row + i][col - i].value === opponent) { blocked++; break; }
-            else break;
-          }
-          for (let i = 1; i < WIN_LENGTH && row - i >= 0 && col + i < BOARD_SIZE; i++) {
-            if (board[row - i][col + i].value === player) count++;
-            else if (board[row - i][col + i].value === opponent) { blocked++; break; }
-            else break;
-          }
-          score += Math.pow(10, count) * (2 - blocked);
         }
       }
     }
 
-    return score;
+    const parse = (s: string): [number, number] => s.split(',').map(Number) as [number, number];
+    return { four: Array.from(endsFour).map(parse), three: Array.from(endsThree).map(parse) };
+  };
+
+  // Đánh giá theo mẫu mở/đóng (open/blocked) cho 4 hướng
+  const evaluatePosition = (board: Cell[][], player: 'X' | 'O'): number => {
+    const opponent = player === 'X' ? 'O' : 'X';
+    let total = 0;
+
+    const directions = [
+      [0, 1],
+      [1, 0],
+      [1, 1],
+      [1, -1],
+    ];
+
+    const scoreTable: Record<string, number> = {
+      // Mở hai đầu
+      'open4': 100000,
+      'open3': 1000,
+      'open2': 100,
+      // Một đầu bị chặn
+      'closed4': 10000,
+      'closed3': 200,
+      'closed2': 20,
+    };
+
+    const evalLine = (r: number, c: number, dr: number, dc: number) => {
+      let count = 0;
+      let i = 0;
+      // đi lùi về đầu chuỗi
+      while (
+        r - (i + 1) * dr >= 0 && r - (i + 1) * dr < BOARD_SIZE &&
+        c - (i + 1) * dc >= 0 && c - (i + 1) * dc < BOARD_SIZE &&
+        board[r - (i + 1) * dr][c - (i + 1) * dc].value === player
+      ) {
+        i++;
+      }
+      const startR = r - i * dr;
+      const startC = c - i * dc;
+      // tiến về cuối chuỗi
+      let j = 0;
+      while (
+        startR + j * dr >= 0 && startR + j * dr < BOARD_SIZE &&
+        startC + j * dc >= 0 && startC + j * dc < BOARD_SIZE &&
+        board[startR + j * dr][startC + j * dc].value === player
+      ) {
+        count++;
+        j++;
+      }
+
+      if (count === 0) return 0;
+
+      const beforeR = startR - dr;
+      const beforeC = startC - dc;
+      const afterR = startR + j * dr;
+      const afterC = startC + j * dc;
+
+      const beforeBlocked =
+        beforeR < 0 || beforeR >= BOARD_SIZE || beforeC < 0 || beforeC >= BOARD_SIZE
+          ? true
+          : board[beforeR][beforeC].value === opponent;
+      const afterBlocked =
+        afterR < 0 || afterR >= BOARD_SIZE || afterC < 0 || afterC >= BOARD_SIZE
+          ? true
+          : board[afterR][afterC].value === opponent;
+
+      const openEnds = (beforeBlocked ? 0 : 1) + (afterBlocked ? 0 : 1);
+
+      if (count >= WIN_LENGTH) return scoreTable['open4'] * 10; // thắng chắc
+      if (count === 4) return openEnds === 2 ? scoreTable['open4'] : scoreTable['closed4'];
+      if (count === 3) return openEnds === 2 ? scoreTable['open3'] : scoreTable['closed3'];
+      if (count === 2) return openEnds === 2 ? scoreTable['open2'] : scoreTable['closed2'];
+      return 5; // mặc định nhỏ
+    };
+
+    for (let r = 0; r < BOARD_SIZE; r++) {
+      for (let c = 0; c < BOARD_SIZE; c++) {
+        if (board[r][c].value === player) {
+          for (const [dr, dc] of directions) {
+            total += evalLine(r, c, dr, dc);
+          }
+        }
+      }
+    }
+    // trừ điểm dựa trên sức mạnh đối thủ
+    let opp = 0;
+    for (let r = 0; r < BOARD_SIZE; r++) {
+      for (let c = 0; c < BOARD_SIZE; c++) {
+        if (board[r][c].value === opponent) {
+          for (const [dr, dc] of directions) {
+            opp += evalLine(r, c, dr, dc);
+          }
+        }
+      }
+    }
+    return total - opp * 0.9;
   };
 
   // AI move with different difficulty levels
   const makeAIMove = (board: Cell[][], difficulty: Difficulty): [number, number] | null => {
-    const emptyCells: [number, number][] = [];
-    for (let i = 0; i < BOARD_SIZE; i++) {
-      for (let j = 0; j < BOARD_SIZE; j++) {
-        if (board[i][j].value === null) {
-          emptyCells.push([i, j]);
-        }
+    const candidates = getCandidateMoves(board);
+    if (candidates.length === 0) return null;
+
+    // 1) Thắng ngay nếu có
+    for (const [r, c] of candidates) {
+      if (isWinAfterMove(board, r, c, 'O')) return [r, c];
+    }
+    // 2) Chặn đối thủ thắng ngay
+    for (const [r, c] of candidates) {
+      if (isWinAfterMove(board, r, c, 'X')) return [r, c];
+    }
+
+    // 2.5) Chặn mối đe dọa 4-quân (open/broken four) của đối thủ: nếu X có thể tạo 4 ở nước tiếp theo tại vị trí p, ta đặt O vào p
+    for (const [r, c] of candidates) {
+      if (createsFourThreat(board, r, c, 'X')) return [r, c];
+    }
+
+    // 2.6) Ưu tiên chặn NGAY SÁT hai đầu cho dãy đối thủ (không để hở): ưu tiên dãy 3 rồi tới dãy 4
+    const ends = getImmediateBlockingEnds(board, 3);
+    const byNearestToLast = (cells: [number, number][]) => {
+      if (!lastHumanMove) return cells;
+      const [lr, lc] = lastHumanMove;
+      return [...cells].sort((a, b) => {
+        const da = Math.abs(a[0] - lr) + Math.abs(a[1] - lc);
+        const db = Math.abs(b[0] - lr) + Math.abs(b[1] - lc);
+        return da - db;
+      });
+    };
+
+    for (const cell of byNearestToLast(ends.three)) {
+      if (board[cell[0]][cell[1]].value === null) return cell;
+    }
+    for (const cell of byNearestToLast(ends.four)) {
+      if (board[cell[0]][cell[1]].value === null) return cell;
+    }
+
+    // 3) Theo độ khó
+    const pickByHeuristic = (cand: [number, number][]) => {
+      let best = cand[0];
+      let bestScore = -Infinity;
+      for (const [r, c] of cand) {
+        const test = board.map(row => row.map(cell => ({ ...cell })));
+        test[r][c] = { value: 'O', isWinning: false, isLastMove: false };
+        const s = evaluatePosition(test, 'O');
+        if (s > bestScore) { bestScore = s; best = [r, c]; }
       }
+      return best;
+    };
+
+    if (difficulty === 'easy') {
+      if (Math.random() < 0.5) {
+        return candidates[Math.floor(Math.random() * candidates.length)];
+      }
+      return pickByHeuristic(candidates);
     }
-    
-    console.log('Empty cells found:', emptyCells.length);
-    if (emptyCells.length === 0) return null;
 
-    switch (difficulty) {
-      case 'easy':
-        // Random move with 70% chance, simple evaluation with 30% chance
-        if (Math.random() < 0.7) {
-          return emptyCells[Math.floor(Math.random() * emptyCells.length)];
-        }
-        // Simple evaluation
-        let bestScore = -Infinity;
-        let bestMove = emptyCells[0];
-        for (const [row, col] of emptyCells) {
-          const testBoard = board.map(row => row.map(cell => ({ ...cell })));
-          testBoard[row][col] = { value: 'O', isWinning: false, isLastMove: false };
-          const score = evaluatePosition(testBoard, 'O');
-          if (score > bestScore) {
-            bestScore = score;
-            bestMove = [row, col];
-          }
-        }
-        return bestMove;
-
-      case 'medium':
-        // Mix of random and evaluation
-        if (Math.random() < 0.4) {
-          return emptyCells[Math.floor(Math.random() * emptyCells.length)];
-        }
-        // Better evaluation
-        let bestScoreMedium = -Infinity;
-        let bestMoveMedium = emptyCells[0];
-        for (const [row, col] of emptyCells) {
-          const testBoard = board.map(row => row.map(cell => ({ ...cell })));
-          testBoard[row][col] = { value: 'O', isWinning: false, isLastMove: false };
-          const score = evaluatePosition(testBoard, 'O') - evaluatePosition(testBoard, 'X') * 0.8;
-          if (score > bestScoreMedium) {
-            bestScoreMedium = score;
-            bestMoveMedium = [row, col];
-          }
-        }
-        return bestMoveMedium;
-
-      case 'hard':
-        // Advanced evaluation with blocking
-        let bestScoreHard = -Infinity;
-        let bestMoveHard = emptyCells[0];
-        for (const [row, col] of emptyCells) {
-          const testBoard = board.map(row => row.map(cell => ({ ...cell })));
-          testBoard[row][col] = { value: 'O', isWinning: false, isLastMove: false };
-          
-          // Check if this move wins
-          if (checkWinner(testBoard, row, col, 'O')) {
-            return [row, col];
-          }
-          
-          // Check if this move blocks opponent's win
-          testBoard[row][col] = { value: 'X', isWinning: false, isLastMove: false };
-          if (checkWinner(testBoard, row, col, 'X')) {
-            testBoard[row][col] = { value: 'O', isWinning: false, isLastMove: false };
-            return [row, col];
-          }
-          
-          testBoard[row][col] = { value: 'O', isWinning: false, isLastMove: false };
-          const score = evaluatePosition(testBoard, 'O') - evaluatePosition(testBoard, 'X') * 0.9;
-          if (score > bestScoreHard) {
-            bestScoreHard = score;
-            bestMoveHard = [row, col];
-          }
-        }
-        return bestMoveHard;
-
-      default:
-        return emptyCells[Math.floor(Math.random() * emptyCells.length)];
+    if (difficulty === 'medium') {
+      return pickByHeuristic(candidates);
     }
+
+    // hard: alpha-beta nông (depth 2)
+    const maxDepth = 2;
+    const alphaBeta = (b: Cell[][], depth: number, alpha: number, beta: number, maximizing: boolean): number => {
+      // heuristic terminal
+      if (depth === 0) return evaluatePosition(b, 'O');
+      const moves = getCandidateMoves(b);
+      if (moves.length === 0) return evaluatePosition(b, 'O');
+      if (maximizing) {
+        let value = -Infinity;
+        for (const [r, c] of moves) {
+          const nb = b.map(row => row.map(cell => ({ ...cell })));
+          nb[r][c] = { value: 'O', isWinning: false, isLastMove: false };
+          if (isWinAfterMove(b, r, c, 'O')) return 1e9; // thắng ngay
+          value = Math.max(value, alphaBeta(nb, depth - 1, alpha, beta, false));
+          alpha = Math.max(alpha, value);
+          if (alpha >= beta) break;
+        }
+        return value;
+      } else {
+        let value = Infinity;
+        for (const [r, c] of moves) {
+          const nb = b.map(row => row.map(cell => ({ ...cell })));
+          nb[r][c] = { value: 'X', isWinning: false, isLastMove: false };
+          if (isWinAfterMove(b, r, c, 'X')) return -1e9; // đối thủ thắng
+          value = Math.min(value, alphaBeta(nb, depth - 1, alpha, beta, true));
+          beta = Math.min(beta, value);
+          if (alpha >= beta) break;
+        }
+        return value;
+      }
+    };
+
+    let bestMove: [number, number] = candidates[0];
+    let bestVal = -Infinity;
+    for (const [r, c] of candidates) {
+      const nb = board.map(row => row.map(cell => ({ ...cell })));
+      nb[r][c] = { value: 'O', isWinning: false, isLastMove: false };
+      const val = alphaBeta(nb, maxDepth - 1, -Infinity, Infinity, false);
+      if (val > bestVal) { bestVal = val; bestMove = [r, c]; }
+    }
+    return bestMove;
   };
 
   // Handle cell click
@@ -330,6 +514,31 @@ const CaroGame: React.FC = () => {
         ...prev,
         [gameState.currentPlayer]: prev[gameState.currentPlayer] + 1
       }));
+
+      // Cộng điểm khi người chơi (X) thắng AI
+      if (gameMode === 'ai' && gameState.currentPlayer === 'X' && user?.id) {
+        addPoints(
+          { userId: user.id, diemCong: 100 },
+          {
+            onSuccess: () => {
+              // Cập nhật điểm trong store (nếu có sẵn)
+              useUserStore.getState().updateUser({ diemTichLuy: (user.diemTichLuy || 0) + 100 });
+              setWinMessage("+100 điểm! Chúc mừng bạn đã thắng AI.");
+              setShowWinNotice(true);
+              setTimeout(() => setShowWinNotice(false), 2000);
+            },
+            onError: () => {
+              // Có thể hiển thị một cơ chế thông báo lỗi khác nếu bạn có
+              console.error("Cộng điểm thất bại");
+            }
+          }
+        );
+      }
+    }
+
+    // Ghi nhớ nước đi cuối của người chơi X (để AI chặn sát hơn)
+    if (gameMode === 'ai' && gameState.currentPlayer === 'X') {
+      setLastHumanMove([row, col]);
     }
 
     // AI move if in AI mode and game not over
@@ -477,6 +686,7 @@ const CaroGame: React.FC = () => {
       />
 
       <div className="max-w-7xl mx-auto p-4">
+        <SuccessNotification isVisible={showWinNotice} message={winMessage} onClose={() => setShowWinNotice(false)} />
         <TutorialModal
           showTutorial={showTutorial}
           onClose={() => setShowTutorial(false)}

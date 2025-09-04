@@ -8,6 +8,8 @@ import { RotateCcw } from 'lucide-react';
 interface GameControlsProps {
   onResetGame: () => void;
   onResetScores: () => void;
+  gameMode?: '2player' | 'ai';
+  onDebugAI?: () => void;
 }
 
 const GameControls: React.FC<GameControlsProps> = ({

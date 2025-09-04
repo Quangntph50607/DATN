@@ -158,6 +158,27 @@ export const accountService = {
       const textResponse = await res.text();
       return { message: textResponse };
     }
+  },
+
+  // Cộng điểm tích lũy cho user
+  async addPoints(userId: number, diemCong: number = 100): Promise<{ message: string }> {
+    const res = await fetchWithAuth(`${API_URL}/${userId}/cong-diem?diem=${diemCong}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(errorText || "Không thể cộng điểm");
+    }
+
+    const contentType = res.headers.get("content-type");
+    if (contentType && contentType.includes("application/json")) {
+      return res.json();
+    }
+    const text = await res.text();
+    return { message: text };
   }
 };
 
