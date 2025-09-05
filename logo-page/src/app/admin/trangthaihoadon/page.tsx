@@ -27,7 +27,7 @@ export default function TrangThaiHoaDonPage() {
   const [statusCounts, setStatusCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
-  const PAGE_SIZE = 5;
+  const PAGE_SIZE = 10;
 
   // Đơn hàng fetch
   const fetchHoaDons = useCallback(() => {
