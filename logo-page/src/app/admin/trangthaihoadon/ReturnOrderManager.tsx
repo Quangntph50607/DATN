@@ -116,7 +116,7 @@ export default function ReturnOrderManager() {
     };
 
     return (
-        <main className="w-full px-2 pb-4" aria-label="Quản lý phiếu hoàn hàng">
+        <main className=" " aria-label="Quản lý phiếu hoàn hàng">
             {/* Header stat cards */}
             <section className="flex flex-col md:flex-row gap-4 mb-6" aria-label="Thống kê phiếu hoàn hàng">
                 <StatCard color="bg-blue-600" icon={<FaClipboardList />} label="Tổng phiếu" value={stats.total} />
@@ -124,7 +124,7 @@ export default function ReturnOrderManager() {
             </section>
 
             {/* Filter + Table */}
-            <section className="bg-gradient-to-br from-blue-900 via-blue-800 to-blue-700 rounded-xl shadow-lg pt-2" aria-label="Bộ lọc và bảng phiếu hoàn hàng">
+            <section className="bg-gradient-to-br border-blue-500 rounded-xl shadow-lg pt-2" aria-label="Bộ lọc và bảng phiếu hoàn hàng">
                 {/* Filter header */}
                 <header className="flex flex-col md:flex-row justify-between items-center px-4 py-2 gap-2">
                     <div className="flex items-center gap-2">
@@ -187,7 +187,7 @@ export default function ReturnOrderManager() {
                         <TableHeader>
                             <TableRow className="bg-blue-950 text-white uppercase">
                                 <TableHead className="px-3 py-2 font-semibold"># Mã Phiếu</TableHead>
-                                <TableHead className="px-3 py-2 font-semibold">Mã HĐ</TableHead>
+                                {/* <TableHead className="px-3 py-2 font-semibold">Mã HĐ</TableHead> */}
                                 <TableHead className="px-3 py-2 font-semibold">Loại hoàn</TableHead>
                                 <TableHead className="px-3 py-2 font-semibold">Khách hàng</TableHead>
                                 <TableHead className="px-3 py-2 font-semibold">Lý do</TableHead>
@@ -213,7 +213,7 @@ export default function ReturnOrderManager() {
                                 ))
                             ) : filteredData.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={14} className="text-center py-6 text-blue-400/70">
+                                    <TableCell colSpan={14} className="text-center py-6 text-white">
                                         Không có phiếu hoàn hàng nào.
                                     </TableCell>
                                 </TableRow>
@@ -221,7 +221,7 @@ export default function ReturnOrderManager() {
                                 filteredData.map((order) => (
                                     <TableRow key={order.id}>
                                         <TableCell className="px-3 py-2 font-bold text-purple-400">{order.id}</TableCell>
-                                        <TableCell className="px-3 py-2 font-bold text-blue-400">{order.hoaDon?.maHD ?? "--"}</TableCell>
+                                        {/* <TableCell className="px-3 py-2 font-bold text-blue-400">{order.hoaDon?.maHD ?? "--"}</TableCell> */}
                                         <TableCell className="px-3 py-2">{order.loaiHoan}</TableCell>
                                         <TableCell className="px-3 py-2">{order.chuTaiKhoan ?? order.hoaDon?.ten ?? "--"}</TableCell>
                                         <TableCell className="px-3 py-2 text-yellow-400">{order.lyDo}</TableCell>
