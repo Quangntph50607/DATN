@@ -153,13 +153,13 @@ export default function KhuyenMaiSanPham({ currentPage, itemPerPage }: Props) {
                           : "-"}
                       </TableCell>
                       <TableCell>
-                        {sp.trangThaiKM === "Đang áp dụng" ? (
+                        {sp.trangThai === "Đang áp dụng" ? (
                           <span className="text-green-500 font-semibold">
-                            {sp.trangThaiKM}
+                            {sp.trangThai}
                           </span>
                         ) : (
                           <span className="text-red-500 font-semibold">
-                            {sp.trangThaiKM}
+                            {sp.trangThai}
                           </span>
                         )}
                       </TableCell>

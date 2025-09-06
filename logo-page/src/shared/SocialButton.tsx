@@ -9,6 +9,7 @@ type SocialButtonProps = {
   onClick?: () => void;
   className?: string;
   variant?: "default" | "google" | "facebook";
+  disabled?: boolean;
 };
 
 export default function SocialButton({
@@ -17,6 +18,7 @@ export default function SocialButton({
   onClick,
   className,
   variant = "default",
+  disabled = false,
 }: SocialButtonProps) {
   const variantClasses = {
     google:
@@ -26,12 +28,16 @@ export default function SocialButton({
   };
 
   return (
-    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+    <motion.div 
+      whileHover={disabled ? {} : { scale: 1.02 }} 
+      whileTap={disabled ? {} : { scale: 0.98 }}
+    >
       <Button
-        className={`w-full flex items-center gap-3 justify-center transition-all ${variantClasses[variant]} ${className}`}
-        onClick={onClick}
+        className={`w-full flex items-center gap-3 justify-center transition-all ${variantClasses[variant]} ${className} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+        onClick={disabled ? undefined : onClick}
         variant={variant === "google" ? "outline" : "default"}
         type="button"
+        disabled={disabled}
       >
         <Icon
           className={`w-5 h-5 ${variant === "google" ? "text-[#EA4335]" : ""}`}

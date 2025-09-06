@@ -1,4 +1,5 @@
 import { CartItemType } from "@/components/types/cart";
+import { PhieuGiamGiaResponse } from "@/components/types/vi-phieu-giam-gia";
 import { AlertCircle } from "lucide-react";
 import Image from "next/image";
 
@@ -31,26 +32,35 @@ export default function OrderItems({ checkoutItems }: OrderItemsProps) {
       {checkoutItems.map((item) => (
         <div
           key={item.id}
-          className="flex items-center gap-3 p-3 bg-gray-50/50 rounded-lg border border-gray-200"
+          className="flex items-center gap-4 p-4 bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200"
         >
-          <Image
-            src={item.image || "/images/placeholder-product.png"}
-            alt={item.name}
-            className="w-12 h-12 object-cover rounded-lg"
-            width={100}
-            height={100}
-          />
+          {/* Product Image */}
+          <div className="flex-shrink-0">
+            <Image
+              src={item.image || "/images/placeholder-product.png"}
+              alt={item.name}
+              className="w-16 h-16 object-cover rounded-lg border border-gray-100"
+              width={64}
+              height={64}
+            />
+          </div>
+
+          {/* Product Info - Takes up available space */}
           <div className="flex-1 min-w-0">
-            <h4 className="font-medium text-gray-800 text-sm line-clamp-2">
+            <h4 className="font-medium text-gray-900 text-base leading-tight line-clamp-2 mb-1">
               {item.name}
             </h4>
-            <p className="text-sm text-gray-600">
-              {formatCurrency(item.price)} x {item.quantity}
+            <p className="text-sm text-gray-500">
+              {formatCurrency(item.price)} × {item.quantity}
             </p>
           </div>
-          <span className="font-semibold text-gray-800 text-sm">
-            {formatCurrency(item.price * item.quantity)}
-          </span>
+
+          {/* Total Price - Right aligned */}
+          <div className="flex-shrink-0 text-right">
+            <span className="font-semibold text-gray-900 text-lg">
+              {formatCurrency(item.price * item.quantity)}
+            </span>
+          </div>
         </div>
       ))}
     </div>
