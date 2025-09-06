@@ -85,6 +85,35 @@ export default function LoginForm() {
     }
   };
 
+  const handleSocialLogin = async (loginType: "google" | "facebook") => {
+    try {
+      setIsLoading(true);
+      const res = await fetch(
+        `http://localhost:8080/api/lego-store/user/auth/social-login?login-type=${loginType}`
+      );
+
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+
+      const url = await res.text();
+      if (url && url.startsWith("http")) {
+        window.location.href = url; // chuyển hướng tới Google/Facebook
+      } else {
+        throw new Error("Không nhận được URL đăng nhập hợp lệ");
+      }
+    } catch (err) {
+      console.error("Lỗi khi gọi social-login:", err);
+      form.setError("email", {
+        message: `Lỗi khi đăng nhập ${
+          loginType === "google" ? "Google" : "Facebook"
+        }`,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <h1 className="text-2xl font-bold text-center text-black">Đăng nhập</h1>
@@ -172,11 +201,20 @@ export default function LoginForm() {
 
       {/* Social Buttons */}
       <div className="flex flex-col gap-3">
-        <SocialButton icon={FcGoogle} label="Google" variant="default" />
+        <SocialButton
+          icon={FcGoogle}
+          label={isLoading ? "Đang xử lý..." : "Google"}
+          variant="default"
+          onClick={() => handleSocialLogin("google")}
+          disabled={isLoading}
+        />
+
         <SocialButton
           icon={FaFacebookSquare}
-          label="Facebook"
+          label={isLoading ? "Đang xử lý..." : "Facebook"}
           variant="facebook"
+          onClick={() => handleSocialLogin("facebook")}
+          disabled={isLoading}
         />
       </div>
 
