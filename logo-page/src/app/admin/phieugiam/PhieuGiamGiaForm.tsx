@@ -15,6 +15,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Select,
   SelectContent,
@@ -22,7 +23,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
 import {
   useAddPhieuGiamGia,
   useEditPhieuGiamGia,
@@ -56,6 +56,7 @@ export default function PhieuGiamGia({ editing, setEditing, onSucess }: Props) {
       loaiPhieuGiam: "theo_so_tien",
       ngayBatDau: new Date(),
       ngayKetThuc: new Date(),
+      diemDoi: undefined,
     },
   });
 
@@ -74,6 +75,7 @@ export default function PhieuGiamGia({ editing, setEditing, onSucess }: Props) {
         giamToiDa: editing.giamToiDa,
         giaTriToiThieu: editing.giaTriToiThieu,
         loaiPhieuGiam: editing.loaiPhieuGiam,
+        diemDoi: editing.diemDoi,
         ngayBatDau: parse(
           editing.ngayBatDau,
           "dd-MM-yyyy HH:mm:ss",
@@ -97,9 +99,8 @@ export default function PhieuGiamGia({ editing, setEditing, onSucess }: Props) {
         data.loaiPhieuGiam === "theo_phan_tram"
           ? data.giamToiDa ?? 0
           : undefined,
-      noiBat: data.noiBat !== undefined ? (data.noiBat ? 1 : 0) : undefined,
+      noiBat: data.noiBat ?? 0,
     };
-
     if (editing) {
       editPhieuGG.mutate(
         {
@@ -134,6 +135,7 @@ export default function PhieuGiamGia({ editing, setEditing, onSucess }: Props) {
         },
       });
     }
+    console.log("data", data);
   }
 
   // Thêm nhanh
@@ -188,6 +190,7 @@ export default function PhieuGiamGia({ editing, setEditing, onSucess }: Props) {
                             form.setValue("giaTriGiam", pgg.giaTriGiam);
                             form.setValue("giamToiDa", pgg.giamToiDa);
                             form.setValue("giaTriToiThieu", pgg.giaTriToiThieu);
+                            form.setValue("diemDoi", pgg.diemDoi);
                             form.setValue(
                               "ngayBatDau",
                               parse(
@@ -246,7 +249,6 @@ export default function PhieuGiamGia({ editing, setEditing, onSucess }: Props) {
               </FormItem>
             )}
           />
-
           <FormField
             control={form.control}
             name="loaiPhieuGiam"
@@ -256,6 +258,7 @@ export default function PhieuGiamGia({ editing, setEditing, onSucess }: Props) {
                 <FormControl>
                   <Select
                     value={field.value ?? ""}
+                    // defaultValue={field.value ?? ""}
                     onValueChange={(val) => {
                       console.log("Đã chọn:", val);
                       field.onChange(val);
@@ -347,7 +350,26 @@ export default function PhieuGiamGia({ editing, setEditing, onSucess }: Props) {
               </FormItem>
             )}
           />
-
+          <FormField
+            control={form.control}
+            name="diemDoi"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Điểm đổi</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    {...field}
+                    value={field.value ?? ""}
+                    onChange={(e) =>
+                      field.onChange(+e.target.value || undefined)
+                    }
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           {/* Ngày bắt đầu - kết thúc */}
           <div className="flex gap-3">
             <FormField
@@ -384,21 +406,43 @@ export default function PhieuGiamGia({ editing, setEditing, onSucess }: Props) {
               )}
             />
           </div>
+
           {/* Toggle nổi bật (controlled) */}
           <FormField
             control={form.control}
             name="noiBat"
             render={({ field }) => (
               <FormItem>
-                <div className="flex items-center gap-3">
-                  <FormLabel>Nổi bật</FormLabel>
-                  <FormControl>
-                    <Switch
-                      checked={!!field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </div>
+                <FormLabel>Nổi bật</FormLabel>
+                <FormControl>
+                  <RadioGroup
+                    value={field.value?.toString() ?? "0"}
+                    onValueChange={(val) => field.onChange(Number(val))}
+                    className="flex gap-4"
+                  >
+                    <FormItem className="flex items-center space-x-2">
+                      <RadioGroupItem value="0" id="noiBat-0" />
+                      <FormLabel htmlFor="noiBat-0" className="font-normal">
+                        Không
+                      </FormLabel>
+                    </FormItem>
+
+                    <FormItem className="flex items-center space-x-2">
+                      <RadioGroupItem value="1" id="noiBat-1" />
+                      <FormLabel htmlFor="noiBat-1" className="font-normal">
+                        Nổi bật vòng quay
+                      </FormLabel>
+                    </FormItem>
+
+                    <FormItem className="flex items-center space-x-2">
+                      <RadioGroupItem value="2" id="noiBat-2" />
+                      <FormLabel htmlFor="noiBat-2" className="font-normal">
+                        Nổi bật đổi điểm
+                      </FormLabel>
+                    </FormItem>
+                  </RadioGroup>
+                </FormControl>
+                <FormMessage />
               </FormItem>
             )}
           />
