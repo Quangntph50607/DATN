@@ -10,7 +10,8 @@ export interface PhieuGiamGia {
   ngayBatDau: string; // ISO hoặc custom string
   ngayKetThuc: string;
   trangThai?: string;
-  noiBat?: number | boolean; // dùng khi gọi API
+  noiBat: number; // dùng khi gọi API
+  diemDoi?: number;
 }
 
 // Dành riêng cho form xử lý với DatePicker
@@ -18,7 +19,7 @@ export interface PhieuGiamGiaFormValues
   extends Omit<PhieuGiamGia, "ngayBatDau" | "ngayKetThuc" | "noiBat"> {
   ngayBatDau: Date | null;
   ngayKetThuc: Date | null;
-  noiBat?: boolean;
+  noiBat: number;
 }
 
 // Khi tạo
