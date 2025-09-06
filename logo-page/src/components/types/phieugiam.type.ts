@@ -11,6 +11,7 @@ export interface PhieuGiamGia {
   ngayKetThuc: string;
   trangThai?: string;
   noiBat?: number | boolean; // dùng khi gọi API
+  diemDoi?: number; // điểm cần thiết để đổi phiếu
 }
 
 // Dành riêng cho form xử lý với DatePicker
