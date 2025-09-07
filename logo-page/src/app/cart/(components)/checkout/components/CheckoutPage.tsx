@@ -5,7 +5,6 @@ import { ShippingCalculator } from "@/utils/shippingCalculator";
 import AddressSection from "./AddressSection";
 import PhuongThucThanhToan from "./PhuongThucThanhToan";
 import PhuongThucVanChuyen from "./PhuongThucVanChuyen";
-import { PhieuGiamGia } from "@/components/types/phieugiam.type";
 import { CreateHoaDonDTO } from "@/components/types/hoaDon-types";
 import { useUserStore } from "@/context/authStore.store";
 import { useRouter } from "next/navigation";
@@ -39,7 +38,8 @@ export default function CheckoutPage() {
   // State để nhận data từ SanPhamCheckout
   const [checkoutTotal, setCheckoutTotal] = useState(0);
   const [checkoutDiscount, setCheckoutDiscount] = useState(0);
-
+  console.log("Voucher chọn:", selectedVoucher);
+  console.log("id gửi lên BE:", selectedVoucher?.id);
   useEffect(() => {
     // Load products for checkout from localStorage
     try {
@@ -141,7 +141,6 @@ export default function CheckoutPage() {
     }
 
     const diaChiGiaoHang = `${selectedAddress.duong}, ${selectedAddress.xa}, ${selectedAddress.thanhPho}`;
-
     const orderData: CreateHoaDonDTO = {
       userId: user.id,
       loaiHD: 2,

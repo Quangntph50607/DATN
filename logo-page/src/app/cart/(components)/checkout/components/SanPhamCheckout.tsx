@@ -63,12 +63,11 @@ export function SanPhamCheckout({
     useState<PhieuGiamGiaResponse | null>(null);
   const [voucherMessage, setVoucherMessage] = useState<string>("");
   const [dialogOpen, setDialogOpen] = useState(false);
-
   const { data: vouchers = [], isLoading } = useGetViPhieuGiamGiaTheoUser(
     userId,
     "active"
   );
-
+  console.log("Ví phiếu giảm:", vouchers);
   // Load checkout items from localStorage
   useEffect(() => {
     try {
@@ -166,7 +165,7 @@ export function SanPhamCheckout({
   const handleSelectVoucher = useCallback(
     (voucher: PhieuGiamGiaResponse) => {
       setVoucherInput(voucher.maPhieu);
-      setSelectedVoucher(voucher); // 👈 cập nhật local luôn
+      setSelectedVoucher(voucher);
       setVoucherMessage("");
       setDialogOpen(false);
 

@@ -42,7 +42,7 @@ const formatTrangThai = (status?: string) => {
 };
 
 const formatGiaTriGiam = (value: number, loai: string) => {
-  return loai === "Theo %" ? `${value}%` : formatVND(value);
+  return loai === "theo_phan_tram" ? `${value}%` : formatVND(value);
 };
 
 export default function PhieuGiamTable({
@@ -64,6 +64,7 @@ export default function PhieuGiamTable({
             <TableHead>Giá Trị Tối Thiểu</TableHead>
             <TableHead>Ngày Bắt Đầu</TableHead>
             <TableHead>Ngày Kết Thúc</TableHead>
+            <TableHead>Điểm đổi</TableHead>
             <TableHead>Nổi bật</TableHead>
             <TableHead>Trạng Thái</TableHead>
             <TableHead className="text-center">Hành Động</TableHead>
@@ -95,13 +96,19 @@ export default function PhieuGiamTable({
                   <TableCell>{formatVND(pgg.giaTriToiThieu)}</TableCell>
                   <TableCell>{pgg.ngayBatDau}</TableCell>
                   <TableCell>{pgg.ngayKetThuc}</TableCell>
+                  <TableCell>{pgg.diemDoi}</TableCell>
                   <TableCell>
-                    {pgg.noiBat === 1 || pgg.noiBat === true ? (
-                      <span className="text-yellow-500 font-bold">★</span>
+                    {pgg.noiBat === 1 ? (
+                      <span className="text-yellow-500 font-bold">
+                        ★ Vòng quay
+                      </span>
+                    ) : pgg.noiBat === 2 ? (
+                      <span className="text-red-500 font-bold">★ Đổi điểm</span>
                     ) : (
-                      <span className="text-gray-400">☆</span>
+                      <span className="text-gray-400">☆ Không</span>
                     )}
                   </TableCell>
+
                   <TableCell className={`font-bold ${status.className}`}>
                     {status.text}
                   </TableCell>
