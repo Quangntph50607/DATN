@@ -83,6 +83,7 @@ export default function OrderTable({
               {[
                 "STT",
                 "Mã HĐ",
+                "Mã VC",
                 "Tên khách hàng",
                 "SĐT",
                 "Tổng tiền",
@@ -90,7 +91,6 @@ export default function OrderTable({
                 "Trạng thái",
                 "Thanh toán",
                 "Loại HĐ",
-                "Mã VC",
               ].map((text) => (
                 <TableHead
                   key={text}
@@ -111,12 +111,15 @@ export default function OrderTable({
                   {hd.maHD || "N/A"}
                 </TableCell>
                 <TableCell className="text-white text-center">
+                  {hd.maVanChuyen || "N/A"}
+                </TableCell>
+                <TableCell className="text-white text-center">
                   {hd.ten || hd.user?.ten || "N/A"}
                 </TableCell>
                 <TableCell className="text-white text-center">
-                  {hd.sdt || hd.user?.sdt || "N/A"}
+                  {hd.sdt1 || hd.user?.sdt1 || "N/A"}
                 </TableCell>
-                <TableCell className="text-white text-center font-medium">
+                <TableCell className="text-green-500 text-center font-medium ">
                   {hd.tongTien?.toLocaleString("vi-VN") || "0"}₫
                 </TableCell>
                 <TableCell className="text-white text-center">
@@ -139,9 +142,9 @@ export default function OrderTable({
                             disabled={
                               hd.trangThai
                                 ? !isValidTrangThaiTransition(
-                                  hd.trangThai,
-                                  status
-                                ) || hd.trangThai === status
+                                    hd.trangThai,
+                                    status
+                                  ) || hd.trangThai === status
                                 : false
                             }
                             className="text-xs"
@@ -160,11 +163,8 @@ export default function OrderTable({
                   {hd.loaiHD === 1
                     ? "Tại quầy"
                     : hd.loaiHD === 2
-                      ? "Online"
-                      : "N/A"}
-                </TableCell>
-                <TableCell className="text-white text-center">
-                  {hd.maVanChuyen || "N/A"}
+                    ? "Online"
+                    : "N/A"}
                 </TableCell>
               </TableRow>
             ))}
@@ -192,8 +192,8 @@ export default function OrderTable({
               <strong className="text-yellow-400">
                 {selectedOrder?.trangThai}
               </strong>{" "}
-              sang{" "}
-              <strong className="text-green-400">{nextStatus}</strong> không?
+              sang <strong className="text-green-400">{nextStatus}</strong>{" "}
+              không?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -211,7 +211,7 @@ export default function OrderTable({
       </AlertDialog>
 
       {/* Phân trang */}
-      <div className="flex justify-center items-center mt-4 bg-[#1A1F2E] p-2 rounded-lg">
+      <div className="flex justify-center items-center mt-4  p-2 rounded-lg">
         <Button
           variant="outline"
           className="text-white border-[#3B82F6] bg-[#2A2F2E] hover:bg-[#3B82F6] hover:text-white rounded-lg px-4 py-2"

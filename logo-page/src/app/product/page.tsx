@@ -105,10 +105,12 @@ export default function AllProductsPage() {
         "Khuyến mãi": 1,
         "Hàng mới": 2,
         "Hàng hiếm": 3,
-        "Nổi bật": 4
+        "Nổi bật": 4,
       };
-      return (priorityOrder[badgeA.text as keyof typeof priorityOrder] || 5) -
-        (priorityOrder[badgeB.text as keyof typeof priorityOrder] || 5);
+      return (
+        (priorityOrder[badgeA.text as keyof typeof priorityOrder] || 5) -
+        (priorityOrder[badgeB.text as keyof typeof priorityOrder] || 5)
+      );
     }
 
     return 0;
@@ -127,7 +129,9 @@ export default function AllProductsPage() {
       <Navbar />
       <main className="bg-white text-black">
         <div className="mb-8 text-center mt-10">
-          <h1 className="text-4xl lg:text-4xl font-black mb-4 text-blue-900">Lego MyKingDom - Thế giới Lego</h1>
+          <h1 className="text-4xl lg:text-4xl font-black mb-4 text-blue-900">
+            Lego MyKingDom - Thế giới Lego
+          </h1>
           <p className="text-gray-600">Khám phá bộ sưu tập của chúng tôi</p>
         </div>
         <div className="flex flex-col lg:flex-row gap-8 px-4">
@@ -150,55 +154,55 @@ export default function AllProductsPage() {
               selectedTuoi ||
               selectedBoSuuTap ||
               selectedGia) && (
-                <div className="mb-6 bg-blue-50 px-4 py-3 rounded-lg flex items-center flex-wrap gap-2">
-                  {selectedDanhMuc && (
-                    <span className="text-blue-800">
-                      Danh mục:
-                      <strong>
-                        {
-                          categories.find((c) => c.id === selectedDanhMuc)
-                            ?.tenDanhMuc
-                        }
-                      </strong>
-                    </span>
-                  )}
-                  {selectedBoSuuTap && (
-                    <span className="text-blue-800">
-                      Bộ sưu tập:
-                      <strong>
-                        {
-                          bosuutaps.find((bst) => bst.id === selectedBoSuuTap)
-                            ?.tenBoSuuTap
-                        }
-                      </strong>
-                    </span>
-                  )}
-                  {selectedTuoi && (
-                    <span className="text-blue-800">
-                      Độ tuổi: <strong>{selectedTuoi}</strong>
-                    </span>
-                  )}
-                  {selectedGia && (
-                    <span className="text-blue-800">
-                      Giá: <strong>{selectedGia}</strong>
-                    </span>
-                  )}
+              <div className="mb-6 bg-blue-50 px-4 py-3 rounded-lg flex items-center flex-wrap gap-2">
+                {selectedDanhMuc && (
+                  <span className="text-blue-800">
+                    Danh mục:
+                    <strong>
+                      {
+                        categories.find((c) => c.id === selectedDanhMuc)
+                          ?.tenDanhMuc
+                      }
+                    </strong>
+                  </span>
+                )}
+                {selectedBoSuuTap && (
+                  <span className="text-blue-800">
+                    Bộ sưu tập:
+                    <strong>
+                      {
+                        bosuutaps.find((bst) => bst.id === selectedBoSuuTap)
+                          ?.tenBoSuuTap
+                      }
+                    </strong>
+                  </span>
+                )}
+                {selectedTuoi && (
+                  <span className="text-blue-800">
+                    Độ tuổi: <strong>{selectedTuoi}</strong>
+                  </span>
+                )}
+                {selectedGia && (
+                  <span className="text-blue-800">
+                    Giá: <strong>{selectedGia}</strong>
+                  </span>
+                )}
 
-                  <Button
-                    onClick={() => {
-                      setSelectedDanhMuc(null);
-                      setSelectedBoSutap(null);
-                      setSelectedGia(null);
-                      setSelectedTuoi(null);
-                      setKeyword("");
-                    }}
-                    className="ml-auto text-sm text-blue-600 hover:underline"
-                    variant="link"
-                  >
-                    [Xóa tất cả]
-                  </Button>
-                </div>
-              )}
+                <Button
+                  onClick={() => {
+                    setSelectedDanhMuc(null);
+                    setSelectedBoSutap(null);
+                    setSelectedGia(null);
+                    setSelectedTuoi(null);
+                    setKeyword("");
+                  }}
+                  className="ml-auto text-sm text-blue-600 hover:underline"
+                  variant="link"
+                >
+                  [Xóa tất cả]
+                </Button>
+              </div>
+            )}
 
             {/* Product Grid */}
             {filteredProducts.length === 0 ? (
@@ -223,7 +227,6 @@ export default function AllProductsPage() {
             )}
           </div>
         </div>
-
       </main>
       <Footer />
     </div>

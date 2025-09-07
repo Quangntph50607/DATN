@@ -41,8 +41,8 @@ export default function SanPhamHanhDong() {
   );
 
   const [soLuong, setSoLuong] = useState(1);
-  const [isModalOpen, setIsModalOpen] = useState(false); // State to control the modal visibility
-  const [cartQuantity, setCartQuantity] = useState(0); // Số lượng sản phẩm trong giỏ hàng
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [cartQuantity, setCartQuantity] = useState(0);
 
   // Lấy số lượng sản phẩm hiện tại trong giỏ hàng
   useEffect(() => {
@@ -55,6 +55,9 @@ export default function SanPhamHanhDong() {
     return (
       <div className="text-center py-8 text-gray-500">Đang tải sản phẩm...</div>
     );
+  }
+  function formatPrice(value: number) {
+    return value.toLocaleString("vi-VN") + " ₫";
   }
 
   const getMaxSoLuong = () => {
@@ -102,12 +105,17 @@ export default function SanPhamHanhDong() {
       id: sanPhamChiTiet.id,
       name: sanPhamChiTiet.tenSanPham,
       image: sanPhamChiTiet.anhUrls?.[0]?.url || "",
-      price: sanPhamChiTiet.gia || sanPhamChiTiet.giaKhuyenMai || 0,
+      price: sanPhamChiTiet.giaKhuyenMai || 0,
       quantity: soLuong,
       maxQuantity: getMaxSoLuong(),
     };
-
+    console.log("Sản phẩm chi tiết:", sanPhamChiTiet);
+    console.log("Item sẽ thêm:", item);
+    console.log("Số lượng hiện tại trong giỏ (cartQuantity):", cartQuantity);
+    console.log("Số lượng muốn thêm:", soLuong);
+    console.log("Số lượng tối đa cho phép:", getMaxSoLuong());
     const result = updateCartItem(item, getMaxSoLuong());
+    console.log("Kết quả updateCartItem:", result);
     if (!result.success) {
       toast.error(result.message || "Lỗi không xác định");
       return;
@@ -117,6 +125,7 @@ export default function SanPhamHanhDong() {
     setIsModalOpen(true);
     setTimeout(() => setIsModalOpen(false), 1000);
   };
+
   // Xác định trạng thái hiển thị
   const trangThai =
     sanPhamChiTiet.soLuongTon === 0
@@ -158,16 +167,13 @@ export default function SanPhamHanhDong() {
       <div className="space-y-2 py-4 border-t border-b border-gray-100">
         <div className="flex items-center gap-4">
           <span className="font-semibold text-3xl text-red-600">
-            {(
-              sanPhamChiTiet.giaKhuyenMai || sanPhamChiTiet.gia
-            )?.toLocaleString()}{" "}
-            đ
+            {formatPrice(sanPhamChiTiet.giaKhuyenMai || sanPhamChiTiet.gia)}
           </span>
           {sanPhamChiTiet.giaKhuyenMai &&
             sanPhamChiTiet.gia &&
             sanPhamChiTiet.giaKhuyenMai < sanPhamChiTiet.gia && (
               <span className="text-gray-500 line-through text-xl">
-                {sanPhamChiTiet.gia.toLocaleString()}đ
+                {formatPrice(sanPhamChiTiet.gia)}
               </span>
             )}
         </div>
@@ -181,7 +187,7 @@ export default function SanPhamHanhDong() {
                 {Math.round(
                   ((sanPhamChiTiet.gia - sanPhamChiTiet.giaKhuyenMai) /
                     sanPhamChiTiet.gia) *
-                  100
+                    100
                 )}
                 %
               </span>
@@ -273,7 +279,7 @@ export default function SanPhamHanhDong() {
         <AddToWishListButton
           productId={sanPhamChiTiet.id}
           className="h-11 w-11 border-4 border-gray-400 hover:border-red-500 rounded-xl transition-all duration-200 inline-flex items-center justify-center group-hover:scale-105 shadow-lg hover:shadow-xl hover:bg-red-50"
-          style={{ backgroundColor: '#dbeafe' }}
+          style={{ backgroundColor: "#dbeafe" }}
         />
       </div>
 

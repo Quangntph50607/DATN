@@ -258,9 +258,6 @@ const HoaDonManagement = () => {
             >
               <LichSuLogTimeline bang="hoaDon" title="Lịch sử user log" />
             </Modal>
-
-
-
             <HoaDonTable
               data={data}
               page={page}

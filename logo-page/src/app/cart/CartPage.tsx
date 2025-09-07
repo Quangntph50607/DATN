@@ -2,16 +2,8 @@
 
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  ArrowLeft,
-  Trash2,
-  ShoppingBag,
-  Tag,
-  Percent,
-  Star,
-} from "lucide-react";
+import { Trash2, ShoppingBag } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { anhSanPhamSevice } from "@/services/anhSanPhamService";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/shared/ConfirmDialog";
 import { CartItemType } from "@/components/types/cart";
@@ -23,34 +15,10 @@ export default function CartPage() {
   const router = useRouter();
   const [items, setItems] = useState<CartItemType[]>([]);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
-  const [imageUrls, setImageUrls] = useState<Record<number, string | null>>({});
   const [discount, setDiscount] = useState(0);
   const [deleteSelectedOpen, setDeleteSelectedOpen] = useState(false);
   const { user } = useUserStore();
   const userId = user?.id;
-
-  // Load images
-  const loadImages = async (products: CartItemType[]) => {
-    const urls = await Promise.all(
-      products.map(async (product) => {
-        try {
-          const images = await anhSanPhamSevice.getAnhSanPhamTheoSanPhamId(
-            product.id
-          );
-          const mainImg = images?.find((img) => img.anhChinh) || images?.[0];
-          return [
-            product.id,
-            mainImg?.url
-              ? `http://localhost:8080/api/anhsp/images/${mainImg.url}`
-              : "/images/placeholder-product.png",
-          ];
-        } catch {
-          return [product.id, "/images/placeholder-product.png"];
-        }
-      })
-    );
-    setImageUrls(Object.fromEntries(urls));
-  };
 
   useEffect(() => {
     try {
@@ -65,11 +33,11 @@ export default function CartPage() {
           0,
         quantity: Number(item.quantity) || Number(item.soLuong) || 1,
         maxQuantity: Number(item.maxQuantity) || Number(item.soLuongTon) || 20,
+        image: item.image || item.anh || "",
       }));
 
       setItems(fixedCart);
       setSelectedIds(fixedCart.map((item: CartItemType) => item.id));
-      loadImages(fixedCart);
     } catch (err) {
       console.error("Lỗi khi parse localStorage:", err);
     }
@@ -214,7 +182,6 @@ export default function CartPage() {
               <CartItem
                 items={items}
                 selectedIds={selectedIds}
-                imageUrls={imageUrls}
                 onSelect={handleSelect}
                 onQuantityChange={handleQuantityChange}
                 onRemove={handleRemove}

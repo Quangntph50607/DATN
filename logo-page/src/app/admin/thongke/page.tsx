@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import { Input } from "@/components/ui/input";
 import {
   useDoanhThuTheoDanhMuc,
   useDoanhThuTheoPTTT,
@@ -31,10 +30,10 @@ import {
 import { TableCell } from "@/components/ui/table";
 import { Label } from "@/components/ui/label";
 import StatCard from "./StatCard";
-import SimpleChart from "./SimpleChart";
 import DataTable from "./DataTable";
 import { format } from "date-fns";
 import { DateTimePicker } from "@/components/ui/date-picker";
+import SimpleChart from "./SimpleChart";
 
 interface SimpleBarChartProps {
   title: string;
@@ -62,8 +61,9 @@ export default function ThongKePage() {
   const khuyenMaiHieuQua = useKhuyenMaiHieuQua(startDateStr, endDateStr);
   const topSanPham = useTopSanPhamBanChay(startDateStr, endDateStr);
   const topKhachHang = useTopKhachHang(startDateStr, endDateStr);
-  const tiLeHoan = useTiLeHoan(startDateStr, endDateStr);
   const lyDoHoan = useLyDoHoan(startDateStr, endDateStr);
+  const tiLeHoan = useTiLeHoan(startDateStr, endDateStr);
+  const title = tiLeHoan.data ?? 0;
 
   // Hàm format tiền tệ
   const formatCurrency = (amount: number) => {
@@ -192,7 +192,7 @@ export default function ThongKePage() {
           />
           <StatCard
             title="Tỉ Lệ Hoàn Hàng"
-            value={tiLeHoan.data?.toString() || "0"}
+            value={title.toFixed(2)}
             icon={RotateCcw}
             color="red"
             suffix="%"
@@ -215,7 +215,7 @@ export default function ThongKePage() {
             isLoading={doanhThuPTTT.isLoading}
             icon={CreditCard}
           />
-          <SimpleBarChart
+          <SimpleChart
             title="Doanh Thu Theo Danh Mục"
             data={doanhThuDanhMuc.data}
             isLoading={doanhThuDanhMuc.isLoading}
