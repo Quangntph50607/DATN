@@ -327,3 +327,28 @@ input::placeholder, textarea::placeholder {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;  /* Safari and Chrome */
 }
+
+/* Hiệu ứng nhảy cho game button */
+@keyframes gameJump {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  10% {
+    transform: translateY(-8px) scale(1.1);
+  }
+  30% {
+    transform: translateY(-4px) scale(1.05);
+  }
+  60% {
+    transform: translateY(-2px) scale(1.02);
+  }
+}
+
+.game-button.jump {
+  animation: gameJump 0.8s ease-in-out;
+}
+
+/* Hiệu ứng nhảy nhẹ khi hover */
+.game-button:hover {
+  animation: gameJump 0.6s ease-in-out infinite;
+}
