@@ -9,11 +9,11 @@ export interface DTOUser {
   email: string;
   matKhau: string;
   sdt: string;
-  sdt1: string;
   diaChi: string;
   ngaySinh?: string | Date;
   trangThai: number;
   role_id: number;
+  diemTichLuy?: number;
   ngayTao?: number[];
   role?: Role;
 }

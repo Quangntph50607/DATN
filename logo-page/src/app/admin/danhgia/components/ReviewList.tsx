@@ -1,7 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { AnimatePresence } from "framer-motion";
+import { useEffect, useMemo, useState } from "react";
 import ReviewItem from "./ReviewItem";
 import BulkReplyDialog from "./BulkReplyDialog";
 import { Button } from "@/components/ui/button";
@@ -21,6 +20,8 @@ export default function ReviewList({
     const [isBulkReplyDialogOpen, setIsBulkReplyDialogOpen] = useState(false);
     const [isSelectionMode, setIsSelectionMode] = useState(false);
     const [bulkReplyProgress, setBulkReplyProgress] = useState(0);
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 5;
 
     // Hàm helper để lấy ngày từ review
     const getReviewDate = (review: DanhGiaResponse): string => {
@@ -89,6 +90,18 @@ export default function ReviewList({
             return dateB - dateA;
         });
     }, [reviews, filterRating, filterType, filterDate]);
+
+    // Reset về trang 1 khi thay đổi filter
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [filterRating, filterType, filterDate]);
+
+    const totalPages = Math.ceil(filteredReviews.length / itemsPerPage);
+    const paginatedReviews = useMemo(() => {
+        const start = (currentPage - 1) * itemsPerPage;
+        const end = currentPage * itemsPerPage;
+        return filteredReviews.slice(start, end);
+    }, [filteredReviews, currentPage]);
 
     // Xử lý chọn/bỏ chọn đánh giá
     const handleSelectionChange = (reviewId: number, selected: boolean) => {
@@ -220,21 +233,40 @@ export default function ReviewList({
                 </div>
             )}
 
-            <AnimatePresence>
-                {filteredReviews.map((review) => (
-                    <ReviewItem
-                        key={review.id}
-                        review={review}
-                        onUpdateReview={onUpdateReview}
-                        onDeleteReview={onDeleteReview}
-                        isSelected={selectedReviews.has(review.id)}
-                        onSelectionChange={isSelectionMode ? handleSelectionChange : undefined}
-                    />
-                ))}
-            </AnimatePresence>
+            {paginatedReviews.map((review) => (
+                <ReviewItem
+                    key={review.id}
+                    review={review}
+                    onUpdateReview={onUpdateReview}
+                    onDeleteReview={onDeleteReview}
+                    isSelected={selectedReviews.has(review.id)}
+                    onSelectionChange={isSelectionMode ? handleSelectionChange : undefined}
+                />
+            ))}
             {filteredReviews.length === 0 && (
                 <div className="text-center py-10">
                     <p className="text-gray-600 dark:text-gray-300">Không tìm thấy đánh giá nào phù hợp.</p>
+                </div>
+            )}
+
+            {/* Phân trang */}
+            {filteredReviews.length > 0 && (
+                <div className="flex gap-2 items-center justify-center mt-4">
+                    <Button
+                        disabled={currentPage === 1}
+                        onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                    >
+                        Trước
+                    </Button>
+                    <span>
+                        {currentPage} / {totalPages}
+                    </span>
+                    <Button
+                        disabled={currentPage === totalPages || totalPages === 0}
+                        onClick={() => setCurrentPage((prev) => Math.min(totalPages || 1, prev + 1))}
+                    >
+                        Sau
+                    </Button>
                 </div>
             )}
 
