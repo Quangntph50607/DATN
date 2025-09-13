@@ -23,10 +23,11 @@ export default function GoogleCallback() {
       }, 3000);
       return;
     }
+    const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
     if (code) {
-      fetch(
-        `http://localhost:8080/api/lego-store/user/auth/social/callback?code=${code}&login-type=google`
+      await fetch(
+        `${API_URL}/lego-store/user/auth/social/callback?code=${code}&login-type=google`
       )
         .then((res) => {
           if (!res.ok) {
