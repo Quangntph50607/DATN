@@ -1,5 +1,3 @@
-import { Button } from "@/components/ui/button";
-import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 
@@ -39,6 +37,7 @@ export default function Navbar() {
           { href: "/1", label: "Cửa hàng" },
           { href: "/2", label: "Giới thiệu" },
           { href: "/lucky-wheel", label: "Phần thưởng" },
+          { href: "/caro", label: "Cờ Caro" },
         ].map((item) => (
           <Link
             key={item.href}

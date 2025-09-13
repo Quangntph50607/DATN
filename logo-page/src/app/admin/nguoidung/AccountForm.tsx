@@ -237,7 +237,13 @@ const AccountForm: React.FC<AccountFormProps> = ({
                             <SelectTrigger className="bg-slate-700 text-white">
                               <SelectValue>
                                 {filteredRoles.find((r) => r.id === field.value)?.name ||
-                                  "Chọn vai trò"}
+                                  (account?.role_id
+                                    ? (account.role_id === 2
+                                        ? "Nhân viên"
+                                        : account.role_id === 3
+                                          ? "Khách hàng"
+                                          : "Chọn vai trò")
+                                    : "Chọn vai trò")}
                               </SelectValue>
                             </SelectTrigger>
                           </FormControl>

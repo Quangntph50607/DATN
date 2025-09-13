@@ -4,7 +4,7 @@ import React from "react";
 import Navbar from "../(pages)/Navbar";
 import { useDanhMuc } from "@/hooks/useDanhMuc";
 import SanPhamListNoBox from "./SanPhamListNoBox";
-import { Building2, Puzzle, Shield, Bot, Car, Rocket, Landmark, Swords, Heart } from "lucide-react";
+import { Building2, Puzzle, Shield, Bot, Car, Rocket, Landmark, Swords, Heart, Gamepad2 } from "lucide-react";
 import CallToActionBanner from "./CallToActionBanner";
 import WhyChooseUs from "./WhyChooseUs";
 import { motion } from "framer-motion";
@@ -110,6 +110,64 @@ export default function MainHome() {
           <SanPhamListNoBox ps={featuredProducts} />
         </div>
       </div>
+
+      {/* Game Banner */}
+      <motion.section
+        className="py-16 px-4 bg-gradient-to-r from-purple-50 to-blue-50"
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8 }}
+      >
+        <div className="max-w-7xl mx-auto">
+          <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12 border border-purple-100">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+              <div className="flex-1 text-center md:text-left">
+                <div className="flex items-center justify-center md:justify-start gap-3 mb-4">
+                  <div className="p-3 bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl">
+                    <Gamepad2 className="w-8 h-8 text-white" />
+                  </div>
+                  <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                    Cờ Caro Online
+                  </h2>
+                </div>
+                <p className="text-lg text-gray-600 mb-6 max-w-2xl">
+                  Thư giãn với game cờ caro thú vị! Chơi với bạn bè hoặc thử thách AI. 
+                  Hoàn toàn miễn phí và không cần đăng ký.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+                  <Button 
+                    onClick={() => window.location.href = '/caro'}
+                    className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white font-semibold px-8 py-3 rounded-lg transition-all hover:scale-105"
+                  >
+                    <Gamepad2 className="w-5 h-5 mr-2" />
+                    Chơi ngay
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    className="border-purple-300 text-purple-600 hover:bg-purple-50 font-semibold px-8 py-3 rounded-lg transition-all"
+                  >
+                    Tìm hiểu thêm
+                  </Button>
+                </div>
+              </div>
+              <div className="flex-1 flex justify-center">
+                <div className="relative">
+                  <div className="w-64 h-64 bg-gradient-to-br from-purple-100 to-blue-100 rounded-2xl flex items-center justify-center border-2 border-dashed border-purple-300">
+                    <div className="text-center">
+                      <Gamepad2 className="w-16 h-16 text-purple-500 mx-auto mb-4" />
+                      <p className="text-purple-600 font-semibold">Game Cờ Caro</p>
+                      <p className="text-sm text-purple-500">15x15 Board</p>
+                    </div>
+                  </div>
+                  <div className="absolute -top-2 -right-2 bg-yellow-400 text-black text-xs font-bold px-2 py-1 rounded-full">
+                    FREE
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </motion.section>
 
       {/* Danh mục sản phẩm */}
       <motion.section

@@ -37,4 +37,20 @@ export const viPhieuGiamService = {
 
     return res.json() as Promise<viPhieuGiamGia[]>;
   },
+  async doiDiemLayPhieu(data: { userId: number; phieuGiamGiaId: number }) {
+    const res = await fetch(`${API_URL}/doi-diem-phieu`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(
+        "Không thể đổi điểm lấy phiếu giảm giá: " + JSON.stringify(error)
+      );
+    }
+
+    return res.json();
+  },
 };

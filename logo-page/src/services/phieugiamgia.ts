@@ -66,14 +66,21 @@ export const phieuGiamGiaService = {
   },
 
   async getPhieuGiamGiaNoiBat(): Promise<PhieuGiamGia[]> {
-    const res = await fetchWithAuth(`${API_URL}/get-phieu-noi-bat?isNoiBat=1`, {
+    const res = await fetchWithAuth(`${API_URL}/ReadAll`, {
       cache: "no-store",
     });
     if (!res.ok) {
       const errorText = await res.text();
-      console.error("Lỗi khi lấy phiếu giảm giá nổi bật:", errorText);
-      throw new Error("Không thể lấy phiếu giảm giá nổi bật");
+      console.error("❌ Lỗi khi lấy phiếu giảm giá:", errorText);
+      throw new Error("Không thể lấy phiếu giảm giá");
     }
-    return res.json();
+    const allVouchers = await res.json();
+    
+    // Lọc phiếu giảm giá có noiBat = 2 (dành cho đổi điểm)
+    const exchangeVouchers = allVouchers.filter((voucher: PhieuGiamGia) => {
+      return voucher.noiBat === 2;
+    });
+    
+    return exchangeVouchers;
   },
 };

@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { SearchIcon, ShoppingCart, Heart } from "lucide-react";
+import { SearchIcon, ShoppingCart, Heart, Gamepad2 } from "lucide-react";
 import Image from "next/image";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -86,6 +86,17 @@ export default function Header() {
               <SearchIcon className="h-5 w-5" />
             </Button>
           </div>
+
+          {/* Game Button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => router.push("/caro")}
+            className="text-gray-700 transition-colors duration-200 hover:text-purple-600"
+            title="Chơi cờ caro"
+          >
+            <Gamepad2 className="h-5 w-5" />
+          </Button>
 
           {user && (
             <Button
