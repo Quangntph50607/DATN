@@ -26,14 +26,6 @@ const bannerSlides: BannerSlide[] = [
   },
   {
     id: 2,
-    image: "/images/bg_lego.webp",
-    title: "Bộ sưu tập mới",
-    description: "Khám phá những bộ lego mới nhất và độc đáo nhất",
-    buttonText: "KHÁM PHÁ",
-    buttonLink: "/product"
-  },
-  {
-    id: 3,
     image: "/images/photo-1583804227715-93acfe95fb37.jpg",
     title: "Ưu đãi đặc biệt",
     description: "Mua 2 tặng 1 - Cơ hội không thể bỏ lỡ",
@@ -41,12 +33,20 @@ const bannerSlides: BannerSlide[] = [
     buttonLink: "/product"
   },
   {
-    id: 4,
+    id: 3,
     image: "/images/caro1.jpg",
     title: "Trò chơi Cờ Caro",
     description: "Thư giãn với game cờ caro thú vị! Chơi với bạn bè hoặc thử thách AI",
     buttonText: "CHƠI NGAY",
     buttonLink: "/caro"
+  },
+  {
+    id: 4,
+    image: "/images/banner2.jpg",
+    title: "",
+    description: "",
+    buttonText: "",
+    buttonLink: "/product"
   }
 ];
 
@@ -95,7 +95,7 @@ export default function BannerCarousel() {
                   fill
                   priority
                   quality={100}
-                  className="object-cover brightness-110"
+                  className="object-fill brightness-110"
                   sizes="100vw"
                 />
                 
@@ -104,40 +104,40 @@ export default function BannerCarousel() {
                 
                 {/* Nội dung trên banner */}
                 <div className={`relative z-10 flex flex-col h-full px-4 py-12 ${
-                  slide.id === 4 
+                  slide.id === 3 
                     ? 'items-start text-left lg:px-16 lg:justify-center' // Căn trái cho slide caro
                     : 'items-center justify-center text-center' // Căn giữa cho các slide khác
                 }`}>
                   {/* Icon đặc biệt cho slide caro */}
-                  {slide.id === 4 && (
+                  {slide.id === 3 && (
                     <div className="flex items-center justify-center lg:justify-start mb-4">
-                      <div className="bg-slate-800 p-4 rounded-full shadow-lg">
+                      <div className="bg-blue-900 p-4 rounded-full shadow-lg">
                         <Gamepad2 className="w-8 h-8 text-white" />
                       </div>
                     </div>
                   )}
                   
                   <h1 className={`text-4xl md:text-6xl font-bold mb-4 drop-shadow-lg ${
-                    slide.id === 4 
-                      ? 'text-slate-800' 
+                    slide.id === 3 
+                      ? 'text-blue-900' 
                       : 'text-white'
                   }`}>
                     {slide.title}
                   </h1>
                   
                   <p className={`text-xl mb-8 max-w-2xl drop-shadow md:text-2xl ${
-                    slide.id === 4 ? 'text-slate-700' : 'text-white'
+                    slide.id === 3 ? 'text-blue-800' : 'text-white'
                   }`}>
                     {slide.description}
                   </p>
                   
                   <Button className={`font-bold text-lg px-8 py-4 rounded-lg shadow-lg transition-all hover:scale-105 flex items-center ${
-                    slide.id === 4
+                    slide.id === 3
                       ? 'bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white'
                       : 'bg-yellow-400 hover:bg-yellow-500 text-black'
                   }`}>
                     <Link href={slide.buttonLink} className="flex items-center">
-                      {slide.id === 4 && <Gamepad2 className="w-5 h-5 mr-2" />}
+                      {slide.id === 3 && <Gamepad2 className="w-5 h-5 mr-2" />}
                       {slide.buttonText}
                     </Link>
                   </Button>

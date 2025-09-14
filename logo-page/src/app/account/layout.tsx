@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import React, { ReactNode } from "react";
+import React, { ReactNode, useState, useEffect } from "react";
 import { useUserStore } from "@/context/authStore.store";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -62,12 +62,44 @@ export default function Accountlayout({ children }: { children: ReactNode }) {
   const router = useRouter();
   const user = useUserStore((state) => state.user);
   const userName = user?.ten || "";
+  
+  const [isHeaderVisible, setIsHeaderVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      // Nếu scroll xuống dưới và vượt quá 100px thì ẩn header
+      if (currentScrollY > lastScrollY && currentScrollY > 100) {
+        setIsHeaderVisible(false);
+      } 
+      // Nếu scroll lên trên thì hiện header
+      else if (currentScrollY < lastScrollY) {
+        setIsHeaderVisible(true);
+      }
+      
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [lastScrollY]);
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      <Header />
+      <div 
+        className={`fixed top-0 left-0 right-0 z-50 transition-transform duration-300 ease-in-out ${
+          isHeaderVisible ? 'translate-y-0' : '-translate-y-full'
+        }`}
+      >
+        <Header />
+      </div>
 
-      <div className="ml-3 flex flex-1 h-[calc(40vh-40px)]"> {/* Fixed height minus header */}
+      <div className="ml-3 flex flex-1 h-[calc(40vh-40px)] pt-24"> {/* Fixed height minus header + padding top for fixed header */}
         {/* Sidebar - User Profile Card - Fixed width */}
         <aside className="w-80 min-w-80 h-200 bg-white shadow-sm flex flex-col">
           {/* Back to Home Button */}
