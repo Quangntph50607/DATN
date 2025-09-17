@@ -18,10 +18,10 @@ import {
 } from "lucide-react";
 import CallToActionBanner from "./CallToActionBanner";
 import WhyChooseUs from "./WhyChooseUs";
+import BannerCarousel from "./BannerCarousel";
 import { motion } from "framer-motion";
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
+import Image from "next/image";
 import ChatWidget from "@/shared/MessageChatBot";
 
 // Hàm chọn icon lucide-react dựa trên tên danh mục, nếu không match thì lấy icon theo index
@@ -111,34 +111,9 @@ export default function MainHome() {
 
   return (
     <div className="text-black ">
-      {/* Banner */}
-      <div className="w-full">
-        {/* Banner */}
-        <div className="relative h-[500px] w-full overflow-hidden">
-          <Image
-            src="/images/banner1.jpg"
-            alt="Banner"
-            fill
-            priority
-            quality={100}
-            className="object-cover"
-            sizes="100vw"
-          />
 
-          {/* Nội dung trên banner */}
-          <div className="relative z-10 flex flex-col items-center justify-center h-full text-center px-4">
-            <h1 className="text-4xl md:text-6xl font-bold text-black mb-4 drop-shadow-lg">
-              Siêu khuyến mãi
-            </h1>
-            <p className="text-xl mb-8 max-w-2xl text-black drop-shadow md:text-2xl">
-              Giảm giá lên đến 30% toàn bộ sản phẩm lego
-            </p>
-            <Button className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold text-lg px-8 py-4 rounded-lg shadow-lg transition-all hover:scale-105">
-              <Link href="/product">MUA NGAY</Link>
-            </Button>
-          </div>
-        </div>
-      </div>
+      {/* Banner Carousel */}
+      <BannerCarousel />
 
       <Navbar />
       <motion.div
@@ -192,9 +167,8 @@ export default function MainHome() {
                     <Gamepad2 className="w-5 h-5 mr-2" />
                     Chơi ngay
                   </Button>
-                  <Button
-                    variant="outline"
-                    className="border-purple-300 text-purple-600 hover:bg-purple-50 font-semibold px-8 py-3 rounded-lg transition-all"
+                  <Button 
+                    className="border-2 border-purple-400 text-purple-600 bg-white hover:bg-white hover:text-purple-600 hover:border-purple-600 font-semibold px-8 py-3 rounded-lg transition-all hover:scale-105"
                   >
                     Tìm hiểu thêm
                   </Button>
@@ -202,14 +176,32 @@ export default function MainHome() {
               </div>
               <div className="flex-1 flex justify-center">
                 <div className="relative">
-                  <div className="w-64 h-64 bg-gradient-to-br from-purple-100 to-blue-100 rounded-2xl flex items-center justify-center border-2 border-dashed border-purple-300">
-                    <div className="text-center">
-                      <Gamepad2 className="w-16 h-16 text-purple-500 mx-auto mb-4" />
-                      <p className="text-purple-600 font-semibold">
-                        Game Cờ Caro
-                      </p>
-                      <p className="text-sm text-purple-500">15x15 Board</p>
-                    </div>
+                  <div className="w-64 h-64 bg-gradient-to-br from-purple-100 to-blue-100 rounded-2xl overflow-hidden border-2 border-dashed border-purple-300 relative">
+                    <Image 
+                      src="/images/banner_caro.jpg" 
+                      alt="Game Cờ Caro Preview" 
+                      fill
+                      className="object-cover"
+                      onError={(e) => {
+                        // Fallback to icon if image fails to load
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                        const parent = target.parentElement;
+                        if (parent) {
+                          parent.innerHTML = `
+                            <div class="flex items-center justify-center h-full">
+                              <div class="text-center">
+                                <svg class="w-16 h-16 text-purple-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h1m4 0h1m-6-8h8a2 2 0 012 2v8a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2z"></path>
+                                </svg>
+                                <p class="text-purple-600 font-semibold">Game Cờ Caro</p>
+                                <p class="text-sm text-purple-500">15x15 Board</p>
+                              </div>
+                            </div>
+                          `;
+                        }
+                      }}
+                    />
                   </div>
                   <div className="absolute -top-2 -right-2 bg-yellow-400 text-black text-xs font-bold px-2 py-1 rounded-full">
                     FREE
