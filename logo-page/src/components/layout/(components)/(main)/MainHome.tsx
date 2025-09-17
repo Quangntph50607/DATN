@@ -4,45 +4,83 @@ import React from "react";
 import Navbar from "../(pages)/Navbar";
 import { useDanhMuc } from "@/hooks/useDanhMuc";
 import SanPhamListNoBox from "./SanPhamListNoBox";
-import { Building2, Puzzle, Shield, Bot, Car, Rocket, Landmark, Swords, Heart, Gamepad2 } from "lucide-react";
+import {
+  Building2,
+  Puzzle,
+  Shield,
+  Bot,
+  Car,
+  Rocket,
+  Landmark,
+  Swords,
+  Heart,
+  Gamepad2,
+} from "lucide-react";
 import CallToActionBanner from "./CallToActionBanner";
 import WhyChooseUs from "./WhyChooseUs";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import ChatWidget from "@/shared/MessageChatBot";
 
 // Hàm chọn icon lucide-react dựa trên tên danh mục, nếu không match thì lấy icon theo index
-const ICONS = [Building2, Puzzle, Shield, Bot, Car, Rocket, Landmark, Swords, Heart];
+const ICONS = [
+  Building2,
+  Puzzle,
+  Shield,
+  Bot,
+  Car,
+  Rocket,
+  Landmark,
+  Swords,
+  Heart,
+];
 function getCategoryIcon(name: string, idx: number) {
   const lower = name.toLowerCase();
-  if (lower.includes("city")) return <Building2 className="w-10 h-10 text-yellow-500" />;
-  if (lower.includes("star wars")) return <Rocket className="w-10 h-10 text-yellow-500" />;
-  if (lower.includes("quân đội") || lower.includes("army")) return <Shield className="w-10 h-10 text-yellow-500" />;
-  if (lower.includes("siêu xe") || lower.includes("super car") || lower.includes("car")) return <Car className="w-10 h-10 text-yellow-500" />;
-  if (lower.includes("creator")) return <Puzzle className="w-10 h-10 text-yellow-500" />;
-  if (lower.includes("robot")) return <Bot className="w-10 h-10 text-yellow-500" />;
-  if (lower.includes("ninja go") || lower.includes("ninjago") || lower.includes("ninja")) return <Landmark className="w-10 h-10 text-yellow-500" />;
-  if (lower.includes("siêu anh hùng") || lower.includes("super hero")) return <Swords className="w-10 h-10 text-yellow-500" />;
-  if (lower.includes("friends") || lower.includes("heart")) return <Heart className="w-10 h-10 text-yellow-500" />;
+  if (lower.includes("city"))
+    return <Building2 className="w-10 h-10 text-yellow-500" />;
+  if (lower.includes("star wars"))
+    return <Rocket className="w-10 h-10 text-yellow-500" />;
+  if (lower.includes("quân đội") || lower.includes("army"))
+    return <Shield className="w-10 h-10 text-yellow-500" />;
+  if (
+    lower.includes("siêu xe") ||
+    lower.includes("super car") ||
+    lower.includes("car")
+  )
+    return <Car className="w-10 h-10 text-yellow-500" />;
+  if (lower.includes("creator"))
+    return <Puzzle className="w-10 h-10 text-yellow-500" />;
+  if (lower.includes("robot"))
+    return <Bot className="w-10 h-10 text-yellow-500" />;
+  if (
+    lower.includes("ninja go") ||
+    lower.includes("ninjago") ||
+    lower.includes("ninja")
+  )
+    return <Landmark className="w-10 h-10 text-yellow-500" />;
+  if (lower.includes("siêu anh hùng") || lower.includes("super hero"))
+    return <Swords className="w-10 h-10 text-yellow-500" />;
+  if (lower.includes("friends") || lower.includes("heart"))
+    return <Heart className="w-10 h-10 text-yellow-500" />;
   // fallback
   const Icon = ICONS[idx % ICONS.length];
   return <Icon className="w-10 h-10 text-yellow-500" />;
 }
 
 export default function MainHome() {
-  const {
-    data: products,
-  } = useSanPham();
-  const {
-    data: categories,
-  } = useDanhMuc();
+  const { data: products } = useSanPham();
+  const { data: categories } = useDanhMuc();
 
   // Lọc sản phẩm nổi bật từ danh sách sản phẩm khuyến mãi
   const featuredProducts = (products || [])
     .filter((p) => p.noiBat === 1 || p.noiBat === true)
     .map((p) => {
-      const { anhUrls, anhSps } = p as { anhUrls?: { url: string; anhChinh?: boolean }[]; anhSps?: { url: string; anhChinh?: boolean }[] };
+      const { anhUrls, anhSps } = p as {
+        anhUrls?: { url: string; anhChinh?: boolean }[];
+        anhSps?: { url: string; anhChinh?: boolean }[];
+      };
       return {
         ...p,
         maSanPham: p.maSanPham ?? "",
@@ -52,8 +90,20 @@ export default function MainHome() {
         danhGiaTrungBinh: p.danhGiaTrungBinh ?? 0,
         trangThaiKM: "",
         anhUrls: anhUrls
-          ? anhUrls.map(img => ({ id: 0, url: img.url, anhChinh: !!img.anhChinh, moTa: '' }))
-          : (anhSps ? anhSps.map(img => ({ id: 0, url: img.url, anhChinh: !!img.anhChinh, moTa: '' })) : []),
+          ? anhUrls.map((img) => ({
+              id: 0,
+              url: img.url,
+              anhChinh: !!img.anhChinh,
+              moTa: "",
+            }))
+          : anhSps
+          ? anhSps.map((img) => ({
+              id: 0,
+              url: img.url,
+              anhChinh: !!img.anhChinh,
+              moTa: "",
+            }))
+          : [],
         phanTramKhuyenMai: null,
         giaKhuyenMai: p.giaKhuyenMai ?? null,
       };
@@ -61,7 +111,6 @@ export default function MainHome() {
 
   return (
     <div className="text-black ">
-
       {/* Banner */}
       <div className="w-full">
         {/* Banner */}
@@ -102,7 +151,8 @@ export default function MainHome() {
           Sản phẩm nổi bật
         </h2>
         <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-          Những bộ LEGO được yêu thích nhất với chất lượng tuyệt vời và giá cả hấp dẫn
+          Những bộ LEGO được yêu thích nhất với chất lượng tuyệt vời và giá cả
+          hấp dẫn
         </p>
       </motion.div>
       <div className="flex justify-center w-full mt-10">
@@ -131,18 +181,18 @@ export default function MainHome() {
                   </h2>
                 </div>
                 <p className="text-lg text-gray-600 mb-6 max-w-2xl">
-                  Thư giãn với game cờ caro thú vị! Chơi với bạn bè hoặc thử thách AI. 
-                  Hoàn toàn miễn phí và không cần đăng ký.
+                  Thư giãn với game cờ caro thú vị! Chơi với bạn bè hoặc thử
+                  thách AI. Hoàn toàn miễn phí và không cần đăng ký.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
-                  <Button 
-                    onClick={() => window.location.href = '/caro'}
+                  <Button
+                    onClick={() => (window.location.href = "/caro")}
                     className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white font-semibold px-8 py-3 rounded-lg transition-all hover:scale-105"
                   >
                     <Gamepad2 className="w-5 h-5 mr-2" />
                     Chơi ngay
                   </Button>
-                  <Button 
+                  <Button
                     variant="outline"
                     className="border-purple-300 text-purple-600 hover:bg-purple-50 font-semibold px-8 py-3 rounded-lg transition-all"
                   >
@@ -155,7 +205,9 @@ export default function MainHome() {
                   <div className="w-64 h-64 bg-gradient-to-br from-purple-100 to-blue-100 rounded-2xl flex items-center justify-center border-2 border-dashed border-purple-300">
                     <div className="text-center">
                       <Gamepad2 className="w-16 h-16 text-purple-500 mx-auto mb-4" />
-                      <p className="text-purple-600 font-semibold">Game Cờ Caro</p>
+                      <p className="text-purple-600 font-semibold">
+                        Game Cờ Caro
+                      </p>
                       <p className="text-sm text-purple-500">15x15 Board</p>
                     </div>
                   </div>
@@ -178,33 +230,49 @@ export default function MainHome() {
       >
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-4xl lg:text-4xl font-black mb-4 text-blue-900">Danh mục sản phẩm</h2>
-            <p className="text-lg text-gray-600">Khám phá các bộ sưu tập LEGO đa dạng</p>
+            <h2 className="text-4xl lg:text-4xl font-black mb-4 text-blue-900">
+              Danh mục sản phẩm
+            </h2>
+            <p className="text-lg text-gray-600">
+              Khám phá các bộ sưu tập LEGO đa dạng
+            </p>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {categories?.slice(0, 8).map((cat, idx) => (
               <motion.div
                 key={cat.id}
                 className={`lego-card p-6 text-center cursor-pointer group bg-white rounded-2xl border flex flex-col items-center justify-center`}
-                style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
+                style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}
                 whileHover={{
                   scale: 1.05,
-                  boxShadow: '0 8px 24px 0 rgba(0, 132, 255, 0.15)',
-                  borderColor: '#60a5fa', // Tailwind blue-400
+                  boxShadow: "0 8px 24px 0 rgba(0, 132, 255, 0.15)",
+                  borderColor: "#60a5fa", // Tailwind blue-400
                 }}
                 whileTap={{ scale: 0.95 }}
               >
                 <div className="flex justify-center mb-3 group-hover:scale-110 transition-transform">
                   {getCategoryIcon(cat.tenDanhMuc, idx)}
                 </div>
-                <h3 className="font-bold text-gray-800 mb-1 truncate w-full">{cat.tenDanhMuc}</h3>
-                <p className="text-sm text-gray-600">{products ? products.filter(p => p.danhMucId === cat.id && p.trangThai === "Đang kinh doanh").length : "?"} sản phẩm</p>
+                <h3 className="font-bold text-gray-800 mb-1 truncate w-full">
+                  {cat.tenDanhMuc}
+                </h3>
+                <p className="text-sm text-gray-600">
+                  {products
+                    ? products.filter(
+                        (p) =>
+                          p.danhMucId === cat.id &&
+                          p.trangThai === "Đang kinh doanh"
+                      ).length
+                    : "?"}{" "}
+                  sản phẩm
+                </p>
               </motion.div>
             ))}
           </div>
         </div>
       </motion.section>
       <WhyChooseUs />
+      <ChatWidget />
       <CallToActionBanner />
     </div>
   );
