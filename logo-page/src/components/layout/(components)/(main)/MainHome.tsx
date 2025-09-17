@@ -10,6 +10,7 @@ import WhyChooseUs from "./WhyChooseUs";
 import BannerCarousel from "./BannerCarousel";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
 
 // Hàm chọn icon lucide-react dựa trên tên danh mục, nếu không match thì lấy icon theo index
 const ICONS = [Building2, Puzzle, Shield, Bot, Car, Rocket, Landmark, Swords, Heart];
@@ -116,8 +117,7 @@ export default function MainHome() {
                     Chơi ngay
                   </Button>
                   <Button 
-                    variant="outline"
-                    className="border-purple-300 text-purple-600 hover:bg-purple-50 font-semibold px-8 py-3 rounded-lg transition-all"
+                    className="border-2 border-purple-400 text-purple-600 bg-white hover:bg-white hover:text-purple-600 hover:border-purple-600 font-semibold px-8 py-3 rounded-lg transition-all hover:scale-105"
                   >
                     Tìm hiểu thêm
                   </Button>
@@ -125,12 +125,32 @@ export default function MainHome() {
               </div>
               <div className="flex-1 flex justify-center">
                 <div className="relative">
-                  <div className="w-64 h-64 bg-gradient-to-br from-purple-100 to-blue-100 rounded-2xl flex items-center justify-center border-2 border-dashed border-purple-300">
-                    <div className="text-center">
-                      <Gamepad2 className="w-16 h-16 text-purple-500 mx-auto mb-4" />
-                      <p className="text-purple-600 font-semibold">Game Cờ Caro</p>
-                      <p className="text-sm text-purple-500">15x15 Board</p>
-                    </div>
+                  <div className="w-64 h-64 bg-gradient-to-br from-purple-100 to-blue-100 rounded-2xl overflow-hidden border-2 border-dashed border-purple-300 relative">
+                    <Image 
+                      src="/images/banner_caro.jpg" 
+                      alt="Game Cờ Caro Preview" 
+                      fill
+                      className="object-cover"
+                      onError={(e) => {
+                        // Fallback to icon if image fails to load
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                        const parent = target.parentElement;
+                        if (parent) {
+                          parent.innerHTML = `
+                            <div class="flex items-center justify-center h-full">
+                              <div class="text-center">
+                                <svg class="w-16 h-16 text-purple-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h1m4 0h1m-6-8h8a2 2 0 012 2v8a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2z"></path>
+                                </svg>
+                                <p class="text-purple-600 font-semibold">Game Cờ Caro</p>
+                                <p class="text-sm text-purple-500">15x15 Board</p>
+                              </div>
+                            </div>
+                          `;
+                        }
+                      }}
+                    />
                   </div>
                   <div className="absolute -top-2 -right-2 bg-yellow-400 text-black text-xs font-bold px-2 py-1 rounded-full">
                     FREE

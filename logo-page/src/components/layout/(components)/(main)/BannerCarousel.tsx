@@ -105,7 +105,7 @@ export default function BannerCarousel() {
                 {/* Nội dung trên banner */}
                 <div className={`relative z-10 flex flex-col h-full px-4 py-12 ${
                   slide.id === 3 
-                    ? 'items-start text-left lg:px-16 lg:justify-center' // Căn trái cho slide caro
+                    ? 'items-start text-left lg:px-16 lg:justify-center ml-10' // Căn trái cho slide caro
                     : 'items-center justify-center text-center' // Căn giữa cho các slide khác
                 }`}>
                   {/* Icon đặc biệt cho slide caro */}

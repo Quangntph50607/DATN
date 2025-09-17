@@ -126,10 +126,10 @@ export default function AllProductsPage() {
   return (
     <div className="min-h-screen flex flex-col">
       <StickyHeader />
-      <div className="pt-24 relative z-10">
+      <div className="pt-24 relative z-[1000]">
         <Navbar />
       </div>
-      <main className="bg-white text-black relative z-10">
+      <main className="bg-white text-black relative z-0">
         <div className="mb-8 text-center mt-10">
           <h1 className="text-4xl lg:text-4xl font-black mb-4 text-blue-900">
             Lego MyKingDom - Thế giới Lego

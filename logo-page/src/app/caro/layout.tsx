@@ -13,7 +13,7 @@ export default function LuckyWheelLayout({
 
             {/* Breadcrumb */}
             <div className="w-full pt-24 relative z-10">
-                <div className="bg-gray-100 shadow-sm border-b border-gray-100 p-4">
+                <div className="bg-gray-200 shadow-sm border-b border-gray-100 p-4">
                     <div className="max-w-6xl mx-auto">
                         <nav className="flex items-center space-x-2 text-sm text-gray-600">
                             <Link href="/" className="hover:text-blue-600 transition-colors">
