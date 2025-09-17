@@ -21,8 +21,11 @@ import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
-import { useProductNames } from "@/hooks/useProductNames";
+
 import { useSanPham } from "@/hooks/useSanPham";
+
+// Function kiểm tra quyền admin
+
 
 const APPROVE_STATUS_LABELS = {
     CHO_DUYET: "Chờ duyệt",
@@ -162,7 +165,7 @@ function OrderTable({
                     <TableRow className="bg-blue-600 text-white uppercase border-b border-blue-500">
                         <TableHead className="px-4 py-3 font-semibold">Mã Phiếu</TableHead>
                         <TableHead className="px-4 py-3 font-semibold">Loại hoàn</TableHead>
-                        <TableHead className="px-4 py3 font-semibold">Khách hàng</TableHead>
+                        <TableHead className="px-4 py-3 font-semibold">Khách hàng</TableHead>
                         <TableHead className="px-4 py-3 font-semibold">Lý do</TableHead>
                         <TableHead className="px-4 py-3 font-semibold">Phương thức</TableHead>
                         <TableHead className="px-4 py-3 font-semibold">Ngân hàng</TableHead>
@@ -180,14 +183,14 @@ function OrderTable({
                     {isLoading ? (
                         Array.from({ length: 3 }).map((_, idx) => (
                             <TableRow key={idx}>
-                                <TableCell colSpan={13}>
+                                <TableCell colSpan={14}>
                                     <Skeleton className="h-10 w-full bg-gray-700/50" />
                                 </TableCell>
                             </TableRow>
                         ))
                     ) : data.length === 0 ? (
                         <TableRow>
-                            <TableCell colSpan={13} className="text-center py-8 text-gray-300">
+                            <TableCell colSpan={14} className="text-center py-8 text-gray-300">
                                 Không có phiếu hoàn hàng nào.
                             </TableCell>
                         </TableRow>
@@ -251,14 +254,6 @@ function OrderTable({
                                     </Badge>
                                 </TableCell>
                                 <TableCell className="px-4 py-3 flex gap-2 flex-wrap">
-                                    {/* <Button
-                                        variant="secondary"
-                                        size="sm"
-                                        className="bg-blue-600 hover:bg-blue-700 text-white rounded-md text-xs font-semibold border border-blue-500"
-                                        aria-label={`Xem chi tiết phiếu ${order.id}`}
-                                    >
-                                        Chi tiết
-                                    </Button> */}
                                     {order.trangThai === TrangThaiPhieuHoan.CHO_DUYET && (
                                         <>
                                             <Button
@@ -372,6 +367,21 @@ export default function ReturnOrderManager() {
     const [filterRefund, setFilterRefund] = useState<TrangThaiThanhToan | "ALL">("ALL");
     const [search, setSearch] = useState("");
 
+    // Debug: Kiểm tra thông tin admin khi component mount
+    useEffect(() => {
+        const token = localStorage.getItem("access_token");
+        console.log("Admin token:", token ? "Có token" : "Không có token");
+
+        if (token) {
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+
+            } catch (error) {
+                console.error("Lỗi khi parse admin token:", error);
+            }
+        }
+    }, []);
+
     // Pagination state
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
@@ -415,28 +425,75 @@ export default function ReturnOrderManager() {
     };
 
     const handleApprove = async (id: number) => {
-        await duyetMutation.mutateAsync(id);
-        toast.success("Duyệt đơn hoàn thành công!");
+        try {
+            console.log(`Admin đang duyệt phiếu hoàn hàng ID: ${id}`);
+
+            // Kiểm tra token trước khi gửi
+            const token = localStorage.getItem("access_token");
+            if (!token) {
+                toast.error("Bạn cần đăng nhập để thực hiện thao tác này");
+                return;
+            }
+            const message = await duyetMutation.mutateAsync(id);
+            toast.success(message); // message từ backend
+        } catch (error: any) {
+            console.error("Lỗi khi duyệt phiếu hoàn hàng:", error);
+            const errorMessage = error?.message || "Không thể duyệt phiếu hoàn hàng";
+            toast.error(errorMessage);
+        }
     };
 
     const handleReject = async (id: number) => {
-        const lyDo = prompt("Nhập lý do từ chối:");
-        if (!lyDo) return;
-        await tuChoiMutation.mutateAsync({ id, lyDo });
-        toast.success("Từ chối đơn hoàn thành công!");
+        try {
+            const lyDo = prompt("Nhập lý do từ chối:");
+            if (!lyDo || lyDo.trim() === "") {
+                toast.error("Vui lòng nhập lý do từ chối");
+                return;
+            }
+
+            console.log(`Admin đang từ chối phiếu hoàn hàng ID: ${id}, Lý do: ${lyDo}`);
+
+            // Kiểm tra token trước khi gửi
+            const token = localStorage.getItem("access_token");
+            if (!token) {
+                toast.error("Bạn cần đăng nhập để thực hiện thao tác này");
+                return;
+            }
+
+            const message = await tuChoiMutation.mutateAsync({ id, lyDo: lyDo.trim() });
+            toast.success(message); // message từ backend
+        } catch (error: any) {
+            console.error("Lỗi khi từ chối phiếu hoàn hàng:", error);
+            const errorMessage = error?.message || "Không thể từ chối phiếu hoàn hàng";
+            toast.error(errorMessage);
+        }
     };
 
     const handleRefund = async (id: number) => {
-        await capNhatThanhToanMutation.mutateAsync({ id, trangThai: TrangThaiThanhToan.DA_HOAN });
-        toast.success("Hoàn tiền thành công!");
+        try {
+            console.log(`Admin đang cập nhật thanh toán phiếu hoàn hàng ID: ${id}`);
+
+            // Kiểm tra token trước khi gửi
+            const token = localStorage.getItem("access_token");
+            if (!token) {
+                toast.error("Bạn cần đăng nhập để thực hiện thao tác này");
+                return;
+            }
+            const message = await capNhatThanhToanMutation.mutateAsync({ id, trangThai: TrangThaiThanhToan.DA_HOAN });
+            toast.success(message); // message từ backend
+        } catch (error: any) {
+            console.error("Lỗi khi cập nhật thanh toán:", error);
+            const errorMessage = error?.message || "Không thể cập nhật trạng thái thanh toán";
+            toast.error(errorMessage);
+        }
     };
 
     return (
-        <main className="p-6 bg-gray-900 min-h-screen" aria-label="Quản lý phiếu hoàn hàng">
-            <section className="flex flex-col md:flex-row gap-6 mb-8" aria-label="Thống kê phiếu hoàn hàng">
+        <main className="p-6 bg--900 w-full h-full" aria-label="Quản lý phiếu hoàn hàng">
+            {/* <section className="flex flex-col md:flex-row gap-6 mb-8" aria-label="Thống kê phiếu hoàn hàng">
                 <StatCard color="bg-gradient-to-br from-blue-600 to-blue-800" icon={<FaClipboardList />} label="Tổng phiếu" value={stats.total} />
                 <StatCard color="bg-gradient-to-br from-purple-600 to-purple-800" icon={<FaMoneyCheckAlt />} label="Đã hoàn tiền" value={stats.refunded} />
-            </section>
+            </section> */}
 
             <section className="mb-6">
                 <Tabs value={selectedTrangThai} onValueChange={(v) => setSelectedTrangThai(v as TrangThaiPhieuHoan)}>

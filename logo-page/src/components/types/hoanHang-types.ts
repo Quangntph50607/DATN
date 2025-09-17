@@ -61,3 +61,10 @@ export interface ChiTietHoanHangDTO {
     soLuongHoan: number;
 }
 
+// DTO gửi lên backend khi tạo phiếu hoàn hàng có file
+export interface TaoPhieuHoanHangWithFileParams {
+    dto: PhieuHoanHangDTO;
+    fileAnh: File[];
+    fileVid?: File;
+}
+
