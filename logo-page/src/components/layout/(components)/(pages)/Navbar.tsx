@@ -8,7 +8,7 @@ export default function Navbar() {
   return (
     <div className="w-full">
       {/* Đường dẫn dưới banner */}
-      <div className="w-full bg-orange-300 flex gap-6 justify-center py-4 relative z-[1000]">
+      <div className="w-full bg-orange-300 flex gap-6 justify-center py-4  z-[1000]">
         {[
           { href: "/product", label: "Sản phẩm" },
           { href: "/1", label: "Cửa hàng" },
@@ -23,31 +23,33 @@ export default function Navbar() {
             <span className="absolute left-0 -bottom-1 w-0 h-[2px] bg-black rounded-full transition-all duration-300 group-hover:w-full"></span>
           </Link>
         ))}
-        
+
         {/* Dropdown menu cho Games & Rewards */}
-        <div 
+        <div
           className="relative group"
           onMouseEnter={() => setIsDropdownOpen(true)}
           onMouseLeave={() => setIsDropdownOpen(false)}
         >
-          <button
-            className="relative text-lg md:text-xl font-semibold text-gray-800 transition-all duration-300 hover:text-black flex items-center gap-1"
-          >
+          <button className="relative text-lg md:text-xl font-semibold text-gray-800 transition-all duration-300 hover:text-black flex items-center gap-1">
             Giải trí & Thưởng
-            <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
+            <ChevronDown
+              className={`w-4 h-4 transition-transform duration-200 ${
+                isDropdownOpen ? "rotate-180" : ""
+              }`}
+            />
             <span className="absolute left-0 -bottom-1 w-0 h-[2px] bg-black rounded-full transition-all duration-300 group-hover:w-full"></span>
           </button>
-          
+
           {/* Dropdown content */}
           {isDropdownOpen && (
             <>
               {/* Invisible bridge để kết nối button và dropdown */}
-              <div 
+              <div
                 className="absolute top-full left-0 right-0 h-1.5 z-[1100]"
                 onMouseEnter={() => setIsDropdownOpen(true)}
                 onMouseLeave={() => setIsDropdownOpen(false)}
               />
-              <div 
+              <div
                 className="absolute top-full left-1/2 transform -translate-x-1/2 mt-1.5 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-[1100] min-w-[200px]"
                 onMouseEnter={() => setIsDropdownOpen(true)}
                 onMouseLeave={() => setIsDropdownOpen(false)}

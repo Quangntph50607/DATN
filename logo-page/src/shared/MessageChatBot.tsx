@@ -12,11 +12,15 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useChatMessage, useChatSession } from "@/hooks/useChatBox";
+import { KhuyenMaiTheoSanPham } from "@/components/types/khuyenmai-type";
+import Image from "next/image";
+import Link from "next/link";
 
 interface Message {
   sender: "user" | "bot";
   text: string;
   timestamp: Date;
+  products?: KhuyenMaiTheoSanPham[];
 }
 
 export default function ChatWidget() {
@@ -93,6 +97,7 @@ export default function ChatWidget() {
               sender: "bot",
               text: res.message,
               timestamp: new Date(),
+              products: res.products ?? [],
             },
           ]);
         },
@@ -175,6 +180,7 @@ export default function ChatWidget() {
           {/* Messages */}
           <ScrollArea ref={scrollAreaRef} className="flex-1 h-64 p-4">
             <div className="space-y-4">
+              {/* Typing indicator */}
               {messages.map((msg, idx) => (
                 <div
                   key={idx}
@@ -182,6 +188,7 @@ export default function ChatWidget() {
                     msg.sender === "user" ? "items-end" : "items-start"
                   }`}
                 >
+                  {/* Tin nhắn text */}
                   <div
                     className={`rounded-2xl px-3 py-2 text-sm max-w-[85%] break-words ${
                       msg.sender === "user"
@@ -189,32 +196,62 @@ export default function ChatWidget() {
                         : "bg-gray-200 text-gray-800 rounded-bl-md border"
                     }`}
                   >
-                    {msg.text}
+                    <div
+                      dangerouslySetInnerHTML={{
+                        __html: msg.text.replace(/\n/g, "<br/>"),
+                      }}
+                    />
+
+                    {/* Nếu có sản phẩm */}
+                    {msg.products && msg.products.length > 0 && (
+                      <div className="mt-3 space-y-3">
+                        {msg.products.map((p) => {
+                          const imgUrl =
+                            p.anhUrls?.find((a) => a.anhChinh)?.url ??
+                            p.anhUrls?.[0]?.url ??
+                            "/images/placeholder.png"; // thay bằng placeholder phù hợp
+                          return (
+                            <div
+                              key={p.id}
+                              className="bg-white rounded-xl border shadow-sm p-2 flex gap-3 items-start"
+                            >
+                              <div className="relative w-20 h-20 flex-shrink-0">
+                                <Image
+                                  src={imgUrl}
+                                  alt={p.tenSanPham}
+                                  fill
+                                  className="object-cover rounded-md border"
+                                />
+                              </div>
+
+                              <div className="flex-1">
+                                <p className="text-sm font-semibold">
+                                  {p.tenSanPham}
+                                </p>
+                                <p className="text-xs text-gray-500">
+                                  {p.gia.toLocaleString("vi-VN")} ₫
+                                </p>
+
+                                <Button
+                                  size="sm"
+                                  className="mt-1 bg-orange-600 hover:bg-orange-700 text-xs rounded-full"
+                                >
+                                  <Link href={`/product/${p.id}`}>
+                                    Xem chi tiết
+                                  </Link>
+                                </Button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                   <span className="text-xs text-gray-400 mt-1">
                     {formatTime(msg.timestamp)}
                   </span>
                 </div>
               ))}
-
-              {/* Typing indicator */}
-              {sendMessage.isPending && (
-                <div className="flex items-start">
-                  <div className="bg-gray-100 rounded-2xl rounded-bl-md px-3 py-2 border">
-                    <div className="flex space-x-1">
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                      <div
-                        className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                        style={{ animationDelay: "0.1s" }}
-                      ></div>
-                      <div
-                        className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                        style={{ animationDelay: "0.2s" }}
-                      ></div>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
           </ScrollArea>
 
