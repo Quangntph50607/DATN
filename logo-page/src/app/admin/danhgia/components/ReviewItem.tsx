@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
 import Image from "next/image";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -118,11 +117,7 @@ export default function ReviewItem({
 
     return (
         <>
-            <motion.div
-                layout
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20, transition: { duration: 0.2 } }}
+            <div
                 className={`p-6 bg-white dark:bg-gray-800 rounded-xl border-2 transition-all duration-300 shadow-md hover:shadow-lg ${isSelected
                     ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
                     : 'border-gray-100 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600'
@@ -306,7 +301,7 @@ export default function ReviewItem({
                         <p className="text-sm text-gray-700 dark:text-gray-300">{review.textPhanHoi}</p>
                     </div>
                 )}
-            </motion.div>
+            </div>
 
             <ReplyDialog
                 isOpen={isReplyDialogOpen}

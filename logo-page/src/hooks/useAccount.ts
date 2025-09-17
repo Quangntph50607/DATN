@@ -82,3 +82,14 @@ export const useSoftDeleteAccount = () => {
   });
 };
 
+// Cộng điểm khi thắng trò chơi
+export const useAddPoints = () => {
+  const queryClient = useQueryClient();
+  return useMutation<{ message: string }, Error, { userId: number; diemCong?: number }>({
+    mutationFn: ({ userId, diemCong = 100 }) => accountService.addPoints(userId, diemCong),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["accounts"] });
+    },
+  });
+};
+

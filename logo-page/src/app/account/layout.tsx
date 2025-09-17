@@ -7,7 +7,7 @@ import { useUserStore } from "@/context/authStore.store";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, User, ShoppingBag, MapPin, Tag, Lock, Heart } from "lucide-react";
+import { ArrowLeft, User, ShoppingBag, MapPin, Tag, Lock, Heart, Gift } from "lucide-react";
 import Header from "@/components/layout/(components)/(pages)/Header";
 import Footer from "@/components/layout/(components)/(pages)/Footer";
 import { useRouter } from "next/navigation";
@@ -42,6 +42,12 @@ const menus = [
     href: "/account/vouchers",
     icon: Tag,
     bgColor: "bg-orange-100"
+  },
+  {
+    label: "Đổi điểm lấy phiếu",
+    href: "/account/exchange-points",
+    icon: Gift,
+    bgColor: "bg-gradient-to-r from-orange-100 to-red-100"
   },
   {
     label: "Đổi mật khẩu",

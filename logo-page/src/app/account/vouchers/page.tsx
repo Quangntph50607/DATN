@@ -8,9 +8,10 @@ import { Badge } from "@/components/ui/badge";
 import { viPhieuGiamService } from "@/services/viPhieuGiamService";
 import { format, isValid } from "date-fns";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { TicketPercent, ArrowRight, ClipboardCopy } from "lucide-react";
+import { TicketPercent, ArrowRight, ClipboardCopy, Gift, Coins } from "lucide-react";
 import { ToastProvider } from "@/components/ui/toast-provider";
 import { useToast } from "@/context/use-toast";
+import { useUserStore } from "@/context/authStore.store";
 
 interface Voucher {
     id: number;
@@ -73,6 +74,7 @@ const VoucherPageContent = () => {
     const [userId, setUserId] = useState<number | null>(null);
     const [error, setError] = useState<string | null>(null);
     const { toast } = useToast();
+    const { user } = useUserStore();
 
     useEffect(() => {
         const id = getUserIdFromLocalStorage();
@@ -126,6 +128,7 @@ const VoucherPageContent = () => {
         }
     };
 
+
     const handleCopy = async (text?: string) => {
         if (!text) return;
         try {
@@ -162,8 +165,25 @@ const VoucherPageContent = () => {
             <Card className="mb-6 bg-gradient-to-r from-peach-400 via-orange-300 to-yellow-300 text-gray-900 shadow-lg border-0">
                 <CardHeader>
                     <CardTitle className="flex flex-col md:flex-row justify-between items-center p-4">
-                        <span className="text-2xl font-extrabold drop-shadow-sm">Voucher Của Tôi</span>
+                        <div className="flex flex-col">
+                            <span className="text-2xl font-extrabold drop-shadow-sm">Voucher Của Tôi</span>
+                            <div className="flex items-center gap-2 mt-1 text-sm">
+                                <Coins className="h-4 w-4 text-yellow-600" />
+                                <span className="text-yellow-800 font-medium">
+                                    Điểm hiện tại: {user?.diemTichLuy || 0}
+                                </span>
+                            </div>
+                        </div>
                         <div className="flex items-center gap-3 mt-2 md:mt-0">
+                            <Button
+                                asChild
+                                className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-0"
+                            >
+                                <Link href="/account/exchange-points">
+                                    <Gift className="mr-2 h-4 w-4" />
+                                    Đổi điểm lấy phiếu
+                                </Link>
+                            </Button>
                             <Button
                                 variant="outline"
                                 className="border-blue-300 text-blue-700 bg-blue-50 hover:bg-blue-100 hover:text-blue-800 transition-colors"
@@ -293,7 +313,7 @@ const VoucherPageContent = () => {
                                                     <Button
                                                         className={[
                                                             "transition-all",
-                                                            "bg-gradient-to-r from-yellow-500 to-orange-500 to-yellow-500 text-white",
+                                                            "bg-gradient-to-r from-yellow-500 to-orange-500 text-white",
                                                             "hover:from-yellow-600 hover:to-yellow-600",
                                                             "shadow-md hover:shadow-lg",
                                                             !canUse ? "opacity-60 cursor-not-allowed" : "",
@@ -325,6 +345,7 @@ const VoucherPageContent = () => {
                     );
                 })}
             </div>
+
         </div>
     );
 };

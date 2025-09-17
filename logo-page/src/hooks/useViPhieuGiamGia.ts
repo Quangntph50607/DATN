@@ -1,6 +1,7 @@
 import { PhieuGiamGiaResponse } from "@/components/types/vi-phieu-giam-gia";
 import { viPhieuGiamGiaService } from "@/services/viHoaDonUserService";
-import { useQuery } from "@tanstack/react-query";
+import { viPhieuGiamService } from "@/services/viPhieuGiamService";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 export function useGetViPhieuGiamGiaTheoUser(
   userId: number | undefined,
@@ -13,5 +14,20 @@ export function useGetViPhieuGiamGiaTheoUser(
       return viPhieuGiamGiaService.getHoaDonTheoUser(userId, trangThai);
     },
     enabled: !!userId, // chỉ gọi khi userId tồn tại
+  });
+}
+
+export function useDoiDiemLayPhieu() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: (data: { userId: number; phieuGiamGiaId: number }) => 
+      viPhieuGiamService.doiDiemLayPhieu(data),
+    onSuccess: (data, variables) => {
+      // Invalidate và refetch danh sách phiếu giảm giá của user
+      queryClient.invalidateQueries({
+        queryKey: ["viPhieuGiamGiaTheoUser", variables.userId]
+      });
+    },
   });
 }

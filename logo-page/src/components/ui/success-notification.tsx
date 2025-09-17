@@ -7,7 +7,7 @@ interface SuccessNotificationProps {
     onClose: () => void;
 }
 
-export function SuccessNotification({ isVisible, message, onClose }: SuccessNotificationProps) {
+export function SuccessNotification({ isVisible, message }: SuccessNotificationProps) {
     if (!isVisible) return null;
 
     return (
