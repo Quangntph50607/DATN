@@ -284,6 +284,8 @@ export default function OrderHistoryPage() {
                     handleReorder={handleReorder}
                     cancelingId={cancelingId}
                     reorderingId={reorderingId}
+                    handleReturnOrder={() => { }} // TODO: Implement return order logic if needed
+                    returningId={null} // TODO: Set returningId state if needed
                 />
 
                 <OrderDetailModal
