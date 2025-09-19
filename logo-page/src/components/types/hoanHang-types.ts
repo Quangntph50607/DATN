@@ -5,6 +5,7 @@ export enum TrangThaiPhieuHoan {
     CHO_DUYET = "CHO_DUYET",
     DA_DUYET = "DA_DUYET",
     TU_CHOI = "TU_CHOI",
+    DA_KIEM_TRA_HANG = "DA_KIEM_TRA_HANG",
 }
 
 export enum TrangThaiThanhToan {
@@ -42,6 +43,11 @@ export interface PhieuHoanHang {
     ngayHoanTien?: string;
     hoaDon?: HoaDonDTO;
     chiTietHoanHangs?: ChiTietHoanHang[];
+    // Media minh chứng (nếu backend trả về)
+    anhMinhChung?: string[];
+    videoMinhChung?: string;
+    // Một số BE trả về danh sách ảnh dạng object { id, url, anhChinh }
+    anhs?: { id: number; url: string; anhChinh?: boolean | null }[];
 }
 
 // ===== DTO GỬI LÊN BACKEND =====

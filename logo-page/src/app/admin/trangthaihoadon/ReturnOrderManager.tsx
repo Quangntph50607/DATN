@@ -13,6 +13,7 @@ import {
     useDuyetPhieuHoanHang,
     usePhieuHoanByTrangThai,
     useTuChoiPhieuHoanHang,
+    useKiemTraHang,
 } from "@/hooks/useHoanHang";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -21,6 +22,8 @@ import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 import { useSanPham } from "@/hooks/useSanPham";
 
@@ -31,12 +34,14 @@ const APPROVE_STATUS_LABELS = {
     CHO_DUYET: "Chờ duyệt",
     DA_DUYET: "Đã duyệt",
     TU_CHOI: "Từ chối",
+    DA_KIEM_TRA_HANG: "Đã kiểm tra hàng",
 };
 
 const APPROVE_STATUS_COLOR = {
     CHO_DUYET: "bg-yellow-100 text-yellow-800 border-yellow-300",
     DA_DUYET: "bg-green-100 text-green-800 border-green-300",
     TU_CHOI: "bg-red-100 text-red-800 border-red-300",
+    DA_KIEM_TRA_HANG: "bg-blue-100 text-blue-800 border-blue-300",
 };
 
 const REFUND_STATUS_LABELS = {
@@ -55,6 +60,7 @@ const TRANG_THAI_OPTIONS = [
     { value: TrangThaiPhieuHoan.CHO_DUYET, label: "Chờ duyệt", icon: <MdOutlinePendingActions className="text-yellow-500" /> },
     { value: TrangThaiPhieuHoan.DA_DUYET, label: "Đã duyệt", icon: <FaCheckCircle className="text-green-500" /> },
     { value: TrangThaiPhieuHoan.TU_CHOI, label: "Từ chối", icon: <FaTimesCircle className="text-red-500" /> },
+    { value: TrangThaiPhieuHoan.DA_KIEM_TRA_HANG, label: "Đã kiểm tra hàng", icon: <FaClipboardList className="text-blue-500" /> },
 ];
 
 function formatMoney(value: number) {
@@ -143,6 +149,8 @@ interface OrderTableProps {
     duyetMutation: { isPending: boolean };
     tuChoiMutation: { isPending: boolean };
     capNhatThanhToanMutation: { isPending: boolean };
+    handleKiemTraHang: (idPhieu: number, suDungDuoc: boolean) => void;
+    kiemTraHangPending: boolean;
 }
 
 function OrderTable({
@@ -154,6 +162,8 @@ function OrderTable({
     duyetMutation,
     tuChoiMutation,
     capNhatThanhToanMutation,
+    handleKiemTraHang,
+    kiemTraHangPending,
 }: OrderTableProps) {
     // Lấy toàn bộ danh sách sản phẩm
     const { data: allProducts } = useSanPham();
@@ -291,10 +301,27 @@ function OrderTable({
                                                 Hoàn tiền
                                             </Button>
                                         )}
-                                    {order.trangThaiThanhToan === TrangThaiThanhToan.DA_HOAN && (
-                                        <Badge className="bg-gray-200 text-gray-800 rounded-md text-xs font-semibold border border-gray-300">
-                                            Đã hoàn xong
-                                        </Badge>
+                                    {order.trangThai === TrangThaiPhieuHoan.DA_DUYET && order.trangThaiThanhToan === TrangThaiThanhToan.DA_HOAN && (
+                                        <div className="flex gap-2 flex-wrap">
+                                            <Button
+                                                variant="default"
+                                                size="sm"
+                                                className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-md text-xs font-semibold border border-emerald-500"
+                                                onClick={() => handleKiemTraHang(order.id, true)}
+                                                disabled={kiemTraHangPending}
+                                            >
+                                                Hàng còn sử dụng được
+                                            </Button>
+                                            <Button
+                                                variant="destructive"
+                                                size="sm"
+                                                className="bg-orange-600 hover:bg-orange-700 text-white rounded-md text-xs font-semibold border border-orange-500"
+                                                onClick={() => handleKiemTraHang(order.id, false)}
+                                                disabled={kiemTraHangPending}
+                                            >
+                                                Hàng không sử dụng được
+                                            </Button>
+                                        </div>
                                     )}
                                     {order.trangThai === TrangThaiPhieuHoan.TU_CHOI && (
                                         <Badge className="bg-gray-200 text-gray-800 rounded-md text-xs font-semibold border border-gray-300">
@@ -390,6 +417,22 @@ export default function ReturnOrderManager() {
     const duyetMutation = useDuyetPhieuHoanHang();
     const tuChoiMutation = useTuChoiPhieuHoanHang();
     const capNhatThanhToanMutation = useCapNhatThanhToanPhieuHoanHang();
+    const kiemTraHangMutation = useKiemTraHang();
+
+    // Dialog duyệt phiếu (xác nhận có video & hình ảnh & lý do)
+    const [approveDialogOpen, setApproveDialogOpen] = useState(false);
+    const [approveTargetId, setApproveTargetId] = useState<number | null>(null);
+    const [approveReason, setApproveReason] = useState<string>("");
+    const [mediaImages, setMediaImages] = useState<string[]>([]);
+    const [mediaVideo, setMediaVideo] = useState<string | null>(null);
+
+    // Dialog xác nhận hoàn tiền
+    const [refundDialogOpen, setRefundDialogOpen] = useState(false);
+    const [refundTargetId, setRefundTargetId] = useState<number | null>(null);
+    const [refundBankName, setRefundBankName] = useState<string>("");
+    const [refundAccountNumber, setRefundAccountNumber] = useState<string>("");
+    const [refundAccountOwner, setRefundAccountOwner] = useState<string>("");
+    const [refundAmount, setRefundAmount] = useState<number>(0);
 
     let filteredData: PhieuHoanHang[] = (phieuHoanData ?? []);
     if (filterRefund !== "ALL") {
@@ -424,18 +467,71 @@ export default function ReturnOrderManager() {
         toast.info("Đã làm mới bộ lọc!");
     };
 
-    const handleApprove = async (id: number) => {
-        try {
-            console.log(`Admin đang duyệt phiếu hoàn hàng ID: ${id}`);
+    const handleApprove = (id: number) => {
+        // Mở dialog để xác nhận, yêu cầu nhập đủ dữ liệu trước khi duyệt
+        setApproveTargetId(id);
+        setApproveReason("");
+        // Lấy media từ phiếu trong danh sách hiện tại (map từ anhs -> url)
+        const found = (phieuHoanData || []).find((p) => p.id === id) as any;
+        setApproveReason(found?.lyDo || "");
+        const urlsFromAnhs: string[] = (found?.anhs || []).map((a: any) => a?.url).filter(Boolean);
+        const isVideoUrl = (u: string) => /\.(mp4|webm|ogg)(\?|$)/i.test(u) || u.includes("/video/");
+        const videoFromAnhs = urlsFromAnhs.find(isVideoUrl) || null;
+        const imagesFromAnhs = urlsFromAnhs.filter((u) => !isVideoUrl(u));
 
-            // Kiểm tra token trước khi gửi
+        const imgs = (found?.anhMinhChung && found.anhMinhChung.length > 0)
+            ? found.anhMinhChung
+            : imagesFromAnhs;
+        setMediaImages(imgs || []);
+
+        const candidateVideo =
+            videoFromAnhs ||
+            found?.videoMinhChung ||
+            found?.video ||
+            found?.videoUrl ||
+            found?.urlVideo ||
+            found?.fileVid ||
+            found?.fileVidUrl ||
+            (found?.media && (found.media.videoUrl || found.media.video)) ||
+            (Array.isArray(found?.videos) && found.videos.length > 0 && (found.videos[0]?.url || found.videos[0])) ||
+            null;
+        setMediaVideo(candidateVideo || null);
+        setApproveDialogOpen(true);
+    };
+
+    const confirmApprove = async () => {
+        if (!approveTargetId) return;
+        // Validate hiển thị: đảm bảo có dữ liệu từ phiếu (nếu backend cung cấp)
+        if (!approveReason.trim()) {
+            toast.error("Phiếu chưa có lý do hoàn hàng");
+            return;
+        }
+        try {
+            console.log(`Admin xác nhận duyệt phiếu hoàn hàng ID: ${approveTargetId}`);
+            console.log("Lý do hoàn:", approveReason);
+            console.log("Video từ phiếu:", mediaVideo);
+            console.log("Số ảnh từ phiếu:", mediaImages.length);
+
+            // Chặn an toàn: Không cho duyệt nếu tổng tiền hoàn > tổng tiền hóa đơn (tránh vi phạm CHECK ở BE)
+            const found = (phieuHoanData || []).find((p) => p.id === approveTargetId);
+            const hoaDonTongTien = Number(found?.hoaDon?.tongTien ?? NaN);
+            const tongTienHoan = Number(found?.tongTienHoan ?? NaN);
+            if (!Number.isNaN(hoaDonTongTien) && !Number.isNaN(tongTienHoan) && tongTienHoan > hoaDonTongTien) {
+                toast.error("Tổng tiền hoàn vượt quá tổng tiền hóa đơn. Không thể duyệt.");
+                return;
+            }
+
             const token = localStorage.getItem("access_token");
             if (!token) {
                 toast.error("Bạn cần đăng nhập để thực hiện thao tác này");
                 return;
             }
-            const message = await duyetMutation.mutateAsync(id);
-            toast.success(message); // message từ backend
+            // Hiện tại backend duyệt chỉ cần id, các file và lý do là bước xác nhận UI
+            const message = await duyetMutation.mutateAsync(approveTargetId);
+            toast.success(message);
+            setApproveDialogOpen(false);
+            // Gợi ý: sau duyệt có thể hoàn tiền hoặc kiểm tra hàng
+            toast.info("Phiếu đã duyệt. Bạn có thể tiến hành hoàn tiền và kiểm tra hàng.");
         } catch (error: any) {
             console.error("Lỗi khi duyệt phiếu hoàn hàng:", error);
             const errorMessage = error?.message || "Không thể duyệt phiếu hoàn hàng";
@@ -469,22 +565,64 @@ export default function ReturnOrderManager() {
         }
     };
 
-    const handleRefund = async (id: number) => {
-        try {
-            console.log(`Admin đang cập nhật thanh toán phiếu hoàn hàng ID: ${id}`);
+    const handleRefund = (id: number) => {
+        // Mở dialog xác nhận hoàn tiền với thông tin từ phiếu
+        const found = (phieuHoanData || []).find((p) => p.id === id);
+        setRefundTargetId(id);
+        setRefundBankName(found?.tenNganHang || "");
+        setRefundAccountNumber(found?.soTaiKhoan || "");
+        setRefundAccountOwner(found?.chuTaiKhoan || "");
+        setRefundAmount(Number(found?.tongTienHoan || 0));
+        setRefundDialogOpen(true);
+    };
 
-            // Kiểm tra token trước khi gửi
+    const confirmRefund = async () => {
+        if (!refundTargetId) return;
+        try {
+            console.log(`Admin xác nhận hoàn tiền phiếu ID: ${refundTargetId}`);
             const token = localStorage.getItem("access_token");
             if (!token) {
                 toast.error("Bạn cần đăng nhập để thực hiện thao tác này");
                 return;
             }
-            const message = await capNhatThanhToanMutation.mutateAsync({ id, trangThai: TrangThaiThanhToan.DA_HOAN });
-            toast.success(message); // message từ backend
+            const message = await capNhatThanhToanMutation.mutateAsync({ id: refundTargetId, trangThai: TrangThaiThanhToan.DA_HOAN });
+            toast.success(message);
+            setRefundDialogOpen(false);
+            // Sau khi hoàn tiền xong, hiển thị toast gợi ý kiểm tra hàng
+            toast.info("Vui lòng kiểm tra tình trạng hàng: còn sử dụng được hay không.");
         } catch (error: any) {
             console.error("Lỗi khi cập nhật thanh toán:", error);
             const errorMessage = error?.message || "Không thể cập nhật trạng thái thanh toán";
             toast.error(errorMessage);
+        }
+    };
+
+    const handleKiemTraHang = async (idPhieu: number, suDungDuoc: boolean) => {
+        try {
+            const found = (phieuHoanData || []).find((p) => p.id === idPhieu);
+            // Chặn sai trạng thái để tránh vi phạm CHECK ở BE
+            if (!found || found.trangThai !== TrangThaiPhieuHoan.DA_DUYET || found.trangThaiThanhToan !== TrangThaiThanhToan.DA_HOAN) {
+                toast.error("Phiếu chưa ở trạng thái hợp lệ (ĐÃ DUYỆT và ĐÃ HOÀN) để kiểm tra hàng");
+                return;
+            }
+            const ketQuaList = (found?.chiTietHoanHangs || [])
+                .map((ct: any) => {
+                    const idSanPham = Number((ct as any).idSanPham || ct?.sanPham?.id);
+                    const soLuongHoan = Number((ct as any).soLuongHoan || 0);
+                    return { idSanPham, suDungDuoc, soLuongHoan };
+                })
+                .filter(x => x.idSanPham && x.soLuongHoan > 0);
+
+            if (!ketQuaList.length) {
+                toast.error("Không có sản phẩm hợp lệ (số lượng hoàn > 0) để kiểm tra");
+                return;
+            }
+
+            const message = await kiemTraHangMutation.mutateAsync({ idPhieu, ketQuaList });
+            toast.success(message);
+        } catch (error: any) {
+            const msg = error?.message || "Không thể gửi kết quả kiểm tra hàng";
+            toast.error(msg);
         }
     };
 
@@ -528,6 +666,8 @@ export default function ReturnOrderManager() {
                     duyetMutation={duyetMutation}
                     tuChoiMutation={tuChoiMutation}
                     capNhatThanhToanMutation={capNhatThanhToanMutation}
+                    handleKiemTraHang={handleKiemTraHang}
+                    kiemTraHangPending={kiemTraHangMutation.isPending}
                 />
                 <Pagination
                     total={filteredData.length}
@@ -537,6 +677,111 @@ export default function ReturnOrderManager() {
                     onPageSizeChange={size => { setPageSize(size); setPage(1); }}
                 />
             </section>
+            <Dialog open={approveDialogOpen} onOpenChange={setApproveDialogOpen}>
+                <DialogContent className="bg-gray-900 text-white border border-gray-700">
+                    <DialogHeader>
+                        <DialogTitle>Xác nhận duyệt phiếu hoàn hàng</DialogTitle>
+                        <DialogDescription className="text-gray-300">
+                            Vui lòng bổ sung video, hình ảnh minh chứng và lý do hoàn hàng trước khi duyệt.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="grid gap-4 py-2">
+                        <div className="grid gap-2">
+                            <label className="text-sm text-gray-300">Lý do hoàn</label>
+                            <Textarea value={approveReason} readOnly className="bg-gray-800 border border-gray-700 opacity-90" />
+                        </div>
+
+                        {mediaVideo && (
+                            <div className="grid gap-2">
+                                <label className="text-sm text-gray-300">Video minh chứng</label>
+                                <video src={mediaVideo} controls className="w-full rounded-md border border-gray-700" />
+                            </div>
+                        )}
+                        {!mediaVideo && (
+                            <div className="text-sm text-gray-400">Không tìm thấy video minh chứng từ phiếu.</div>
+                        )}
+
+                        {mediaImages && mediaImages.length > 0 && (
+                            <div className="grid gap-2">
+                                <label className="text-sm text-gray-300">Hình ảnh minh chứng</label>
+                                <div className="grid grid-cols-3 gap-2">
+                                    {mediaImages.map((url, i) => (
+                                        <img key={i} src={url} alt={`Ảnh minh chứng ${i + 1}`} className="w-full h-24 object-cover rounded-md border border-gray-700" />
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    <DialogFooter>
+                        <Button
+                            variant="ghost"
+                            className="bg-gray-700 hover:bg-gray-600 border border-gray-600"
+                            onClick={() => setApproveDialogOpen(false)}
+                        >
+                            Hủy
+                        </Button>
+                        <Button
+                            variant="default"
+                            className="bg-green-600 hover:bg-green-700"
+                            onClick={confirmApprove}
+                            disabled={duyetMutation.isPending}
+                        >
+                            Xác nhận duyệt
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Dialog xác nhận hoàn tiền */}
+            <Dialog open={refundDialogOpen} onOpenChange={setRefundDialogOpen}>
+                <DialogContent className="bg-gray-900 text-white border border-gray-700">
+                    <DialogHeader>
+                        <DialogTitle>Xác nhận hoàn tiền</DialogTitle>
+                        <DialogDescription className="text-gray-300">
+                            Kiểm tra thông tin tài khoản nhận tiền trước khi xác nhận hoàn.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="grid gap-3 py-1">
+                        <div className="grid gap-1">
+                            <label className="text-sm text-gray-300">Chủ tài khoản</label>
+                            <Input value={refundAccountOwner} readOnly className="bg-gray-800 border border-gray-700" />
+                        </div>
+                        <div className="grid gap-1">
+                            <label className="text-sm text-gray-300">Số tài khoản</label>
+                            <Input value={refundAccountNumber} readOnly className="bg-gray-800 border border-gray-700" />
+                        </div>
+                        <div className="grid gap-1">
+                            <label className="text-sm text-gray-300">Ngân hàng</label>
+                            <Input value={refundBankName} readOnly className="bg-gray-800 border border-gray-700" />
+                        </div>
+                        <div className="grid gap-1">
+                            <label className="text-sm text-gray-300">Số tiền hoàn</label>
+                            <Input value={formatMoney(refundAmount)} readOnly className="bg-gray-800 border border-gray-700 font-semibold text-green-400" />
+                        </div>
+                    </div>
+
+                    <DialogFooter>
+                        <Button
+                            variant="ghost"
+                            className="bg-gray-700 hover:bg-gray-600 border border-gray-600"
+                            onClick={() => setRefundDialogOpen(false)}
+                        >
+                            Hủy
+                        </Button>
+                        <Button
+                            variant="default"
+                            className="bg-indigo-600 hover:bg-indigo-700"
+                            onClick={confirmRefund}
+                            disabled={capNhatThanhToanMutation.isPending}
+                        >
+                            Xác nhận hoàn tiền
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </main>
     );
 }

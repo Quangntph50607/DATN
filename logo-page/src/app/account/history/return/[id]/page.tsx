@@ -36,6 +36,8 @@ export default function ReturnForm() {
     const [otherReason, setOtherReason] = useState<string>("");
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
     const [selectedVideo, setSelectedVideo] = useState<File | undefined>(undefined);
+    const [previewImages, setPreviewImages] = useState<string[]>([]);
+    const [previewVideo, setPreviewVideo] = useState<string | undefined>(undefined);
     const [refundMethod, setRefundMethod] = useState<"bank" | "store">("bank");
     const [bankOwner, setBankOwner] = useState<string>("");
     const [bankNumber, setBankNumber] = useState<string>("");
@@ -44,6 +46,7 @@ export default function ReturnForm() {
         items?: string;
         itemQty?: Record<number, string>;
         reason?: string;
+        video?: string;
         bankOwner?: string;
         bankNumber?: string;
         bankName?: string;
@@ -65,21 +68,118 @@ export default function ReturnForm() {
     const [items, setItems] = useState<SelectableItem[]>([]);
     const taoPhieuHoan = useTaoPhieuHoanHangWithFile();
 
+    // Function format ngày tháng
+    const formatDate = (dateInput: any) => {
+        try {
+            if (!dateInput) return 'Không xác định';
+
+            let date: Date;
+
+            // Xử lý trường hợp ngayTao là array [year, month, day, hour, minute, second, nanoseconds]
+            if (Array.isArray(dateInput) && dateInput.length >= 6) {
+                console.log("Xử lý array date:", dateInput);
+                // Array format: [year, month, day, hour, minute, second, nanoseconds]
+                const [year, month, day, hour, minute, second, nanoseconds] = dateInput;
+
+                // Chuyển nanoseconds thành milliseconds (chia cho 1,000,000)
+                const milliseconds = nanoseconds ? Math.floor(nanoseconds / 1000000) : 0;
+
+                // Tạo Date object (month trong array là 0-based, nên cần -1)
+                date = new Date(year, month - 1, day, hour, minute, second, milliseconds);
+
+                console.log("Date created from array:", date);
+            } else if (typeof dateInput === 'string' || typeof dateInput === 'number') {
+                // Xử lý string hoặc timestamp
+                date = new Date(dateInput);
+            } else if (dateInput instanceof Date) {
+                date = dateInput;
+            } else {
+                console.log("Unknown date format:", typeof dateInput, dateInput);
+                return 'Định dạng ngày không hỗ trợ';
+            }
+
+            if (isNaN(date.getTime())) {
+                console.log("Invalid date:", date);
+                return 'Ngày không hợp lệ';
+            }
+
+            return date.toLocaleDateString("vi-VN", {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        } catch (error) {
+            console.error("Lỗi format ngày:", error, "Input:", dateInput);
+            return 'Lỗi hiển thị ngày';
+        }
+    };
+
+    // Function xử lý chọn ảnh
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(e.target.files || []);
+        if (files.length > 0) {
+            setSelectedFiles(files);
+
+            // Tạo preview URLs
+            const previews = files.map(file => URL.createObjectURL(file));
+            setPreviewImages(previews);
+        }
+    };
+
+    // Function xử lý chọn video
+    const handleVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setSelectedVideo(file);
+
+            // Tạo preview URL
+            const preview = URL.createObjectURL(file);
+            setPreviewVideo(preview);
+        }
+    };
+
+    // Function xóa ảnh
+    const removeImage = (index: number) => {
+        const newFiles = selectedFiles.filter((_, i) => i !== index);
+        const newPreviews = previewImages.filter((_, i) => i !== index);
+
+        setSelectedFiles(newFiles);
+        setPreviewImages(newPreviews);
+
+        // Revoke URL để tránh memory leak
+        URL.revokeObjectURL(previewImages[index]);
+    };
+
+    // Function xóa video
+    const removeVideo = () => {
+        if (previewVideo) {
+            URL.revokeObjectURL(previewVideo);
+        }
+        setSelectedVideo(undefined);
+        setPreviewVideo(undefined);
+    };
+
+    // Cleanup URLs khi component unmount
+    useEffect(() => {
+        return () => {
+            previewImages.forEach(url => URL.revokeObjectURL(url));
+            if (previewVideo) {
+                URL.revokeObjectURL(previewVideo);
+            }
+        };
+    }, [previewImages, previewVideo]);
+
     useEffect(() => {
         const fetchData = async () => {
             if (!id) return;
             try {
                 // Debug: Kiểm tra token và user info
                 const token = localStorage.getItem("access_token");
-                console.log("Token trong localStorage:", token ? "Có" : "Không có");
-
                 const numericId = Number(id);
                 const orderData = await HoaDonService.getHoaDonById(numericId);
                 const chiTiet = await HoaDonService.getChiTietSanPhamByHoaDonId(numericId);
-
-                // Debug: Kiểm tra orderData có đầy đủ thông tin không
-                console.log("Raw orderData:", orderData);
-
                 const enriched = {
                     ...orderData,
                     chiTietSanPham: (chiTiet || []).map((ct: any) => ({
@@ -93,7 +193,12 @@ export default function ReturnForm() {
                     enriched.user = { id: enriched.userId };
                 }
 
-                console.log("Enriched order data:", enriched);
+                // Debug: Kiểm tra dữ liệu ngày
+                console.log("Order data keys:", Object.keys(enriched));
+                console.log("Ngày đặt (ngayTao):", enriched.ngayTao);
+                console.log("Ngày đặt type:", typeof enriched.ngayTao);
+                console.log("Ngày đặt formatted:", formatDate(enriched.ngayTao));
+
                 setOrder(enriched);
                 let productMap: Record<number, any> = {};
                 try {
@@ -115,10 +220,6 @@ export default function ReturnForm() {
                     } as SelectableItem;
                 });
                 setItems(selectable);
-
-                // Debug: Kiểm tra thông tin đơn hàng
-                console.log("Thông tin đơn hàng:", orderData);
-                console.log("Chi tiết sản phẩm:", chiTiet);
 
             } catch (err) {
                 console.error("Lỗi khi lấy đơn hàng:", err);
@@ -155,6 +256,11 @@ export default function ReturnForm() {
             newErrors.reason = "Vui lòng chọn lý do hoặc nhập mô tả chi tiết.";
         }
 
+        // Kiểm tra video bắt buộc
+        if (!selectedVideo) {
+            newErrors.video = "Vui lòng chọn video minh chứng.";
+        }
+
         if (refundMethod === "bank") {
             if (!bankOwner.trim()) newErrors.bankOwner = "Vui lòng nhập chủ tài khoản.";
             if (!bankNumber.trim()) newErrors.bankNumber = "Vui lòng nhập số tài khoản.";
@@ -164,6 +270,7 @@ export default function ReturnForm() {
         if (
             newErrors.items ||
             newErrors.reason ||
+            newErrors.video ||
             newErrors.bankOwner ||
             newErrors.bankNumber ||
             newErrors.bankName ||
@@ -209,7 +316,6 @@ export default function ReturnForm() {
             if (chosenItems.length === 0) {
                 throw new Error("Vui lòng chọn ít nhất 1 sản phẩm để hoàn hàng");
             }
-
             // Lấy user ID từ token nếu order.user.id undefined
             let userId = order.user?.id;
             if (!userId) {
@@ -218,15 +324,12 @@ export default function ReturnForm() {
                     if (token) {
                         const payload = JSON.parse(atob(token.split('.')[1]));
                         userId = payload.userId || payload.sub || payload.id;
-                        console.log("User ID từ token:", userId);
+
                     }
                 } catch (error) {
                     console.error("Lỗi khi parse token:", error);
                 }
             }
-
-            console.log("Final User ID:", userId);
-
             // Kiểm tra quyền: user phải là chủ đơn hàng
             if (userId && order.userId && Number(userId) !== Number(order.userId)) {
                 throw new Error("Bạn không có quyền tạo phiếu hoàn hàng cho đơn hàng này");
@@ -255,8 +358,7 @@ export default function ReturnForm() {
                 dto.chuTaiKhoan = bankOwner.trim();
             }
 
-            console.log("DTO gửi lên server:", dto); // Debug log
-            console.log("Current user token:", localStorage.getItem("access_token"));
+
 
             taoPhieuHoan.mutate(
                 {
@@ -343,9 +445,23 @@ export default function ReturnForm() {
                 transition={{ duration: 0.25, ease: "easeOut" }}
                 className={`p-6 max-w-3xl mx-auto ${palette.pageBg} text-black min-h-screen`}
             >
-                <h1 className="text-xl font-bold mb-1">Hoàn hàng - Mã {order.maHD}</h1>
-                <p className={`${palette.subText} mb-4`}>Ngày đặt: {new Date(order.ngayTao).toLocaleDateString("vi-VN")}</p>
-                <p className={`${palette.subText} mb-6`}>Tổng tiền: ₫{Number(order.tongTien || 0).toLocaleString()}</p>
+                <h1 className="text-xl font-bold mb-1 text-center"> Phiếu Hoàn hàng</h1>
+
+                {/* Thông tin đơn hàng */}
+                <div className="bg-white rounded-xl p-4 mb-6 border">
+                    <h2 className="font-semibold mb-3 text-gray-800">Thông tin đơn hàng</h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <span className="text-sm text-gray-600">Mã đơn hàng:</span>
+                            <p className="font-medium">{order.maHD}</p>
+                        </div>
+                        <div>
+                            <span className="text-sm text-gray-600">Ngày đặt:</span>
+                            <p className="font-medium">{formatDate(order.ngayTao)}</p>
+                        </div>
+
+                    </div>
+                </div>
 
                 {/* Loại hoàn hàng */}
                 <div className="grid grid-cols-2 gap-3 mb-5">
@@ -475,44 +591,119 @@ export default function ReturnForm() {
                 <div className="mb-6">
                     <h2 className="font-semibold mb-2">Hình ảnh minh chứng</h2>
                     <div className="bg-white border rounded-xl p-4">
-                        <div className="border-2 border-dashed rounded-xl p-6 text-center text-sm text-gray-500 transition-colors duration-200 ease-out hover:border-yellow-300">
-                            Kéo thả ảnh vào đây hoặc
-                            <label className="text-[#006DB7] font-medium cursor-pointer ml-1">
-                                chọn từ máy tính
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    multiple
-                                    className="hidden"
-                                    onChange={(e) => setSelectedFiles(Array.from(e.target.files || []))}
-                                />
-                            </label>
-                            {selectedFiles.length > 0 && (
-                                <div className="mt-3 grid grid-cols-3 gap-2">
-                                    {selectedFiles.map((f, i) => (
-                                        <div key={i} className="text-xs truncate bg-gray-50 border rounded p-2">{f.name}</div>
+                        {previewImages.length > 0 ? (
+                            <div className="space-y-4">
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                    {previewImages.map((preview, index) => (
+                                        <div key={index} className="relative group">
+                                            <img
+                                                src={preview}
+                                                alt={`Preview ${index + 1}`}
+                                                className="w-full h-32 object-cover rounded-lg border"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => removeImage(index)}
+                                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
+                                            >
+                                                ×
+                                            </button>
+                                            {index === 0 && (
+                                                <div className="absolute top-2 left-2 bg-green-500 text-white text-xs px-2 py-1 rounded">
+                                                    Ảnh chính
+                                                </div>
+                                            )}
+                                        </div>
                                     ))}
                                 </div>
-                            )}
-                        </div>
+                                <label className="block text-center">
+                                    <span className="text-[#006DB7] font-medium cursor-pointer hover:underline">
+                                        Thêm ảnh khác
+                                    </span>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        multiple
+                                        className="hidden"
+                                        onChange={handleImageChange}
+                                    />
+                                </label>
+                            </div>
+                        ) : (
+                            <div className="border-2 border-dashed rounded-xl p-6 text-center text-sm text-gray-500 transition-colors duration-200 ease-out hover:border-yellow-300">
+                                Kéo thả ảnh vào đây hoặc
+                                <label className="text-[#006DB7] font-medium cursor-pointer ml-1">
+                                    chọn từ máy tính
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        multiple
+                                        className="hidden"
+                                        onChange={handleImageChange}
+                                    />
+                                </label>
+                            </div>
+                        )}
                     </div>
                 </div>
 
-                {/* Video minh chứng (nếu có) */}
+                {/* Video minh chứng (bắt buộc) */}
                 <div className="mb-6">
-                    <h2 className="font-semibold mb-2">Video minh chứng (nếu có)</h2>
+                    <h2 className="font-semibold mb-2">
+                        Video minh chứng <span className="text-red-500">*</span>
+                    </h2>
+                    {errors.video && (
+                        <div className="text-xs text-red-600 mb-2">{errors.video}</div>
+                    )}
                     <div className="bg-white border rounded-xl p-4">
-                        <label className="text-[#006DB7] font-medium cursor-pointer">
-                            Chọn video từ máy tính
-                            <input
-                                type="file"
-                                accept="video/*"
-                                className="hidden"
-                                onChange={(e) => setSelectedVideo(e.target.files?.[0])}
-                            />
-                        </label>
-                        {selectedVideo && (
-                            <div className="mt-3 text-xs truncate bg-gray-50 border rounded p-2">{selectedVideo.name}</div>
+                        {previewVideo ? (
+                            <div className="space-y-4">
+                                <div className="relative">
+                                    <video
+                                        src={previewVideo}
+                                        controls
+                                        className="w-full h-48 object-cover rounded-lg border"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={removeVideo}
+                                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
+                                    >
+                                        ×
+                                    </button>
+                                </div>
+                                <div className="text-sm text-gray-600">
+                                    <strong>File:</strong> {selectedVideo?.name}
+                                </div>
+                                <label className="block text-center">
+                                    <span className="text-[#006DB7] font-medium cursor-pointer hover:underline">
+                                        Chọn video khác
+                                    </span>
+                                    <input
+                                        type="file"
+                                        accept="video/*"
+                                        className="hidden"
+                                        onChange={handleVideoChange}
+                                    />
+                                </label>
+                            </div>
+                        ) : (
+                            <div className="border-2 border-dashed rounded-xl p-6 text-center text-sm text-gray-500 transition-colors duration-200 ease-out hover:border-yellow-300">
+                                <div className="mb-2">📹</div>
+                                <div>Kéo thả video vào đây hoặc</div>
+                                <label className="text-[#006DB7] font-medium cursor-pointer ml-1">
+                                    chọn từ máy tính
+                                    <input
+                                        type="file"
+                                        accept="video/*"
+                                        className="hidden"
+                                        onChange={handleVideoChange}
+                                    />
+                                </label>
+                                <div className="text-xs text-red-500 mt-2">
+                                    * Video là bắt buộc để xác minh
+                                </div>
+                            </div>
                         )}
                     </div>
                 </div>
@@ -540,25 +731,6 @@ export default function ReturnForm() {
                                     <div className="text-xs text-slate-500">Hoàn trực tiếp về tài khoản ngân hàng</div>
                                 </div>
                             </label>
-
-                            {/* <label
-                                className={`rounded-xl p-3 cursor-pointer flex items-center gap-3 border transition-all duration-200 ease-out hover:shadow-md ${refundMethod === "store" ? "ring-2 ring-yellow-300 border-yellow-300" : ""}`}
-                            >
-                                <input
-                                    type="radio"
-                                    name="refund"
-                                    className="sr-only"
-                                    checked={refundMethod === "store"}
-                                    onChange={() => setRefundMethod("store")}
-                                />
-                                <span className="w-9 h-9 rounded-lg bg-[#FFF3CC] border border-yellow-300 flex items-center justify-center">
-                                    <Wallet className="w-5 h-5 text-[#006DB7]" />
-                                </span>
-                                <div>
-                                    <div className="font-medium">Ví cửa hàng</div>
-                                    <div className="text-xs text-slate-500">Sử dụng cho lần mua kế tiếp</div>
-                                </div>
-                            </label> */}
                         </div>
 
                         <motion.div

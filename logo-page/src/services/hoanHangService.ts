@@ -60,8 +60,6 @@ export const hoanHangService = {
 
     // Duyệt phiếu hoàn hàng
     async duyet(id: number): Promise<string> {
-        console.log(`🔄 Duyệt phiếu hoàn hàng ID: ${id}`);
-
         // Debug: Kiểm tra token trước khi gửi
         const token = localStorage.getItem("access_token");
         if (!token) {
@@ -70,13 +68,9 @@ export const hoanHangService = {
 
         try {
             const payload = JSON.parse(atob(token.split('.')[1]));
-            console.log("🔑 Token payload:", payload);
-            console.log("⏰ Token exp:", new Date(payload.exp * 1000));
-            console.log("👤 User role:", payload.role || payload.roles || payload.authorities);
         } catch (error) {
             console.error("❌ Lỗi khi parse token:", error);
         }
-
         // Test API endpoint trước
         const canAccess = await testApiEndpoint();
         if (!canAccess) {
@@ -185,6 +179,36 @@ export const hoanHangService = {
         return data.message || "Cập nhật trạng thái thanh toán thành công";
     },
 
+    // Kiểm tra hàng hoàn (đánh giá hàng còn sử dụng được không)
+    async kiemTraHang(
+        idPhieu: number,
+        ketQuaList: Array<{ idSanPham: number; suDungDuoc: boolean; soLuongHoan: number }>
+    ): Promise<string> {
+        const url = `${API_URL}/kiem-tra-hang/${idPhieu}`;
+        const res = await fetchWithAuth(url, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(ketQuaList),
+        });
+
+        if (!res.ok) {
+            let message = "Không thể gửi kết quả kiểm tra hàng";
+            try {
+                const errorData = await res.json();
+                message = errorData.message || errorData.error || JSON.stringify(errorData);
+            } catch {
+                const textError = await res.text();
+                message = textError || message;
+            }
+            throw new Error(message);
+        }
+
+        const data = await res.json();
+        return data.message || "Đã kiểm tra và xử lý hàng hoàn";
+    },
+
     // Lấy danh sách phiếu hoàn hàng theo trạng thái
     async getByTrangThai(
         trangThai: TrangThaiPhieuHoan
@@ -226,7 +250,12 @@ export const hoanHangService = {
         fileAnh: File[], // hoặc: FileList
         fileVid?: File
     ): Promise<any> {
-        // Nếu không có file, sử dụng endpoint đơn giản
+        // Kiểm tra video bắt buộc
+        if (!fileVid) {
+            throw new Error("Video minh chứng là bắt buộc");
+        }
+
+        // Nếu không có ảnh và video, sử dụng endpoint đơn giản
         if ((!fileAnh || fileAnh.length === 0) && !fileVid) {
             console.log("Không có file, sử dụng endpoint tao-phieu");
             return this.taophieu(dto);
