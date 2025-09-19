@@ -12,19 +12,13 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { RotateCcw } from "lucide-react";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import {
   HoaDonDTO,
   PaymentMethods,
   TrangThaiHoaDon,
 } from "@/components/types/hoaDon-types";
+import { DateTimePicker } from "@/components/ui/date-picker";
 
 interface HoaDonFilterProps {
   filters: {
@@ -77,161 +71,40 @@ export default function HoaDonFilter({
       .slice(0, 5);
   };
 
+  const resetFilters = () => {
+    setFilters({
+      keyword: "",
+      trangThai: "all",
+      phuongThuc: "all",
+      from: "",
+      to: "",
+    });
+    setFromDate(undefined);
+    setToDate(undefined);
+    setPage(0);
+  };
+
   return (
-    <form
-      className="w-full border border-blue-400 rounded-xl p-6 mb-8 shadow bg-[#181e29] text-white"
-      onSubmit={(e) => e.preventDefault()}
-    >
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
-        {/* Trạng thái */}
-        <div>
-          <label
-            htmlFor="trangThai"
-            className="text-sm text-muted-foreground mb-1 block"
-          >
-            Trạng thái đơn hàng
-          </label>
-          <Select
-            value={filters.trangThai}
-            onValueChange={(value) => {
-              setFilters((f) => ({
-                ...f,
-                trangThai: value as keyof typeof TrangThaiHoaDon | "all",
-              }));
-              setPage(0);
-            }}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Tất cả" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tất cả</SelectItem>
-              {Object.entries(TrangThaiHoaDon).map(([key, value]) => (
-                <SelectItem key={key} value={key}>
-                  {value}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Phương thức thanh toán */}
-        <div>
-          <label
-            htmlFor="phuongThuc"
-            className="text-sm text-muted-foreground mb-1 block"
-          >
-            Phương thức thanh toán
-          </label>
-          <Select
-            value={filters.phuongThuc}
-            onValueChange={(value) => {
-              setFilters((f) => ({
-                ...f,
-                phuongThuc: value as keyof typeof PaymentMethods | "all",
-              }));
-              setPage(0);
-            }}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Tất cả" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tất cả</SelectItem>
-              {Object.entries(PaymentMethods).map(([key, value]) => (
-                <SelectItem key={key} value={key}>
-                  {value}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Từ ngày */}
-        <div>
-          <label
-            htmlFor="fromDate"
-            className="text-sm text-muted-foreground mb-1 block"
-          >
-            Từ ngày
-          </label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className="w-full justify-start text-left font-normal"
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {fromDate ? format(fromDate, "PPP") : "Chọn ngày"}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
-              <Calendar
-                mode="single"
-                selected={fromDate}
-                onSelect={(date) => {
-                  setFromDate(date);
-                  setFilters((f) => ({
-                    ...f,
-                    from: date ? format(date, "yyyy-MM-dd'T'HH:mm:ss") : "",
-                  }));
-                  setPage(0);
-                }}
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
-
-        {/* Đến ngày */}
-        <div>
-          <label
-            htmlFor="toDate"
-            className="text-sm text-muted-foreground mb-1 block"
-          >
-            Đến ngày
-          </label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className="w-full justify-start text-left font-normal"
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {toDate ? format(toDate, "PPP") : "Chọn ngày"}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
-              <Calendar
-                mode="single"
-                selected={toDate}
-                onSelect={(date) => {
-                  setToDate(date);
-                  setFilters((f) => ({
-                    ...f,
-                    to: date ? format(date, "yyyy-MM-dd'T'HH:mm:ss") : "",
-                  }));
-                  setPage(0);
-                }}
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
+    <div className="space-y-2 p-3 bg-[#181e29] text-white rounded-lg border border-blue-400 shadow mb-6">
+      {/* Header */}
+      <div className="flex items-center justify-between pb-2 border-b border-gray-600">
+        <span className="text-sm font-medium text-white flex items-center gap-1">
+          📋 Bộ lọc hóa đơn
+        </span>
+        <Button type="button" variant="outline" onClick={resetFilters}>
+          <RotateCcw className="w-3 h-3 mr-1" />
+          Đặt lại
+        </Button>
       </div>
 
-      {/* Tìm kiếm + Đặt lại */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 items-end">
-        <div className="lg:col-span-4 relative">
-          <label
-            htmlFor="keyword"
-            className="text-sm text-muted-foreground mb-1 block"
-          >
-            Tìm kiếm (Mã đơn, Mã HD, tên, SĐT...)
-          </label>
+      {/* Hàng 1: Tìm kiếm */}
+      <div className="flex  flex-col  gap-2">
+        <span className="text-sm font-medium text-gray-300 min-w-fit">
+          🔍 Từ khóa:
+        </span>
+        <div className="flex-1 relative">
           <Input
-            id="keyword"
-            placeholder="Nhập mã hóa đơn, tên khách hoặc SĐT..."
+            placeholder="Mã hóa đơn, tên khách, SĐT..."
             value={filters.keyword}
             onChange={(e) => {
               const value = e.target.value;
@@ -252,13 +125,14 @@ export default function HoaDonFilter({
               }
             }}
             onBlur={() => setTimeout(() => setShowSuggestions(false), 300)}
+            className="h-9"
           />
           {showSuggestions && suggestions.length > 0 && (
             <ul className="absolute z-10 bg-popover border rounded w-full mt-1 max-h-40 overflow-y-auto text-sm shadow-lg">
               {suggestions.map((hd) => (
                 <li
                   key={hd.id}
-                  className="px-3 py-2 hover:bg-muted cursor-pointer"
+                  className="px-3 py-2 hover:bg-muted cursor-pointer text-foreground"
                   onMouseDown={() => {
                     setFilters((f) => ({
                       ...f,
@@ -277,31 +151,108 @@ export default function HoaDonFilter({
             </ul>
           )}
         </div>
+      </div>
 
+      {/* Hàng 2: Trạng thái + Phương thức + Ngày */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        {/* Trạng thái */}
         <div>
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full"
-            onClick={() => {
-              if (window.confirm("Bạn có chắc muốn đặt lại tất cả bộ lọc?")) {
-                setFilters({
-                  keyword: "",
-                  trangThai: "all",
-                  phuongThuc: "all",
-                  from: "",
-                  to: "",
-                });
-                setFromDate(undefined);
-                setToDate(undefined);
-                setPage(0);
-              }
+          <label className="text-xs font-medium text-gray-300 mb-1 block">
+            📊 Trạng thái
+          </label>
+          <Select
+            value={filters.trangThai}
+            onValueChange={(value) => {
+              setFilters((f) => ({
+                ...f,
+                trangThai: value as keyof typeof TrangThaiHoaDon | "all",
+              }));
+              setPage(0);
             }}
           >
-            <RotateCcw className="w-4 h-4 mr-2" /> Đặt lại
-          </Button>
+            <SelectTrigger className="h-9">
+              <SelectValue placeholder="Chọn trạng thái" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tất cả</SelectItem>
+              {Object.entries(TrangThaiHoaDon).map(([key, value]) => (
+                <SelectItem key={key} value={key}>
+                  {value}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Phương thức thanh toán */}
+        <div>
+          <label className="text-xs font-medium text-gray-300 mb-1 block">
+            💳 Thanh toán
+          </label>
+          <Select
+            value={filters.phuongThuc}
+            onValueChange={(value) => {
+              setFilters((f) => ({
+                ...f,
+                phuongThuc: value as keyof typeof PaymentMethods | "all",
+              }));
+              setPage(0);
+            }}
+          >
+            <SelectTrigger className="h-9">
+              <SelectValue placeholder="Chọn phương thức" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tất cả</SelectItem>
+              {Object.entries(PaymentMethods).map(([key, value]) => (
+                <SelectItem key={key} value={key}>
+                  {value}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Từ ngày */}
+        <div>
+          <label className="text-xs font-medium text-gray-300 mb-1 block">
+            📅 Từ ngày
+          </label>
+          <DateTimePicker
+            value={fromDate || null}
+            onChange={(date) => {
+              setFromDate(date || undefined);
+              setFilters((f) => ({
+                ...f,
+                from: date ? format(date, "yyyy-MM-dd'T'HH:mm:ss") : "",
+              }));
+              setPage(0);
+            }}
+            mode="date"
+            placeholder="Chọn ngày"
+          />
+        </div>
+
+        {/* Đến ngày */}
+        <div>
+          <label className="text-xs font-medium text-gray-300 mb-1 block">
+            📅 Đến ngày
+          </label>
+          <DateTimePicker
+            value={toDate || null}
+            onChange={(date) => {
+              setToDate(date || undefined);
+              setFilters((f) => ({
+                ...f,
+                to: date ? format(date, "yyyy-MM-dd'T'HH:mm:ss") : "",
+              }));
+              setPage(0);
+            }}
+            mode="date"
+            placeholder="Chọn ngày"
+          />
         </div>
       </div>
-    </form>
+    </div>
   );
 }
