@@ -105,3 +105,15 @@ export function useKiemTraCoTheHoanHang(idHoaDon: number) {
     });
 }
 
+// Hook gửi kết quả kiểm tra hàng
+export function useKiemTraHang() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ idPhieu, ketQuaList }: { idPhieu: number; ketQuaList: Array<{ idSanPham: number; suDungDuoc: boolean; soLuongHoan: number }> }) =>
+            hoanHangService.kiemTraHang(idPhieu, ketQuaList),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: queryKeys.all });
+        },
+    });
+}
+
