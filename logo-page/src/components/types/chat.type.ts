@@ -1,3 +1,4 @@
+import { KhuyenMaiTheoSanPham } from "./khuyenmai-type";
 import { SanPham } from "./product.type";
 // mở start
 export interface ChatSessionResponse {
@@ -14,7 +15,7 @@ export interface ChatMessageRequest {
 export interface ChatMessageResponse {
   responseType: ChatResponseType;
   message: string;
-  products?: SanPham[];
+  products?: KhuyenMaiTheoSanPham[];
 }
 
 export type ChatResponseType =
