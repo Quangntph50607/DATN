@@ -1,4 +1,4 @@
-import { DTOUser, Role } from "@/components/types/account.type";
+import { DTOUser, Role, DTOUserUpdate } from "@/components/types/account.type";
 import { fetchWithAuth } from "./fetchWithAuth";
 
 type RawUserFromApi = Omit<DTOUser, "role_id"> & {
@@ -94,7 +94,7 @@ export const accountService = {
     return normalizeAccount(result);
   },
 
-  async updateAccount(id: number, data: Partial<DTOUser>): Promise<DTOUser> {
+  async updateAccount(id: number, data: DTOUserUpdate): Promise<DTOUser> {
     const res = await fetchWithAuth(`${API_URL}/update/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },

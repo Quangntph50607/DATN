@@ -116,10 +116,9 @@ const AccountTable: React.FC<AccountTableProps> = ({
                   size="icon"
                   className="hover:opacity-80 transition"
                   onClick={() => onDelete(acc)}
-                  disabled={acc.trangThai === 0}
-                  title="Chuyển trạng thái"
+                  title={acc.trangThai === 1 ? "Chuyển sang ngừng hoạt động" : "Kích hoạt lại"}
                 >
-                  <SwitchCameraIcon className="h-4 w-4 text-red-500" />
+                  <SwitchCameraIcon className={`h-4 w-4 ${acc.trangThai === 1 ? 'text-red-500' : 'text-green-500'}`} />
                 </Button>
               </TableCell>
             </TableRow>

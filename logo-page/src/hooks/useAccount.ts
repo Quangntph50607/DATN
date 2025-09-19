@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { accountService } from "@/services/accountService";
-import { DTOUser, Role } from "@/components/types/account.type";
+import { DTOUser, Role, DTOUserUpdate } from "@/components/types/account.type";
 
 // Lấy danh sách tất cả tài khoản
 export const useAccounts = (keyword?: string) =>
@@ -50,10 +50,10 @@ export const useCreateUser = () => {
   });
 };
 
-// Cập nhật tài khoản
+// Cập nhật tài khoản (không cập nhật mật khẩu)
 export const useUpdateAccount = () => {
   const queryClient = useQueryClient();
-  return useMutation<DTOUser, Error, { id: number; data: DTOUser }>({
+  return useMutation<DTOUser, Error, { id: number; data: DTOUserUpdate }>({
     mutationFn: ({ id, data }) => accountService.updateAccount(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["accounts"] });

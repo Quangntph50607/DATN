@@ -29,7 +29,6 @@ import {
   useAccounts,
   useCreateUser,
   useUpdateAccount,
-  useSoftDeleteAccount,
   useRoles,
 } from "@/hooks/useAccount";
 import { ToastProvider } from "@/components/ui/toast-provider";
@@ -95,7 +94,6 @@ function UserManagementContent() {
   // Nếu vừa tạo user mới, đưa user đó lên đầu (ưu tiên email)
   const createUser = useCreateUser();
   const updateUser = useUpdateAccount();
-  const softDelete = useSoftDeleteAccount();
   const { refetch } = useAccounts();
 
   if (createUser.data && createUser.data.email) {
@@ -142,7 +140,7 @@ function UserManagementContent() {
           data: {
             ten: accountData.ten,
             email: accountData.email,
-            matKhau: accountData.matKhau,
+            // Không gửi mật khẩu khi update
             sdt: accountData.sdt,
             diaChi: accountData.diaChi,
             trangThai: accountData.trangThai,
@@ -187,27 +185,34 @@ function UserManagementContent() {
 
   const handleConfirmChangeStatus = () => {
     if (accountToChangeStatus) {
-      softDelete.mutate(
-        { ...accountToChangeStatus },
+      const newStatus = accountToChangeStatus.trangThai === 1 ? 0 : 1;
+      const statusText = newStatus === 1 ? "hoạt động" : "ngừng hoạt động";
+      
+      updateUser.mutate(
+        {
+          id: accountToChangeStatus.id!,
+          data: {
+            ten: accountToChangeStatus.ten,
+            email: accountToChangeStatus.email,
+            sdt: accountToChangeStatus.sdt,
+            diaChi: accountToChangeStatus.diaChi,
+            trangThai: newStatus,
+            role_id: accountToChangeStatus.role_id,
+          },
+        },
         {
           onSuccess: () => {
-            toast.success("Đã chuyển tài khoản sang trạng thái ngừng hoạt động");
+            toast.success(`Đã chuyển tài khoản sang trạng thái ${statusText}`);
             refetch();
           },
-          onError: () => {
-            toast.error("Xóa tài khoản thất bại");
+          onError: (error) => {
+            toast.error(`Chuyển đổi trạng thái thất bại: ${error.message}`);
           },
         }
       );
       setAccountToChangeStatus(null);
     }
   };
-
-  console.log("Employees:", employees);
-  console.log("Customers:", customers);
-  console.log("Inactive accounts:", inactiveAccounts);
-  console.log("Current tab:", currentTab);
-  console.log("Filtered accounts:", filteredAccounts);
 
   return (
     <Card className="p-4 bg-gray-800 shadow-md w-full max-w-full min-h-screen">
@@ -395,7 +400,7 @@ function UserManagementContent() {
           <ConfirmDialog
             open={!!accountToChangeStatus}
             title="Xác nhận chuyển trạng thái"
-            description="Bạn có chắc muốn thay đổi trạng thái tài khoản này?"
+            description={`Bạn có chắc muốn ${accountToChangeStatus?.trangThai === 1 ? 'ngừng hoạt động' : 'kích hoạt lại'} tài khoản "${accountToChangeStatus?.ten}"?`}
             onCancel={() => setAccountToChangeStatus(null)}
             onConfirm={handleConfirmChangeStatus}
           />
