@@ -3,7 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { productSchema, ProductData, ProductDataWithoutFiles } from "@/lib/sanphamschema";
+import {
+  productSchema,
+  ProductData,
+  ProductDataWithoutFiles,
+} from "@/lib/sanphamschema";
 import { SanPham } from "@/components/types/product.type";
 import { useDanhMuc } from "@/hooks/useDanhMuc";
 import { useBoSuutap } from "@/hooks/useBoSutap";
@@ -53,7 +57,7 @@ export default function SanPhamForm({
 }: Props) {
   const isEdit = !!edittingSanPham;
   // const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   const form = useForm<ProductData>({
     resolver: zodResolver(productSchema(isEdit)),
     defaultValues: {
@@ -146,7 +150,6 @@ export default function SanPhamForm({
     { name: "soLuongTon", label: "Số lượng tồn" },
     { name: "soLuongManhGhep", label: "Số lượng mảnh ghép" },
   ] as const;
-  console.log("sp1", edittingSanPham);
 
   return (
     <>
@@ -154,11 +157,11 @@ export default function SanPhamForm({
         <form
           onSubmit={form.handleSubmit(async (data) => {
             setIsSubmitting(true);
-            
+
             const checkTrungTen = sanPhamList.some(
               (sp) =>
                 sp.tenSanPham.trim().toLowerCase() ===
-                data.tenSanPham.trim().toLowerCase() &&
+                  data.tenSanPham.trim().toLowerCase() &&
                 sp.id !== edittingSanPham?.id
             );
             if (checkTrungTen) {
@@ -173,7 +176,9 @@ export default function SanPhamForm({
                 // Xóa ảnh cũ nếu có (xóa tất cả ảnh trong deletedOldImages)
                 if (deletedOldImages.length > 0) {
                   console.log("Đang xóa các ảnh:", deletedOldImages);
-                  await Promise.all(deletedOldImages.map((imgId) => xoaAnh(imgId)));
+                  await Promise.all(
+                    deletedOldImages.map((imgId) => xoaAnh(imgId))
+                  );
                   console.log("Đã xóa xong các ảnh");
                 }
 
@@ -197,9 +202,13 @@ export default function SanPhamForm({
                 // Thêm ảnh mới nếu có (xử lý riêng vì API Update không xử lý ảnh)
                 if (data.files && data.files.length > 0) {
                   // Kiểm tra sản phẩm đã có ảnh chưa (sau khi xóa ảnh cũ)
-                  const remainingImages = edittingSanPham.anhUrls?.filter(
-                    (anh) => !deletedOldImages.includes(typeof anh === 'object' ? anh.id : 0)
-                  ) || [];
+                  const remainingImages =
+                    edittingSanPham.anhUrls?.filter(
+                      (anh) =>
+                        !deletedOldImages.includes(
+                          typeof anh === "object" ? anh.id : 0
+                        )
+                    ) || [];
                   const hasExistingImages = remainingImages.length > 0;
 
                   console.log("Đang thêm ảnh mới:", {
@@ -207,7 +216,11 @@ export default function SanPhamForm({
                     hasExistingImages,
                     remainingImagesCount: remainingImages.length,
                     sanPhamId: edittingSanPham.id,
-                    files: Array.from(data.files).map(f => ({ name: f.name, size: f.size, type: f.type }))
+                    files: Array.from(data.files).map((f) => ({
+                      name: f.name,
+                      size: f.size,
+                      type: f.type,
+                    })),
                   });
 
                   try {
@@ -217,13 +230,17 @@ export default function SanPhamForm({
                       sanPhamId: edittingSanPham.id,
                     });
                     console.log("Thêm ảnh thành công:", result);
-                    toast.success(`Đã thêm ${data.files.length} ảnh thành công!`);
-                    
+                    toast.success(
+                      `Đã thêm ${data.files.length} ảnh thành công!`
+                    );
+
                     // Đợi một chút để BE xử lý xong ảnh trước khi gọi onSuccess
-                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    await new Promise((resolve) => setTimeout(resolve, 1000));
                   } catch (error) {
                     console.error("Lỗi khi thêm ảnh:", error);
-                    toast.error("Có lỗi khi thêm ảnh, nhưng thông tin sản phẩm đã được cập nhật!");
+                    toast.error(
+                      "Có lỗi khi thêm ảnh, nhưng thông tin sản phẩm đã được cập nhật!"
+                    );
                     setIsSubmitting(false);
                     // Không throw error để không ảnh hưởng đến việc update sản phẩm
                   }
@@ -270,17 +287,20 @@ export default function SanPhamForm({
                     {...field}
                     ref={inputRef}
                     onFocus={() => setSuggestVisible(true)}
-                    onBlur={() => setTimeout(() => setSuggestVisible(false), 200)}
+                    onBlur={() =>
+                      setTimeout(() => setSuggestVisible(false), 200)
+                    }
                     onChange={(e) => {
                       field.onChange(e);
                       setSearchValue(e.target.value);
                     }}
                   />
                 </FormControl>
-                {suggestVisible && searchValue.trim() && (
-                  <div className="  bg-gray-600 border border-gray-200 rounded shadow  w-full max-h-60 overflow-y-auto">
-                    {matchingProducts.length > 0 ? (
-                      matchingProducts.map((sp) => (
+                {suggestVisible &&
+                  searchValue.trim() &&
+                  matchingProducts.length > 0 && (
+                    <div className="bg-gray-600 border border-gray-200 rounded shadow w-full max-h-60 overflow-y-auto">
+                      {matchingProducts.map((sp) => (
                         <div
                           key={sp.id}
                           className="px-3 py-2 text-sm hover:bg-gray-800 cursor-pointer"
@@ -297,6 +317,8 @@ export default function SanPhamForm({
                               sp.soLuongManhGhep ?? 0
                             );
                             form.setValue("trangThai", sp.trangThai);
+                            form.setValue("xuatXuId", sp.xuatXuId);
+                            form.setValue("thuongHieuId", sp.thuongHieuId);
                             setSuggestVisible(false);
                             setSearchValue("");
                             toast.success("Đã lấy dữ liệu từ sản phẩm gợi ý!");
@@ -304,14 +326,10 @@ export default function SanPhamForm({
                         >
                           {sp.tenSanPham}
                         </div>
-                      ))
-                    ) : (
-                      <div className="px-3 py-2 text-sm text-muted-foreground">
-                        Không tìm thấy sản phẩm
-                      </div>
-                    )}
-                  </div>
-                )}
+                      ))}
+                    </div>
+                  )}
+
                 <FormMessage />
               </FormItem>
             )}
@@ -344,6 +362,7 @@ export default function SanPhamForm({
                       </SelectContent>
                     </Select>
                   </FormControl>
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -374,6 +393,7 @@ export default function SanPhamForm({
                       </SelectContent>
                     </Select>
                   </FormControl>
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -402,6 +422,7 @@ export default function SanPhamForm({
                       </SelectContent>
                     </Select>
                   </FormControl>
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -429,6 +450,7 @@ export default function SanPhamForm({
                       </SelectContent>
                     </Select>
                   </FormControl>
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -454,6 +476,7 @@ export default function SanPhamForm({
                         }
                       />
                     </FormControl>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -535,83 +558,126 @@ export default function SanPhamForm({
                       {/* Preview ảnh cũ khi sửa */}
                       {(() => {
                         // Helper function để parse anhUrls một cách type-safe
-                        const parseAnhUrls = (anhUrls: (import("@/components/types/product.type").AnhSanPhamChiTiet | string)[] | undefined): import("@/components/types/product.type").AnhSanPhamChiTiet[] => {
+                        const parseAnhUrls = (
+                          anhUrls:
+                            | (
+                                | import("@/components/types/product.type").AnhSanPhamChiTiet
+                                | string
+                              )[]
+                            | undefined
+                        ): import("@/components/types/product.type").AnhSanPhamChiTiet[] => {
                           if (!anhUrls || !Array.isArray(anhUrls)) return [];
 
                           return anhUrls
                             .map((item, index) => {
                               try {
                                 // Kiểm tra xem item có phải là AnhSanPhamChiTiet object không
-                                if (item && typeof item === "object" && "id" in item && "url" in item) {
-                                  const anhItem = item as import("@/components/types/product.type").AnhSanPhamChiTiet;
-                                  
+                                if (
+                                  item &&
+                                  typeof item === "object" &&
+                                  "id" in item &&
+                                  "url" in item
+                                ) {
+                                  const anhItem =
+                                    item as import("@/components/types/product.type").AnhSanPhamChiTiet;
+
                                   // Validate URL
-                                  const isValidUrl = anhItem.url && (
-                                    anhItem.url.startsWith('http://') || 
-                                    anhItem.url.startsWith('https://') ||
-                                    anhItem.url.startsWith('data:') ||
-                                    anhItem.url.startsWith('blob:')
-                                  );
-                                  
+                                  const isValidUrl =
+                                    anhItem.url &&
+                                    (anhItem.url.startsWith("http://") ||
+                                      anhItem.url.startsWith("https://") ||
+                                      anhItem.url.startsWith("data:") ||
+                                      anhItem.url.startsWith("blob:"));
+
                                   return {
                                     id: anhItem.id || index + 1,
-                                    url: isValidUrl ? anhItem.url : '/images/avatar-admin.png', // Fallback to existing image
+                                    url: isValidUrl
+                                      ? anhItem.url
+                                      : "/images/avatar-admin.png", // Fallback to existing image
                                     moTa: anhItem.moTa || "",
                                     anhChinh: anhItem.anhChinh || false,
                                     sanPhamId: edittingSanPham!.id,
                                   } as import("@/components/types/product.type").AnhSanPhamChiTiet;
                                 }
-                                
+
                                 // Handle case where item might be a string URL
-                                if (typeof item === 'string') {
-                                  const isValidUrl = item && (
-                                    item.startsWith('http://') || 
-                                    item.startsWith('https://') ||
-                                    item.startsWith('data:') ||
-                                    item.startsWith('blob:')
-                                  );
-                                  
+                                if (typeof item === "string") {
+                                  const isValidUrl =
+                                    item &&
+                                    (item.startsWith("http://") ||
+                                      item.startsWith("https://") ||
+                                      item.startsWith("data:") ||
+                                      item.startsWith("blob:"));
+
                                   return {
                                     id: index + 1,
-                                    url: isValidUrl ? item : '/images/avatar-admin.png',
+                                    url: isValidUrl
+                                      ? item
+                                      : "/images/avatar-admin.png",
                                     moTa: "",
                                     anhChinh: index === 0, // First image is main image
                                     sanPhamId: edittingSanPham!.id,
                                   } as import("@/components/types/product.type").AnhSanPhamChiTiet;
                                 }
-                                
+
                                 return null;
                               } catch (error) {
-                                console.error("Error parsing image item:", item, error);
+                                console.error(
+                                  "Error parsing image item:",
+                                  item,
+                                  error
+                                );
                                 return null;
                               }
                             })
-                            .filter((img): img is import("@/components/types/product.type").AnhSanPhamChiTiet => !!img);
+                            .filter(
+                              (
+                                img
+                              ): img is import("@/components/types/product.type").AnhSanPhamChiTiet =>
+                                !!img
+                            );
                         };
 
-                        const previewImages = parseAnhUrls(edittingSanPham?.anhUrls);
-                        console.log("edittingSanPham.anhUrls:", edittingSanPham?.anhUrls);
+                        const previewImages = parseAnhUrls(
+                          edittingSanPham?.anhUrls
+                        );
+                        console.log(
+                          "edittingSanPham.anhUrls:",
+                          edittingSanPham?.anhUrls
+                        );
                         console.log("previewImages:", previewImages);
                         console.log("Sample image URL:", previewImages[0]?.url);
-                        
+
                         // Ensure we have at least one image if the product has anhUrls but parsing failed
-                        const finalPreviewImages = previewImages.length > 0 ? previewImages : 
-                          (edittingSanPham?.anhUrls && edittingSanPham.anhUrls.length > 0 ? [{
-                            id: 0,
-                            url: '/images/avatar-admin.png',
-                            moTa: "",
-                            anhChinh: true,
-                            sanPhamId: edittingSanPham.id,
-                          }] : []);
-                        
+                        const finalPreviewImages =
+                          previewImages.length > 0
+                            ? previewImages
+                            : edittingSanPham?.anhUrls &&
+                              edittingSanPham.anhUrls.length > 0
+                            ? [
+                                {
+                                  id: 0,
+                                  url: "/images/avatar-admin.png",
+                                  moTa: "",
+                                  anhChinh: true,
+                                  sanPhamId: edittingSanPham.id,
+                                },
+                              ]
+                            : [];
+
                         // Lọc ảnh đã bị xóa tạm thời (có thể xóa cả ảnh cũ và mới)
-                        const filteredImages = finalPreviewImages.filter((anh) => !deletedOldImages.includes(anh.id));
+                        const filteredImages = finalPreviewImages.filter(
+                          (anh) => !deletedOldImages.includes(anh.id)
+                        );
                         console.log("filteredImages:", filteredImages);
                         return filteredImages.length > 0 ? (
                           <div className="flex flex-wrap gap-3 mt-3">
                             {filteredImages.map((anh, idx) => {
                               return (
-                                <div key={String(anh.id) + '-' + anh.url} className="relative w-24 h-24 border rounded overflow-hidden">
+                                <div
+                                  key={String(anh.id) + "-" + anh.url}
+                                  className="relative w-24 h-24 border rounded overflow-hidden"
+                                >
                                   <Image
                                     src={anh.url}
                                     alt={`Ảnh ${idx + 1}`}
@@ -620,8 +686,9 @@ export default function SanPhamForm({
                                     className="w-full h-full object-cover"
                                     onError={(e) => {
                                       // Fallback to placeholder if image fails to load
-                                      const target = e.target as HTMLImageElement;
-                                      target.src = '/images/avatar-admin.png';
+                                      const target =
+                                        e.target as HTMLImageElement;
+                                      target.src = "/images/avatar-admin.png";
                                     }}
                                   />
                                   {anh.anhChinh && (
@@ -633,7 +700,12 @@ export default function SanPhamForm({
                                   {anh.id > 0 && (
                                     <button
                                       type="button"
-                                      onClick={() => setDeletedOldImages((prev) => [...prev, anh.id])}
+                                      onClick={() =>
+                                        setDeletedOldImages((prev) => [
+                                          ...prev,
+                                          anh.id,
+                                        ])
+                                      }
                                       className="absolute top-1 right-1 bg-white text-red-500 text-xs rounded-full px-1 shadow"
                                       title="Xóa ảnh"
                                     >
@@ -663,20 +735,28 @@ export default function SanPhamForm({
                                 className="w-full h-full object-cover"
                               />
                               {/* Gắn nhãn Ảnh chính cho ảnh đầu nếu sản phẩm chưa có ảnh */}
-                              {idx === 0 && (() => {
-                                if (!edittingSanPham?.anhUrls || edittingSanPham.anhUrls.length === 0) {
-                                  return true; // Sản phẩm mới, ảnh đầu tiên sẽ là ảnh chính
-                                }
-                                // Kiểm tra xem còn ảnh nào sau khi xóa ảnh cũ
-                                const remainingImages = edittingSanPham.anhUrls.filter(
-                                  (anh) => !deletedOldImages.includes(typeof anh === 'object' ? anh.id : 0)
-                                );
-                                return remainingImages.length === 0; // Chỉ hiển thị nếu không còn ảnh nào
-                              })() && (
-                                <span className="absolute top-0 left-0 bg-green-600 text-white text-xs px-1 rounded-br">
-                                  Ảnh chính
-                                </span>
-                              )}
+                              {idx === 0 &&
+                                (() => {
+                                  if (
+                                    !edittingSanPham?.anhUrls ||
+                                    edittingSanPham.anhUrls.length === 0
+                                  ) {
+                                    return true; // Sản phẩm mới, ảnh đầu tiên sẽ là ảnh chính
+                                  }
+                                  // Kiểm tra xem còn ảnh nào sau khi xóa ảnh cũ
+                                  const remainingImages =
+                                    edittingSanPham.anhUrls.filter(
+                                      (anh) =>
+                                        !deletedOldImages.includes(
+                                          typeof anh === "object" ? anh.id : 0
+                                        )
+                                    );
+                                  return remainingImages.length === 0; // Chỉ hiển thị nếu không còn ảnh nào
+                                })() && (
+                                  <span className="absolute top-0 left-0 bg-green-600 text-white text-xs px-1 rounded-br">
+                                    Ảnh chính
+                                  </span>
+                                )}
                               {/* Nút xóa */}
                               <button
                                 type="button"
@@ -707,7 +787,10 @@ export default function SanPhamForm({
                 <div className="flex items-center gap-3">
                   <FormLabel>Nổi bật</FormLabel>
                   <FormControl>
-                    <Switch checked={!!field.value} onCheckedChange={field.onChange} />
+                    <Switch
+                      checked={!!field.value}
+                      onCheckedChange={field.onChange}
+                    />
                   </FormControl>
                 </div>
               </FormItem>
@@ -717,10 +800,13 @@ export default function SanPhamForm({
           {/* Buttons */}
           <div className="flex gap-3 pt-4">
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting 
-                ? (edittingSanPham ? "Đang cập nhật..." : "Đang thêm...")
-                : (edittingSanPham ? "Cập nhật" : "Thêm mới")
-              }
+              {isSubmitting
+                ? edittingSanPham
+                  ? "Đang cập nhật..."
+                  : "Đang thêm..."
+                : edittingSanPham
+                ? "Cập nhật"
+                : "Thêm mới"}
             </Button>
             <Button
               type="button"

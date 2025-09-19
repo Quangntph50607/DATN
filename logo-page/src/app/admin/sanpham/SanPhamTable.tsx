@@ -123,9 +123,9 @@ export default function SanPhamTable({ sanPhams, onDelete, onEdit }: Props) {
                         </Button>
                       }
                     /> */}
-                    <Button title="Chi tiết sửa">
+                    {/* <Button title="Chi tiết sửa">
                       <Eye className="w-4 h-4 text-blue-500" />
-                    </Button>
+                    </Button> */}
                     <Button onClick={() => onEdit(sp)} title="Chỉnh sửa">
                       <Edit className="w-4 h-4 text-blue-500" />
                     </Button>
