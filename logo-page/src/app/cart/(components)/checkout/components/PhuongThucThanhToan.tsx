@@ -48,6 +48,34 @@ export default function PhuongThucThanhToan({
           </label>
 
           <label
+            htmlFor="payment-vnpay"
+            className={`flex items-center gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-white transition-colors ${
+              paymentMethod === "VNPay"
+                ? "ring-2 ring-orange-500 border-orange-400"
+                : ""
+            }`}
+          >
+            <input
+              type="radio"
+              name="payment"
+              id="payment-vnpay"
+              value="VNPay"
+              checked={paymentMethod === "VNPay"}
+              onChange={(e) => onPaymentMethodChange(e.target.value)}
+              className="accent-orange-500"
+            />
+            <div className="flex-1">
+              <div className="font-medium">Thanh toán VNPay</div>
+              <div className="text-sm text-black/70">
+                Thanh toán online qua cổng VNPay (ATM, Visa, Mastercard)
+              </div>
+            </div>
+            <span className="px-3 py-1 bg-blue-500 text-white text-xs rounded-full">
+              VNPay
+            </span>
+          </label>
+
+          {/* <label
             htmlFor="payment-chuyenkhoan"
             className={`flex items-center gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-white transition-colors ${
               paymentMethod === "Chuyển khoản"
@@ -70,10 +98,10 @@ export default function PhuongThucThanhToan({
                 Thực hiện thanh toán vào ngay tài khoản ngân hàng của chúng tôi
               </div>
             </div>
-            <span className="px-3 py-1 bg-blue-500 text-white text-xs rounded-full">
+            <span className="px-3 py-1 bg-purple-500 text-white text-xs rounded-full">
               ATM
             </span>
-          </label>
+          </label> */}
         </div>
       </CardContent>
     </Card>
