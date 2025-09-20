@@ -5,8 +5,8 @@ export interface KhuyenMaiDTO {
   maKhuyenMai?: string;
   tenKhuyenMai: string;
   phanTramKhuyenMai: number;
-  ngayBatDau: string;
-  ngayKetThuc: string;
+  ngayBatDau: number[];
+  ngayKetThuc: number[];
   ngayTao?: string;
   trangThai: string;
 }
