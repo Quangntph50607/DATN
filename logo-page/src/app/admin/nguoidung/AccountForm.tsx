@@ -60,11 +60,11 @@ const AccountForm: React.FC<AccountFormProps> = ({
 
   useEffect(() => {
     if (account) {
-      // account.role_id là số rồi
+      // Khi chỉnh sửa: không lấy mật khẩu từ server, dùng placeholder để pass validation nếu cần
       form.reset({
         ten: account.ten || "",
         email: account.email || "",
-        matKhau: account.matKhau || "",
+        matKhau: "********", // placeholder, sẽ không gửi lên khi update
         sdt: account.sdt || "",
         diaChi: account.diaChi || "",
         roleId: account.role_id ?? 0,
@@ -163,34 +163,36 @@ const AccountForm: React.FC<AccountFormProps> = ({
                     )}
                   />
 
-                  {/* Mật khẩu */}
-                  <FormField
-                    control={form.control}
-                    name="matKhau"
-                    render={({ field }) => (
-                      <FormItem className="relative">
-                        <FormLabel className="text-white">Mật khẩu</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <Input
-                              type={showPassword ? "text" : "password"}
-                              {...field}
-                              className="bg-slate-700 text-white pr-10"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => setShowPassword((prev) => !prev)}
-                              className="absolute right-2 top-1/2 -translate-y-1/2 text-white"
-                              tabIndex={-1}
-                            >
-                              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                            </button>
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  {/* Mật khẩu - chỉ hiển thị khi thêm mới */}
+                  {!account && (
+                    <FormField
+                      control={form.control}
+                      name="matKhau"
+                      render={({ field }) => (
+                        <FormItem className="relative">
+                          <FormLabel className="text-white">Mật khẩu</FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <Input
+                                type={showPassword ? "text" : "password"}
+                                {...field}
+                                className="bg-slate-700 text-white pr-10"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setShowPassword((prev) => !prev)}
+                                className="absolute right-2 top-1/2 -translate-y-1/2 text-white"
+                                tabIndex={-1}
+                              >
+                                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                              </button>
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
 
                   {/* SĐT */}
                   <FormField

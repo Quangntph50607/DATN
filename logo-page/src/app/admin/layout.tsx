@@ -1,10 +1,11 @@
 "use client";
 import AdminSidebar from "@/components/layout/(components)/(pages)/Adminsidebar";
 import HeaderAdmin from "@/components/layout/(components)/(pages)/HeaderAdmin";
+import AccessDenied from "@/components/ui/AccessDenied";
 import { Toaster } from "sonner";
 import { useUserStore } from "@/context/authStore.store";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 
 export default function AdminLayout({
   children,
@@ -13,9 +14,21 @@ export default function AdminLayout({
 }) {
   const user = useUserStore((state) => state.user);
   const router = useRouter();
+  const pathname = usePathname();
   const [hydrated, setHydrated] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+
+  // Danh sách các trang chỉ dành cho Admin (role 1)
+  const adminOnlyPages = [
+    "/admin/thongke",
+    "/admin/phieugiam", 
+    "/admin/khuyenmai",
+    "/admin/nguoidung"
+  ];
+
+  // Kiểm tra xem trang hiện tại có bị hạn chế không
+  const isRestrictedPage = adminOnlyPages.some(page => pathname.startsWith(page));
 
   useEffect(() => {
     setHydrated(true);
@@ -83,6 +96,11 @@ export default function AdminLayout({
         </div>
       </div>
     );
+  }
+
+  // Nếu là nhân viên (role 2) và đang truy cập trang bị hạn chế
+  if (user.roleId === 2 && isRestrictedPage) {
+    return <AccessDenied currentRole="Nhân viên" requiredRole="Admin" />;
   }
 
   return (

@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { useUserStore } from "@/context/authStore.store";
 
 // CSS để ẩn thanh cuộn
 const scrollbarHideStyles = `
@@ -54,6 +55,58 @@ export default function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps)
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openMenus, setOpenMenus] = useState<string[]>([]);
   const pathname = usePathname();
+  const user = useUserStore((state) => state.user);
+
+  // Danh sách các trang chỉ dành cho Admin (role 1)
+  const adminOnlyPages = [
+    "/admin/thongke",
+    "/admin/phieugiam", 
+    "/admin/khuyenmai",
+    "/admin/nguoidung"
+  ];
+
+  // Lọc routes dựa trên quyền của user
+  const getFilteredRoutes = () => {
+    if (!user) return adminRoutes;
+    
+    // Nếu là nhân viên (role 2), ẩn các trang admin-only
+    if (user.roleId === 2) {
+      return adminRoutes.filter(route => {
+        // Nếu route có href trực tiếp
+        if (route.href) {
+          return !adminOnlyPages.some(page => route.href?.startsWith(page));
+        }
+        
+        // Nếu route có children, lọc children
+        if (route.children) {
+          const filteredChildren = route.children.filter(child => 
+            !adminOnlyPages.some(page => child.href.startsWith(page))
+          );
+          
+          // Chỉ hiển thị route nếu còn children sau khi lọc
+          return filteredChildren.length > 0;
+        }
+        
+        return true;
+      }).map(route => {
+        // Nếu route có children, chỉ giữ lại children được phép
+        if (route.children) {
+          return {
+            ...route,
+            children: route.children.filter(child => 
+              !adminOnlyPages.some(page => child.href.startsWith(page))
+            )
+          };
+        }
+        return route;
+      });
+    }
+    
+    // Admin (role 1) có thể truy cập tất cả
+    return adminRoutes;
+  };
+
+  const filteredRoutes = getFilteredRoutes();
 
   const toggleMenu = (label: string) => {
     setOpenMenus((prev) =>
@@ -112,7 +165,7 @@ export default function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps)
 
         {/* Navigation - Có thể cuộn */}
         <nav className="flex-1 overflow-y-auto scrollbar-hide p-2 space-y-1">
-          {adminRoutes.map((item) => {
+          {filteredRoutes.map((item) => {
             const Icon = iconMap[item.icon as keyof typeof iconMap];
             const hasChildren = !!item.children;
             const isOpen = openMenus.includes(item.label);
