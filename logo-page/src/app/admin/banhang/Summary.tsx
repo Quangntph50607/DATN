@@ -131,22 +131,22 @@ const Summary: React.FC<Props> = ({
 
       {/* Dialog xác nhận thanh toán */}
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
+        <DialogContent className="bg-white text-black">
           <DialogHeader>
-            <DialogTitle>Xác nhận thanh toán</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-black">Xác nhận thanh toán</DialogTitle>
+            <DialogDescription className="text-gray-600">
               Vui lòng kiểm tra lại thông tin đơn hàng trước khi xác nhận thanh toán.
             </DialogDescription>
           </DialogHeader>
           <div className="my-4 space-y-2">
             <div>
-              <span className="font-semibold">Khách hàng:</span> {customerName || "Khách lẻ"}
+              <span className="font-semibold text-black">Khách hàng:</span> <span className="text-black">{customerName || "Khách lẻ"}</span>
             </div>
             <div>
-              <span className="font-semibold">Email:</span> {customerEmail || "-"}
+              <span className="font-semibold text-black">Email:</span> <span className="text-black">{customerEmail || "-"}</span>
             </div>
             <div>
-              <span className="font-semibold">SĐT:</span> {customerPhone && customerPhone.trim().length > 0 ? customerPhone : ""}
+              <span className="font-semibold text-black">SĐT:</span> <span className="text-black">{customerPhone && customerPhone.trim().length > 0 ? customerPhone : ""}</span>
             </div>
             <ScrollArea className="h-48 pr-4 my-2">
               <div className="space-y-2">
@@ -162,21 +162,21 @@ const Summary: React.FC<Props> = ({
                         unoptimized
                       />
                       <div>
-                        <span className="font-medium">{item.tenSanPham}</span>
-                        <span className="text-muted-foreground"> x {item.quantity}</span>
+                        <span className="font-medium text-black">{item.tenSanPham}</span>
+                        <span className="text-gray-600"> x {item.quantity}</span>
                       </div>
                     </div>
                     <div className="text-right">
-                      {item.giaKhuyenMai && item.giaKhuyenMai > 0 ? (
+                      {item.giaKhuyenMai && item.giaKhuyenMai > 0 && item.giaKhuyenMai < item.gia ? (
                         <>
                           <span className="text-primary font-bold">{formatCurrency(item.giaKhuyenMai)}</span>
                           <span className="ml-2 line-through text-xs text-gray-500">{formatCurrency(item.gia)}</span>
                         </>
                       ) : (
-                        <span>{formatCurrency(item.gia)}</span>
+                        <span className="text-black">{formatCurrency(item.gia)}</span>
                       )}
-                      <div className="text-xs text-gray-400">
-                        Thành tiền: {formatCurrency((item.giaKhuyenMai && item.giaKhuyenMai > 0 ? item.giaKhuyenMai : item.gia) * item.quantity)}
+                      <div className="text-xs text-gray-600">
+                        Thành tiền: {formatCurrency((item.giaKhuyenMai && item.giaKhuyenMai > 0 && item.giaKhuyenMai < item.gia ? item.giaKhuyenMai : item.gia) * item.quantity)}
                       </div>
                     </div>
                   </div>
@@ -186,8 +186,8 @@ const Summary: React.FC<Props> = ({
             <Separator className="my-4" />
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Tạm tính</span>
-                <span className="font-medium">{formatCurrency(subtotal)}</span>
+                <span className="text-gray-600">Tạm tính</span>
+                <span className="font-medium text-black">{formatCurrency(subtotal)}</span>
               </div>
               {discountAmount > 0 && (
                 <div className="flex justify-between text-green-600">
@@ -200,22 +200,22 @@ const Summary: React.FC<Props> = ({
               )}
               <Separator className="my-2" />
               <div className="flex justify-between font-bold text-lg">
-                <span>Tổng cộng</span>
-                <span className="text-primary">{formatCurrency(total)}</span>
+                <span className="text-black">Tổng cộng</span>
+                <span className="text-gray-900">{formatCurrency(total)}</span>
               </div>
               <div className="flex justify-between">
-                <span>Phương thức thanh toán</span>
-                <span>{paymentMethod === 'cash' ? 'Tiền mặt' : paymentMethod === 'transfer' ? 'Chuyển khoản' : ''}</span>
+                <span className="text-black">Phương thức thanh toán</span>
+                <span className="text-black">{paymentMethod === 'cash' ? 'Tiền mặt' : paymentMethod === 'transfer' ? 'Chuyển khoản' : ''}</span>
               </div>
               {paymentMethod === 'cash' && (
                 <>
                   <div className="flex justify-between">
-                    <span>Khách đưa</span>
-                    <span>{formatCurrency(Number(cashGiven) || 0)}</span>
+                    <span className="text-black">Khách đưa</span>
+                    <span className="text-black">{formatCurrency(Number(cashGiven) || 0)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Tiền thừa</span>
-                    <span>{formatCurrency(change)}</span>
+                    <span className="text-black">Tiền thừa</span>
+                    <span className="text-black">{formatCurrency(change)}</span>
                   </div>
                 </>
               )}
@@ -223,9 +223,9 @@ const Summary: React.FC<Props> = ({
           </div>
           <DialogFooter>
             <DialogClose asChild>
-              <Button variant="outline">Hủy</Button>
+              <Button className="border border-gray-500 text-gray-700 hover:bg-gray-100 px-4 py-2 rounded-md">Hủy</Button>
             </DialogClose>
-            <Button
+            <Button className="border border-gray-500 bg-blue-600 text-white hover:bg-blue-700 rounded-md"
               onClick={async () => {
                 // BỎ validation bắt buộc nhập SĐT khi chuyển khoản
                 // if (paymentMethod === "transfer" && (!customerPhone || customerPhone.trim() === "")) {
@@ -251,13 +251,13 @@ const Summary: React.FC<Props> = ({
 
       {showQR && (
         <Dialog open={showQR} onOpenChange={setShowQR}>
-          <DialogContent>
+          <DialogContent className="bg-white text-black">
             <DialogHeader>
-              <DialogTitle>Quét mã QR để chuyển khoản</DialogTitle>
+              <DialogTitle className="text-black">Quét mã QR để chuyển khoản</DialogTitle>
             </DialogHeader>
             <div className="flex flex-col items-center gap-4">
               {loadingQR ? (
-                <div>Đang tạo mã QR...</div>
+                <div className="text-black">Đang tạo mã QR...</div>
               ) : (
                 <>
                   <Image
@@ -268,7 +268,7 @@ const Summary: React.FC<Props> = ({
                     style={{ maxWidth: '100%', height: 'auto', display: 'block', margin: '0 auto' }}
                     priority
                   />
-                  <div className="text-center text-sm">
+                  <div className="text-center text-sm text-black">
                     Số tiền: <b>{formatCurrency(total)}</b><br />
                     Nội dung: <b>{`THANH TOAN DON ${customerPhone || "KHACHLE"}`}</b>
                   </div>
@@ -277,9 +277,10 @@ const Summary: React.FC<Props> = ({
             </div>
             <DialogFooter>
               <DialogClose asChild>
-                <Button variant="outline">Đóng</Button>
+                <Button className="border border-gray-500 text-gray-700 hover:bg-gray-100 px-4 py-2 rounded-md">Đóng</Button>
               </DialogClose>
               <Button
+                className="border border-gray-500 bg-blue-600 text-white hover:bg-blue-700 rounded-md"
                 onClick={() => {
                   setShowQR(false);
                   setShowConfirmReceived(true); // Mở dialog xác nhận đã nhận tiền
@@ -295,17 +296,17 @@ const Summary: React.FC<Props> = ({
 
       {/* Dialog xác nhận đã nhận tiền */}
       <Dialog open={showConfirmReceived} onOpenChange={setShowConfirmReceived}>
-        <DialogContent>
+        <DialogContent className="bg-white text-black">
           <DialogHeader>
-            <DialogTitle>Xác nhận đã nhận tiền</DialogTitle>
-            <DialogDescription>Bạn đã nhận được tiền từ khách chưa?</DialogDescription>
+            <DialogTitle className="text-black">Xác nhận đã nhận tiền</DialogTitle>
+            <DialogDescription className="text-gray-600">Bạn đã nhận được tiền từ khách chưa?</DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowConfirmReceived(false)}>
+            <Button className="border border-gray-500 text-gray-700 hover:bg-gray-100 px-4 py-2 rounded-md" onClick={() => setShowConfirmReceived(false)}>
               Hủy
             </Button>
             <Button
-              variant="default"
+              className="border border-gray-500 bg-blue-600 text-white hover:bg-blue-700 rounded-md"
               onClick={() => {
                 setShowConfirmReceived(false);
                 onCheckout(qrCodeRef.current || undefined);

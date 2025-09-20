@@ -65,7 +65,7 @@ const OrderPage = () => {
   const [customerPhone, setCustomerPhone] = useState('');
   const [pendingOrdersRaw, setPendingOrders] = useLocalStorage('pending-orders', []);
   const pendingOrders: PendingOrder[] = pendingOrdersRaw as PendingOrder[];
-  const [paymentMethod, setPaymentMethod] = useState<'' | 'cash' | 'transfer' | 'cod'>('');
+  const [paymentMethod, setPaymentMethod] = useState<'' | 'cash' | 'transfer' | 'cod'>('cash');
   const [cashGiven, setCashGiven] = useState<number | ''>('');
   const router = useRouter();
   const [selectedVoucher, setSelectedVoucher] = useState<PhieuGiamGia | null>(null);
@@ -310,15 +310,16 @@ const OrderPage = () => {
   }, []);
 
   return (
-    <div className="w-full h-full flex flex-col bg-gray-800">
-      <div className="flex justify-between items-center p-4">
-        <div className="text-center w-full">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">
-            Bán Hàng Tại Quầy
-          </h1>
-        </div>
-      </div>
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 flex gap-6 p-4 min-h-0">
+    <Card className="p-4 bg-gray-800 shadow-md w-full max-w-full min-h-screen">
+      <div className="min-h-screen bg-gradient-to-br">
+        <div className="container mx-auto px-4 py-8">
+          {/* Header */}
+          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-8">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">
+              Bán Hàng Tại Quầy
+            </h1>
+          </motion.div>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 flex gap-6 min-h-0">
         <ProductList
           products={filteredProducts}
           searchTerm={searchTerm}
@@ -328,7 +329,7 @@ const OrderPage = () => {
           pendingOrders={pendingOrders}
         />
         <div className="w-2/5 flex flex-col gap-4 min-h-0">
-          <Card className="glass-card flex flex-col flex-1">
+          <Card className="bg-gradient-to-br from-blue-900/30 to-purple-900/30 border border-blue-200/60 rounded-2xl flex flex-col flex-1">
             <CardHeader><CardTitle className="text-2xl font-bold text-white">Đơn hàng</CardTitle></CardHeader>
             <CardContent className="flex-grow flex flex-col p-4 min-h-0">
               <Cart
@@ -375,8 +376,10 @@ const OrderPage = () => {
             onDelete={handleDeletePendingOrder}
           />
         </div>
-      </motion.div>
-    </div>
+          </motion.div>
+        </div>
+      </div>
+    </Card>
   );
 };
 
