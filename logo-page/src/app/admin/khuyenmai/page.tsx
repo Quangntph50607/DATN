@@ -14,6 +14,7 @@ import { useSearchStore } from "@/context/useSearch.store";
 import KhuyenMaiFilter from "./KhuyenMaiFilter";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import LichSuLogTimeline from "@/shared/LichSuLogTimeline";
+import { isAfter, isBefore, isEqual, parseISO } from "date-fns";
 
 export default function KhuyenMaiPage() {
   const { data: khuyenMai = [], isLoading, refetch } = useKhuyenMai();
@@ -185,19 +186,32 @@ export default function KhuyenMaiPage() {
               {["Đang hoạt động", "Chưa bắt đầu", "Đã hết hạn"].map(
                 (trangThai) => {
                   const itemPerPage = 10;
+                  const arrayToDate = (arr: number[]): Date => {
+                    const [year, month, day, hour = 0, minute = 0, second = 0] =
+                      arr;
+                    return new Date(year, month - 1, day, hour, minute, second);
+                  };
                   const filtered = khuyenMai.filter((km) => {
                     const lowerKeyword = keyword.toLowerCase();
                     const matchKeyword =
                       km.maKhuyenMai?.toLowerCase().includes(lowerKeyword) ||
                       km.tenKhuyenMai.toLowerCase().includes(lowerKeyword);
-                    const from = fromDate ? new Date(fromDate) : null;
-                    const to = toDate ? new Date(toDate) : null;
-                    const startDate = new Date(km.ngayBatDau);
+
+                    const from = fromDate ? parseISO(fromDate) : null;
+                    const to = toDate ? parseISO(toDate) : null;
+                    const startDate = arrayToDate(km.ngayBatDau);
 
                     const matchDate =
-                      (!from || startDate >= from) && (!to || startDate <= to);
+                      (!from ||
+                        isEqual(startDate, from) ||
+                        isAfter(startDate, from)) &&
+                      (!to ||
+                        isEqual(startDate, to) ||
+                        isBefore(startDate, to));
+
                     const matchTrangThai =
                       convertStatus(km.trangThai) === trangThai;
+
                     return matchKeyword && matchDate && matchTrangThai;
                   });
                   const totalPages = Math.ceil(filtered.length / itemPerPage);
