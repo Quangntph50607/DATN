@@ -219,12 +219,10 @@ const HoaDonManagement = () => {
     }
     try {
       await HoaDonService.updateTrangThai(id, next);
-      toast.success(`Cập nhật trạng thái thành công`);
       fetchData();
     } catch (e: any) {
       // Log lỗi chi tiết
       console.error("Lỗi cập nhật trạng thái:", e);
-      toast.error(`Cập nhật trạng thái thất bại: ${e?.message || ""}`);
     }
   };
 
