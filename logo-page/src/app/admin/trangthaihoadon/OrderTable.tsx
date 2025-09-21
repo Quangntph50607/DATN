@@ -114,10 +114,10 @@ export default function OrderTable({
                   {hd.maVanChuyen || "N/A"}
                 </TableCell>
                 <TableCell className="text-white text-center">
-                  {hd.ten || hd.user?.ten || "N/A"}
+                  {hd.tenNguoiNhan || hd.ten || hd.user?.ten || "N/A"}
                 </TableCell>
                 <TableCell className="text-white text-center">
-                  {hd.sdt1 || hd.user?.sdt1 || "N/A"}
+                  {hd.sdt || hd.sdt1 || hd.user?.sdt || "N/A"}
                 </TableCell>
                 <TableCell className="text-green-500 text-center font-medium ">
                   {hd.tongTien?.toLocaleString("vi-VN") || "0"}₫

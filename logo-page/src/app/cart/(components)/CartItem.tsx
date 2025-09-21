@@ -57,6 +57,12 @@ export function CartItem({
     const item = items.find((item) => item.id === id);
     if (!item) return;
 
+    // Không cho phép thay đổi số lượng nếu sản phẩm hết hàng
+    if (item.isOutOfStock) {
+      showError("Sản phẩm này đã hết hàng!");
+      return;
+    }
+
     const newQty = item.quantity + delta;
     const result = updateCartItem(
       { ...item, quantity: newQty },
@@ -81,12 +87,17 @@ export function CartItem({
       {items.map((item) => (
         <div
           key={item.id}
-          className="flex items-center gap-4 p-4 bg-white rounded-lg border border-gray-200 hover:shadow-md transition-shadow duration-200"
+          className={`flex items-center gap-4 p-4 bg-white rounded-lg border transition-shadow duration-200 ${
+            item.isOutOfStock
+              ? "border-red-200 bg-red-50 opacity-75"
+              : "border-gray-200 hover:shadow-md"
+          }`}
         >
           <Checkbox
             checked={selectedIds.includes(item.id)}
             onCheckedChange={() => onSelect(item.id)}
-            className="border-gray-400 w-5 h-5 data-[state=checked]:bg-orange-500"
+            disabled={item.isOutOfStock}
+            className="border-gray-400 w-5 h-5 data-[state=checked]:bg-orange-500 disabled:opacity-50"
             aria-label={`Chọn sản phẩm ${item.name}`}
           />
 
@@ -104,33 +115,63 @@ export function CartItem({
 
           <div className="flex-1 min-w-0 space-y-1">
             <Link href={`/product/${item.id}`}>
-              <h3 className="font-medium text-gray-800 line-clamp-2 hover:text-orange-600 transition-colors duration-200">
+              <h3
+                className={`font-medium line-clamp-2 transition-colors duration-200 ${
+                  item.isOutOfStock
+                    ? "text-gray-500"
+                    : "text-gray-800 hover:text-orange-600"
+                }`}
+              >
                 {item.name}
+                {item.isOutOfStock && (
+                  <span className="ml-2 text-xs bg-red-100 text-red-600 px-2 py-1 rounded-full">
+                    Hết hàng
+                  </span>
+                )}
               </h3>
             </Link>
-            <div className="text-lg font-semibold text-orange-600">
+            <div
+              className={`text-lg font-semibold ${
+                item.isOutOfStock ? "text-gray-500" : "text-orange-600"
+              }`}
+            >
               {formatCurrency(item.price)}
             </div>
+            {item.isOutOfStock && item.currentStock !== undefined && (
+              <div className="text-sm text-red-600">
+                Tồn kho hiện tại: {item.currentStock} sản phẩm
+              </div>
+            )}
           </div>
 
-          <div className="flex items-center gap-2 bg-yellow-100 rounded-lg p-1">
+          <div
+            className={`flex items-center gap-2 rounded-lg p-1 ${
+              item.isOutOfStock ? "bg-gray-100" : "bg-yellow-100"
+            }`}
+          >
             <Button
               size="sm"
               onClick={() => handleQuantityChange(item.id, -1)}
-              disabled={item.quantity <= 1}
-              className="bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-md w-8 h-8 transition-colors duration-200"
+              disabled={item.quantity <= 1 || item.isOutOfStock}
+              className="bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-md w-8 h-8 transition-colors duration-200 disabled:opacity-50"
               aria-label="Giảm số lượng"
             >
               <Minus className="w-3 h-3" />
             </Button>
-            <span className="w-8 text-center text-gray-800 font-medium">
+            <span
+              className={`w-8 text-center font-medium ${
+                item.isOutOfStock ? "text-gray-500" : "text-gray-800"
+              }`}
+            >
               {item.quantity}
             </span>
             <Button
               size="sm"
               onClick={() => handleQuantityChange(item.id, 1)}
-              disabled={item.quantity >= (item.maxQuantity ?? 20)}
-              className="bg-orange-500 hover:bg-orange-600 text-white rounded-md w-8 h-8 transition-colors duration-200"
+              disabled={
+                item.quantity >= (item.maxQuantity ?? 20) || item.isOutOfStock
+              }
+              className="bg-orange-500 hover:bg-orange-600 text-white rounded-md w-8 h-8 transition-colors duration-200 disabled:opacity-50"
               aria-label="Tăng số lượng"
             >
               <Plus className="w-3 h-3" />

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { MessageSquare, Send, X, Minimize2 } from "lucide-react";
+import { MessageSquare, Send, Minimize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -11,7 +11,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { useChatMessage, useChatSession } from "@/hooks/useChatBox";
+import { useChatMessage } from "@/hooks/useChatBox";
 import { KhuyenMaiTheoSanPham } from "@/components/types/khuyenmai-type";
 import Image from "next/image";
 import Link from "next/link";
@@ -26,15 +26,12 @@ interface Message {
 export default function ChatWidget() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
-  const [sessionId, setSessionId] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
-  // Use actual hooks
-  const createSession = useChatSession();
   const sendMessage = useChatMessage();
 
-  // Auto scroll to bottom when new messages arrive
+  // Auto scroll
   useEffect(() => {
     if (scrollAreaRef.current) {
       const scrollElement = scrollAreaRef.current.querySelector(
@@ -46,76 +43,6 @@ export default function ChatWidget() {
     }
   }, [messages]);
 
-  // Create session when opening for the first time
-  useEffect(() => {
-    if (isOpen && !sessionId) {
-      createSession.mutate(undefined, {
-        onSuccess: (data) => {
-          setSessionId(data.sessionId);
-          setMessages([
-            {
-              sender: "bot",
-              text: "Xin chào 👋, tôi có thể giúp gì cho bạn?",
-              timestamp: new Date(),
-            },
-          ]);
-        },
-        onError: (error) => {
-          console.error("Error creating session:", error);
-          setMessages([
-            {
-              sender: "bot",
-              text: "❌ Không thể khởi tạo phiên chat. Vui lòng thử lại.",
-              timestamp: new Date(),
-            },
-          ]);
-        },
-      });
-    }
-  }, [isOpen, sessionId, createSession]);
-
-  const handleSend = () => {
-    if (!input.trim() || !sessionId || sendMessage.isPending) return;
-
-    const userMessage = {
-      sender: "user" as const,
-      text: input.trim(),
-      timestamp: new Date(),
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
-    const messageToSend = input.trim();
-    setInput(""); // Clear input immediately
-
-    sendMessage.mutate(
-      { message: messageToSend, sessionId },
-      {
-        onSuccess: (res) => {
-          setMessages((prev) => [
-            ...prev,
-            {
-              sender: "bot",
-              text: res.message,
-              timestamp: new Date(),
-              products: res.products ?? [],
-            },
-          ]);
-        },
-        onError: (error) => {
-          console.error("Error sending message:", error);
-          setMessages((prev) => [
-            ...prev,
-            {
-              sender: "bot",
-              text: "❌ Có lỗi khi gửi tin nhắn. Vui lòng thử lại.",
-              timestamp: new Date(),
-            },
-          ]);
-        },
-      }
-    );
-  };
-
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString("vi-VN", {
       hour: "2-digit",
@@ -123,7 +50,47 @@ export default function ChatWidget() {
     });
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  // Gửi tin nhắn
+  const handleSend = () => {
+    if (!input.trim()) return;
+
+    // thêm tin nhắn user
+    const userMessage: Message = {
+      sender: "user",
+      text: input,
+      timestamp: new Date(),
+    };
+    setMessages((prev) => [...prev, userMessage]);
+
+    // gọi API
+    sendMessage.mutate(
+      { message: input }, // payload
+      {
+        onSuccess: (data) => {
+          const botMessage: Message = {
+            sender: "bot",
+            text: data.message ?? "Bot không có phản hồi",
+            timestamp: new Date(),
+            products: data.products, // nếu có
+          };
+          setMessages((prev) => [...prev, botMessage]);
+        },
+        onError: (err) => {
+          const errorMessage: Message = {
+            sender: "bot",
+            text: `❌ Lỗi: ${err.message}`,
+            timestamp: new Date(),
+          };
+          setMessages((prev) => [...prev, errorMessage]);
+        },
+      }
+    );
+
+    setInput("");
+  };
+
+  // Gửi khi nhấn Enter
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
@@ -180,7 +147,6 @@ export default function ChatWidget() {
           {/* Messages */}
           <ScrollArea ref={scrollAreaRef} className="flex-1 h-64 p-4">
             <div className="space-y-4">
-              {/* Typing indicator */}
               {messages.map((msg, idx) => (
                 <div
                   key={idx}
@@ -188,7 +154,6 @@ export default function ChatWidget() {
                     msg.sender === "user" ? "items-end" : "items-start"
                   }`}
                 >
-                  {/* Tin nhắn text */}
                   <div
                     className={`rounded-2xl px-3 py-2 text-sm max-w-[85%] break-words ${
                       msg.sender === "user"
@@ -209,7 +174,7 @@ export default function ChatWidget() {
                           const imgUrl =
                             p.anhUrls?.find((a) => a.anhChinh)?.url ??
                             p.anhUrls?.[0]?.url ??
-                            "/images/placeholder.png"; // thay bằng placeholder phù hợp
+                            "/images/placeholder.png";
                           return (
                             <div
                               key={p.id}
@@ -257,24 +222,30 @@ export default function ChatWidget() {
 
           {/* Input */}
           <div className="p-4 border-t bg-gray-50">
-            <div className="flex gap-2">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSend();
+              }}
+              className="flex gap-2"
+            >
               <Input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyPress}
                 placeholder="Nhập tin nhắn..."
                 disabled={sendMessage.isPending}
-                className="flex-1 text-black  border-gray-800 focus:border-blue-500 rounded-full px-4"
+                className="flex-1 text-black border-gray-800 focus:border-blue-500 rounded-full px-4"
               />
               <Button
-                onClick={handleSend}
+                type="submit"
                 disabled={sendMessage.isPending || !input.trim()}
                 size="icon"
                 className="rounded-full bg-orange-600 hover:bg-orange-700 disabled:opacity-50"
               >
                 <Send className="size-4" />
               </Button>
-            </div>
+            </form>
           </div>
         </PopoverContent>
       </Popover>

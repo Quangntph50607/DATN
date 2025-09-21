@@ -85,6 +85,7 @@ export interface HoaDonDTO {
   sdt1: string;
   user: DTOUser;
   ten: string;
+  tenNguoiNhan?: string; // Thêm trường tên người nhận cho khách không đăng nhập
   nvId?: DTOUserWithId;
   nvName?: string;
   phieuGiamGia?: PhieuGiamGia;

@@ -5,10 +5,12 @@ import { HoaDonService } from "@/services/hoaDonService";
 import type { HoaDonDTO } from "@/components/types/hoaDon-types";
 import { getAnhByFileName } from "@/services/anhSanPhamService";
 import { Button } from "@/components/ui/button";
+import { useUserStore } from "@/context/authStore.store";
 
 export default function CheckoutSuccessPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { user } = useUserStore();
   const [hoaDon, setHoaDon] = useState<HoaDonDTO | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -17,6 +19,8 @@ export default function CheckoutSuccessPage() {
   const [cartItems, setCartItems] = useState<any[]>([]);
   const [imageUrls, setImageUrls] = useState<Record<string, string | null>>({});
   const [remainingCartCount, setRemainingCartCount] = useState(0);
+
+  const isGuestUser = !user;
 
   useEffect(() => {
     const hoaDonId = searchParams.get("hoaDonId");
@@ -586,15 +590,59 @@ export default function CheckoutSuccessPage() {
 
         {/* Nút hành động */}
         <div className="flex flex-col sm:flex-row gap-6 justify-center">
-          <button
-            onClick={() => router.push("/account")}
-            className="group relative px-8 py-4 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-          >
-            <span className="relative z-10 flex items-center gap-2">
-              📋 Xem tất cả đơn hàng
-            </span>
-            <div className="absolute inset-0 bg-gradient-to-r from-orange-600 to-red-600 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-          </button>
+          {isGuestUser ? (
+            <>
+              {/* Guest user actions */}
+              <div className="w-full mb-6 p-6 bg-blue-50 border border-blue-200 rounded-xl">
+                <div className="text-center">
+                  <div className="text-4xl mb-3">👤</div>
+                  <h3 className="text-lg font-semibold text-blue-900 mb-2">
+                    Tạo tài khoản để quản lý đơn hàng
+                  </h3>
+                  <p className="text-blue-700 mb-4">
+                    Đăng ký tài khoản để dễ dàng theo dõi đơn hàng, lịch sử mua
+                    hàng và nhận ưu đãi đặc biệt.
+                  </p>
+                  <p className="text-sm text-green-700 mb-4 bg-green-50 p-2 rounded">
+                    💡 <strong>Mẹo:</strong> Nếu bạn đã có tài khoản, hãy đăng
+                    nhập để xem tất cả đơn hàng trong lịch sử mua hàng của bạn!
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                    <button
+                      onClick={() => router.push("/auth/register")}
+                      className="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-colors"
+                    >
+                      📝 Đăng ký tài khoản
+                    </button>
+                    <button
+                      onClick={() => router.push("/auth/login")}
+                      className="px-6 py-3 border border-blue-300 text-blue-700 hover:bg-blue-50 rounded-lg font-medium transition-colors"
+                    >
+                      🔑 Đăng nhập
+                    </button>
+                    <button
+                      onClick={() =>
+                        router.push("/auth/login?redirect=/account/history")
+                      }
+                      className="px-6 py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition-colors"
+                    >
+                      👤 Đăng nhập để xem lịch sử
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            <button
+              onClick={() => router.push("/account")}
+              className="group relative px-8 py-4 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+            >
+              <span className="relative z-10 flex items-center gap-2">
+                📋 Xem tất cả đơn hàng
+              </span>
+              <div className="absolute inset-0 bg-gradient-to-r from-orange-600 to-red-600 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            </button>
+          )}
 
           {remainingCartCount > 0 && (
             <button

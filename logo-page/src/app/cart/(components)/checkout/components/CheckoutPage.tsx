@@ -101,10 +101,7 @@ export default function CheckoutPage() {
 
   const handleOrder = async () => {
     console.log("Voucher chọn:", selectedVoucher);
-    if (!user) {
-      toast.error("Vui lòng đăng nhập để đặt hàng!");
-      return;
-    }
+    // Cho phép guest checkout - không yêu cầu đăng nhập
 
     if (!selectedAddress) {
       toast.error("Vui lòng chọn địa chỉ giao hàng!");
@@ -142,7 +139,7 @@ export default function CheckoutPage() {
 
     const diaChiGiaoHang = `${selectedAddress.duong}, ${selectedAddress.xa}, ${selectedAddress.thanhPho}`;
     const orderData: CreateHoaDonDTO = {
-      userId: user.id,
+      userId: user?.id, // Cho phép undefined cho guest checkout
       loaiHD: 2,
       tenNguoiNhan: selectedAddress.hoTen,
       sdt: cleanPhone,
@@ -170,7 +167,7 @@ export default function CheckoutPage() {
         const hoaDon = await createHoaDonMutation.mutateAsync(orderData as any);
         const emailData: GuiHoaDonRequest = {
           idHD: hoaDon.id,
-          toEmail: user?.email || "",
+          toEmail: user?.email || selectedAddress.email || "", // Sử dụng email từ địa chỉ nếu không có user
           tenKH: selectedAddress.hoTen,
           maHD: hoaDon.maHD,
           ngayTao: new Date().toLocaleDateString("vi-VN"),
@@ -194,9 +191,10 @@ export default function CheckoutPage() {
           onError: (err) => console.error("Gửi email thất bại:", err),
         });
 
-        toast.success(
-          "Đặt hàng thành công! Đơn hàng sẽ được giao và thanh toán khi nhận hàng."
-        );
+        const successMessage = user 
+          ? "Đặt hàng thành công! Đơn hàng sẽ được giao và thanh toán khi nhận hàng."
+          : "Đặt hàng thành công! Bạn có thể theo dõi đơn hàng qua số điện thoại. Đơn hàng sẽ được giao và thanh toán khi nhận hàng.";
+        toast.success(successMessage);
         removeOrderedItemsFromCart();
         router.push(`/thanh-toan-thanh-cong?hoaDonId=${hoaDon.id}`);
         return;
@@ -256,7 +254,7 @@ export default function CheckoutPage() {
         localStorage.setItem("shippingMethod", shippingMethod);
         localStorage.setItem("shippingFee", shippingFee.toString());
         localStorage.setItem("soNgayGiao", soNgayGiao.toString());
-        localStorage.setItem("userEmail", user.email || "");
+        localStorage.setItem("userEmail", user?.email || selectedAddress?.email || "");
 
         const res = await fetch(
           `http://localhost:8080/api/lego-store/payment/create-payment?amount=${amountInVND}`,

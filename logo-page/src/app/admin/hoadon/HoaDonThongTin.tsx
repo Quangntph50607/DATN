@@ -109,13 +109,15 @@ export const HoaDonThongTin = ({ detail }: Props) => {
         />
         <InfoItem
           label="Khách hàng"
-          value={detail.ten || detail.user?.ten || "Khách lẻ"}
+          value={
+            detail.tenNguoiNhan || detail.ten || detail.user?.ten || "Khách lẻ"
+          }
         />
         <InfoItem
           label="Số điện thoại"
           value={
             <span className="font-mono">
-              {detail.sdt1 || detail.user?.sdt1 || "Chưa có"}
+              {detail.sdt || detail.sdt1 || detail.user?.sdt || "Chưa có"}
             </span>
           }
         />

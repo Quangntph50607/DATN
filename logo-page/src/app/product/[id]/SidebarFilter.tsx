@@ -6,20 +6,19 @@ import { useDanhMuc } from "@/hooks/useDanhMuc";
 import { cn } from "@/lib/utils";
 import { ChevronDown, FilterIcon } from "lucide-react";
 import React, { useState } from "react";
+import { KhuyenMaiTheoSanPham } from "@/components/types/khuyenmai-type";
 
 export const getTuoi = [
   { label: "6-10 tuổi", min: 6, max: 10 },
   { label: "10-15 tuổi", min: 10, max: 15 },
-  { label: "15-20 tuổi", min: 15, max: 20 },
-  { label: "20-30 tuổi", min: 20, max: 30 },
-  { label: "30-50 tuổi", min: 50, max: 50 },
+  { label: "15-18 tuổi", min: 15, max: 18 },
 ];
 
 export const getGia = [
-  { label: "Dưới 500k", min: 0, max: 500000 },
-  { label: "Từ 500k -1M", min: 500000, max: 1000000 },
-  { label: "Từ 1M - 2M", min: 1000000, max: 2000000 },
-  { label: "Trên 2M", min: 2000000, max: Infinity },
+  { label: "Dưới 200K", min: 0, max: 200000 },
+  { label: "Từ 200k -500K", min: 200000, max: 500000 },
+  { label: "Từ 500K - 1M", min: 500000, max: 1000000 },
+  { label: "Trên 1M", min: 1000000, max: Infinity },
 ];
 
 interface SidebarFilterProps {
@@ -31,6 +30,7 @@ interface SidebarFilterProps {
   setSelectedGia: (value: string | null) => void;
   selectedBoSuuTap: number | null;
   setSelectedBoSutap: (value: number | null) => void;
+  products: KhuyenMaiTheoSanPham[];
 }
 
 export default function SidebarFilter({
@@ -42,9 +42,19 @@ export default function SidebarFilter({
   setSelectedDanhMuc,
   setSelectedGia,
   setSelectedTuoi,
+  products,
 }: SidebarFilterProps) {
   const { data: danhMucs = [] } = useDanhMuc();
   const { data: boSuuTaps = [] } = useBoSuutap();
+
+  // Lọc danh mục và bộ sưu tập chỉ hiển thị những cái có sản phẩm
+  const availableDanhMucs = danhMucs.filter((dm) =>
+    products.some((product) => product.danhMucId === dm.id)
+  );
+
+  const availableBoSuuTaps = boSuuTaps.filter((boSuuTap) =>
+    products.some((product) => product.boSuuTapId === boSuuTap.id)
+  );
 
   const [isDanhMucOpen, setIsDanhMucOpen] = useState(false);
   const [isTuoiOpen, setIsTuoiOpen] = useState(false);
@@ -100,7 +110,7 @@ export default function SidebarFilter({
                   Tất cả danh mục
                 </Button>
               </li>
-              {danhMucs.map((dm) => (
+              {availableDanhMucs.map((dm) => (
                 <li key={dm.id}>
                   <Button
                     onClick={() => setSelectedDanhMuc(dm.id)}
@@ -147,7 +157,7 @@ export default function SidebarFilter({
                   Tất cả bộ sưu tập
                 </Button>
               </li>
-              {boSuuTaps.map((bst) => (
+              {availableBoSuuTaps.map((bst) => (
                 <li key={bst.id}>
                   <Button
                     onClick={() => setSelectedBoSutap(bst.id)}

@@ -11,8 +11,8 @@ export default function Navbar() {
       <div className="w-full bg-orange-300 flex gap-6 justify-center py-4  z-[1000]">
         {[
           { href: "/product", label: "Sản phẩm" },
-          { href: "/1", label: "Cửa hàng" },
-          { href: "/2", label: "Giới thiệu" },
+          // { href: "/1", label: "Cửa hàng" },
+          // { href: "/2", label: "Giới thiệu" },
         ].map((item) => (
           <Link
             key={item.href}

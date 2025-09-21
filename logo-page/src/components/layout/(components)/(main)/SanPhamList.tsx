@@ -18,6 +18,7 @@ import { ShoppingCart } from "lucide-react";
 import { AddToWishListButton } from "@/components/layout/(components)/(wishlist)/AddToWishListButton";
 import { useDanhMucID } from "@/hooks/useDanhMuc";
 import { cn } from "@/lib/utils";
+import ChatWidget from "@/shared/MessageChatBot";
 
 interface SanPhamListProps {
   ps: KhuyenMaiTheoSanPham[];
@@ -267,6 +268,7 @@ export default function SanPhamList({ ps }: SanPhamListProps) {
           </div>
         </div>
       )}
+      <ChatWidget />
     </>
   );
 }

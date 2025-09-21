@@ -7,6 +7,7 @@ export interface ThongTinNguoiNhan {
   thanhPho: string;
   isMacDinh: number | boolean;
   idUser: number;
+  email: string;
 }
 
 export interface DTOThongTinNguoiNhan {
