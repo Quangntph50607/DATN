@@ -39,6 +39,32 @@ export const sanPhamService = {
     }
   },
 
+  // Kiểm tra tồn kho của nhiều sản phẩm cùng lúc
+  async checkStockForProducts(
+    productIds: number[]
+  ): Promise<Record<number, number>> {
+    try {
+      const promises = productIds.map(async (id) => {
+        try {
+          const product = await this.getSanPhamID(id);
+          return { id, stock: product.soLuongTon };
+        } catch (error) {
+          console.error(`Lỗi khi kiểm tra tồn kho sản phẩm ${id}:`, error);
+          return { id, stock: 0 };
+        }
+      });
+
+      const results = await Promise.all(promises);
+      return results.reduce((acc, { id, stock }) => {
+        acc[id] = stock;
+        return acc;
+      }, {} as Record<number, number>);
+    } catch (error) {
+      console.error("Lỗi khi kiểm tra tồn kho:", error);
+      throw error;
+    }
+  },
+
   // Add
   // async addSanPham(data: ProductData): Promise<SanPham> {
   //   const payload = {
@@ -98,7 +124,10 @@ export const sanPhamService = {
   },
 
   // Sửa
-  async editSanPham(id: number, data: ProductDataWithoutFiles): Promise<SanPham> {
+  async editSanPham(
+    id: number,
+    data: ProductDataWithoutFiles
+  ): Promise<SanPham> {
     const formData = new FormData();
     formData.append("tenSanPham", data.tenSanPham);
     formData.append("gia", data.gia.toString());

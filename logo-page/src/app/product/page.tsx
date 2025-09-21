@@ -148,6 +148,7 @@ export default function AllProductsPage() {
               setSelectedDanhMuc={setSelectedDanhMuc}
               setSelectedGia={setSelectedGia}
               setSelectedTuoi={setSelectedTuoi}
+              products={sanPhamTheoKhuyenMai}
             />
           </div>
           <div className="lg:w-3/4">
