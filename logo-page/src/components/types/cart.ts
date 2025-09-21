@@ -6,4 +6,6 @@ export interface CartItemType {
   finalPrice?: number;
   quantity: number;
   maxQuantity?: number;
+  isOutOfStock?: boolean;
+  currentStock?: number;
 }

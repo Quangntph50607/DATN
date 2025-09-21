@@ -10,6 +10,7 @@ import { CartItemType } from "@/components/types/cart";
 import { CartItem } from "./(components)/CartItem";
 import CartSummary from "./(components)/CartSummary";
 import { useUserStore } from "@/context/authStore.store";
+import { sanPhamService } from "@/services/sanPhamService";
 import Link from "next/link";
 
 export default function CartPage() {
@@ -22,26 +23,86 @@ export default function CartPage() {
   const userId = user?.id;
 
   useEffect(() => {
-    try {
-      const cart = JSON.parse(localStorage.getItem("cartItems") || "[]");
-      const fixedCart = cart.map((item: any) => ({
-        id: Number(item.id) || 0,
-        name: item.name || item.tenSanPham || "Sản phẩm không tên",
-        price:
-          Number(item.price) ||
-          Number(item.gia) ||
-          Number(item.giaKhuyenMai) ||
-          0,
-        quantity: Number(item.quantity) || Number(item.soLuong) || 1,
-        maxQuantity: Number(item.maxQuantity) || Number(item.soLuongTon) || 20,
-        image: item.image || item.anh || "",
-      }));
+    const loadCartWithStockCheck = async () => {
+      try {
+        const cart = JSON.parse(localStorage.getItem("cartItems") || "[]");
+        const fixedCart = cart.map((item: any) => ({
+          id: Number(item.id) || 0,
+          name: item.name || item.tenSanPham || "Sản phẩm không tên",
+          price:
+            Number(item.price) ||
+            Number(item.gia) ||
+            Number(item.giaKhuyenMai) ||
+            0,
+          quantity: Number(item.quantity) || Number(item.soLuong) || 1,
+          maxQuantity:
+            Number(item.maxQuantity) || Number(item.soLuongTon) || 20,
+          image: item.image || item.anh || "",
+        }));
 
-      setItems(fixedCart);
-      setSelectedIds(fixedCart.map((item: CartItemType) => item.id));
-    } catch (err) {
-      console.error("Lỗi khi parse localStorage:", err);
-    }
+        // Kiểm tra tồn kho cho tất cả sản phẩm trong giỏ hàng
+        if (fixedCart.length > 0) {
+          const productIds = fixedCart.map((item: CartItemType) => item.id);
+          const stockData = await sanPhamService.checkStockForProducts(
+            productIds
+          );
+
+          // Cập nhật trạng thái tồn kho cho từng sản phẩm
+          const updatedCart = fixedCart.map((item: CartItemType) => {
+            const currentStock = stockData[item.id] || 0;
+            const isOutOfStock = currentStock < item.quantity;
+
+            return {
+              ...item,
+              isOutOfStock,
+              currentStock,
+            };
+          });
+
+          setItems(updatedCart);
+          setSelectedIds(updatedCart.map((item: CartItemType) => item.id));
+
+          // Hiển thị thông báo nếu có sản phẩm hết hàng
+          const outOfStockItems = updatedCart.filter(
+            (item: CartItemType) => item.isOutOfStock
+          );
+          if (outOfStockItems.length > 0) {
+            toast.warning(
+              `${outOfStockItems.length} sản phẩm trong giỏ hàng đã hết hàng hoặc không đủ số lượng`,
+              { duration: 5000 }
+            );
+          }
+        } else {
+          setItems(fixedCart);
+          setSelectedIds(fixedCart.map((item: CartItemType) => item.id));
+        }
+      } catch (err) {
+        console.error("Lỗi khi parse localStorage:", err);
+        // Fallback: load cart without stock check
+        try {
+          const cart = JSON.parse(localStorage.getItem("cartItems") || "[]");
+          const fixedCart = cart.map((item: any) => ({
+            id: Number(item.id) || 0,
+            name: item.name || item.tenSanPham || "Sản phẩm không tên",
+            price:
+              Number(item.price) ||
+              Number(item.gia) ||
+              Number(item.giaKhuyenMai) ||
+              0,
+            quantity: Number(item.quantity) || Number(item.soLuong) || 1,
+            maxQuantity:
+              Number(item.maxQuantity) || Number(item.soLuongTon) || 20,
+            image: item.image || item.anh || "",
+          }));
+          setItems(fixedCart);
+          setSelectedIds(fixedCart.map((item: CartItemType) => item.id));
+        } catch (fallbackErr) {
+          console.error("Lỗi fallback:", fallbackErr);
+        }
+      }
+    };
+
+    loadCartWithStockCheck();
   }, []);
 
   const handleQuantityChange = (id: number, delta: number) => {
@@ -82,19 +143,26 @@ export default function CartPage() {
   };
 
   const selectedItems = items.filter((item) => selectedIds.includes(item.id));
-  const subtotal = selectedItems.reduce(
+  const availableSelectedItems = selectedItems.filter(
+    (item) => !item.isOutOfStock
+  );
+  const subtotal = availableSelectedItems.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0
   );
   const totalAfterDiscount = Math.max(0, subtotal - discount);
 
   const handleCheckout = () => {
-    if (selectedItems.length === 0) {
-      toast.error("Vui lòng chọn ít nhất một sản phẩm!");
+    if (availableSelectedItems.length === 0) {
+      if (selectedItems.some((item) => item.isOutOfStock)) {
+        toast.error("Không thể thanh toán vì có sản phẩm đã hết hàng!");
+      } else {
+        toast.error("Vui lòng chọn ít nhất một sản phẩm!");
+      }
       return;
     }
 
-    const updatedItems = selectedItems.map((item) => ({
+    const updatedItems = availableSelectedItems.map((item) => ({
       ...item,
       finalPrice:
         discount > 0
@@ -138,7 +206,9 @@ export default function CartPage() {
                 Trang Chủ
               </Link>
               <span className="text-gray-400">{">"}</span>
-              <span className="text-gray-900 font-medium truncate">Giỏ hàng</span>
+              <span className="text-gray-900 font-medium truncate">
+                Giỏ hàng
+              </span>
             </nav>
           </div>
         </div>
@@ -164,7 +234,14 @@ export default function CartPage() {
 
                   {selectedIds.length > 0 && (
                     <div className="bg-orange-100 text-orange-700 px-4 py-2 rounded-full text-sm font-medium">
-                      {selectedIds.length} sản phẩm đã chọn
+                      {availableSelectedItems.length} sản phẩm có thể thanh toán
+                      {selectedItems.length > availableSelectedItems.length && (
+                        <span className="ml-2 text-red-600">
+                          (
+                          {selectedItems.length - availableSelectedItems.length}{" "}
+                          hết hàng)
+                        </span>
+                      )}
                     </div>
                   )}
                 </div>
@@ -209,7 +286,7 @@ export default function CartPage() {
           <div className="xl:w-96 w-full space-y-6">
             {/* Summary Card */}
             <CartSummary
-              selectedItems={selectedItems}
+              selectedItems={availableSelectedItems}
               onCheckout={handleCheckout}
               formatCurrency={formatCurrency}
               userId={userId}

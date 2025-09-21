@@ -10,10 +10,10 @@ export function useGetViPhieuGiamGiaTheoUser(
   return useQuery<PhieuGiamGiaResponse[]>({
     queryKey: ["viPhieuGiamGiaTheoUser", userId, trangThai],
     queryFn: () => {
-      if (!userId) throw new Error("Missing userId");
+      if (!userId || userId === 0) return []; // Trả về mảng rỗng cho guest checkout
       return viPhieuGiamGiaService.getHoaDonTheoUser(userId, trangThai);
     },
-    enabled: !!userId, // chỉ gọi khi userId tồn tại
+    enabled: !!userId && userId !== 0, // chỉ gọi khi userId tồn tại và không phải guest
   });
 }
 
