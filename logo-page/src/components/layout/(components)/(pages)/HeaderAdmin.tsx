@@ -64,7 +64,7 @@ export default function HeaderAdmin() {
 
           {menuOpen && (
             <div className="absolute right-0 mt-2 w-40 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-md shadow-lg z-20">
-              <Link href="/profile">
+              <Link href="/admin/profile">
                 <span
                   className="block px-4 py-2 text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
                   onClick={() => setMenuOpen(false)}
