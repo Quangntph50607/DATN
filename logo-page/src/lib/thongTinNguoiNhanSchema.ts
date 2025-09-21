@@ -21,6 +21,9 @@ export const thongTinNguoiNhanSchema = z.object({
 
   // Không bắt buộc trong form, sẽ gán thủ công khi submit
   idUser: z.number().optional(),
+
+  // Email tùy chọn cho guest checkout
+  email: z.string().email("Email không đúng định dạng").optional().or(z.literal("")),
 });
 
 export type ThongTinNguoiNhanForm = z.infer<typeof thongTinNguoiNhanSchema>;

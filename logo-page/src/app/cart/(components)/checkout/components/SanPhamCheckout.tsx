@@ -64,7 +64,7 @@ export function SanPhamCheckout({
   const [voucherMessage, setVoucherMessage] = useState<string>("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const { data: vouchers = [], isLoading } = useGetViPhieuGiamGiaTheoUser(
-    userId,
+    userId || 0, // Cho phép 0 cho guest checkout
     "active"
   );
   console.log("Ví phiếu giảm:", vouchers);

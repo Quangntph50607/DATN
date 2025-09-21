@@ -49,16 +49,19 @@ import {
   Check,
   X,
   Plus,
+  Mail,
 } from "lucide-react";
 
 export default function AddressForm({
   editing,
   setEditing,
   onSuccess,
+  isGuestMode = false,
 }: {
   editing: ThongTinNguoiNhan | null;
   setEditing: (data: ThongTinNguoiNhan | null) => void;
-  onSuccess?: () => void;
+  onSuccess?: (data?: ThongTinNguoiNhan) => void;
+  isGuestMode?: boolean;
 }) {
   const { user } = useUserStore();
   const currentUserId = user?.id ?? 0;
@@ -83,6 +86,7 @@ export default function AddressForm({
       thanhPho: "",
       isMacDinh: false,
       idUser: currentUserId,
+      email: "",
     },
   });
 
@@ -187,6 +191,29 @@ export default function AddressForm({
 
   const onSubmit = (data: ThongTinNguoiNhanForm) => {
     console.log("data:", data);
+
+    // Nếu là guest mode, chỉ lưu thông tin local không gửi lên server
+    if (isGuestMode) {
+      const guestAddressData: ThongTinNguoiNhan = {
+        id: 0, // Temporary ID for guest
+        hoTen: data.hoTen,
+        sdt: data.sdt,
+        duong: data.duong,
+        xa: data.xa,
+        thanhPho: data.thanhPho,
+        isMacDinh: 0,
+        idUser: 0, // Guest user
+        email: data.email || "", // Thêm email cho guest
+      };
+
+      toast.success("Địa chỉ đã được lưu!");
+      form.reset();
+      setSelectedProvince("");
+      setSelectedWard("");
+      onSuccess?.(guestAddressData);
+      return;
+    }
+
     const payload: DTOThongTinNguoiNhan = {
       ...data,
       idUser: currentUserId,
@@ -256,7 +283,7 @@ export default function AddressForm({
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="flex items-center gap-2">
-                  Họ tên người nhận
+                  Họ tên người nhận *
                 </FormLabel>
                 <FormControl>
                   <div className="relative">
@@ -279,7 +306,7 @@ export default function AddressForm({
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="flex items-center gap-2">
-                  Số điện thoại
+                  Số điện thoại *
                 </FormLabel>
                 <FormControl>
                   <div className="relative">
@@ -296,6 +323,33 @@ export default function AddressForm({
             )}
           />
         </div>
+
+        {/* Email cho guest mode */}
+        {isGuestMode && (
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="flex items-center gap-2">
+                  Email (tùy chọn)
+                </FormLabel>
+                <FormControl>
+                  <div className="relative">
+                    <Input
+                      type="email"
+                      placeholder="Nhập email để nhận thông tin đơn hàng"
+                      {...field}
+                      className="border-gray-300 h-10 pl-9 focus:border-orange-500 focus-visible:ring-orange-500"
+                    />
+                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
 
         {/* Địa chỉ */}
         <FormField
@@ -411,25 +465,27 @@ export default function AddressForm({
           />
         </div>
 
-        {/* Checkbox */}
-        <FormField
-          control={form.control}
-          name="isMacDinh"
-          render={({ field }) => (
-            <FormItem className="flex items-center gap-3">
-              <FormControl>
-                <Checkbox
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                  className="border-gray-300 data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500"
-                />
-              </FormControl>
-              <FormLabel className="flex items-center gap-2">
-                Đặt làm địa chỉ mặc định
-              </FormLabel>
-            </FormItem>
-          )}
-        />
+        {/* Checkbox - chỉ hiển thị khi không phải guest mode */}
+        {!isGuestMode && (
+          <FormField
+            control={form.control}
+            name="isMacDinh"
+            render={({ field }) => (
+              <FormItem className="flex items-center gap-3">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    className="border-gray-300 data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500"
+                  />
+                </FormControl>
+                <FormLabel className="flex items-center gap-2">
+                  Đặt làm địa chỉ mặc định
+                </FormLabel>
+              </FormItem>
+            )}
+          />
+        )}
 
         {/* Buttons */}
         <div className="flex gap-2 md:gap-3 mt-4 md:mt-6 pt-4 md:pt-5 border-t">
@@ -451,7 +507,7 @@ export default function AddressForm({
                   className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1 md:mr-2"
                   strokeWidth={2.5}
                 />
-                Thêm địa chỉ
+                {isGuestMode ? "Xác nhận địa chỉ" : "Thêm địa chỉ"}
               </>
             )}
           </Button>
