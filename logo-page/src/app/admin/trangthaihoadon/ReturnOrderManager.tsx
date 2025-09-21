@@ -149,7 +149,7 @@ interface OrderTableProps {
     duyetMutation: { isPending: boolean };
     tuChoiMutation: { isPending: boolean };
     capNhatThanhToanMutation: { isPending: boolean };
-    handleKiemTraHang: (idPhieu: number, suDungDuoc: boolean) => void;
+    handleOpenCheckProductDialog: (idPhieu: number) => void;
     kiemTraHangPending: boolean;
 }
 
@@ -162,7 +162,7 @@ function OrderTable({
     duyetMutation,
     tuChoiMutation,
     capNhatThanhToanMutation,
-    handleKiemTraHang,
+    handleOpenCheckProductDialog,
     kiemTraHangPending,
 }: OrderTableProps) {
     // Lấy toàn bộ danh sách sản phẩm
@@ -302,26 +302,15 @@ function OrderTable({
                                             </Button>
                                         )}
                                     {order.trangThai === TrangThaiPhieuHoan.DA_DUYET && order.trangThaiThanhToan === TrangThaiThanhToan.DA_HOAN && (
-                                        <div className="flex gap-2 flex-wrap">
-                                            <Button
-                                                variant="default"
-                                                size="sm"
-                                                className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-md text-xs font-semibold border border-emerald-500"
-                                                onClick={() => handleKiemTraHang(order.id, true)}
-                                                disabled={kiemTraHangPending}
-                                            >
-                                                Hàng còn sử dụng được
-                                            </Button>
-                                            <Button
-                                                variant="destructive"
-                                                size="sm"
-                                                className="bg-orange-600 hover:bg-orange-700 text-white rounded-md text-xs font-semibold border border-orange-500"
-                                                onClick={() => handleKiemTraHang(order.id, false)}
-                                                disabled={kiemTraHangPending}
-                                            >
-                                                Hàng không sử dụng được
-                                            </Button>
-                                        </div>
+                                        <Button
+                                            variant="default"
+                                            size="sm"
+                                            className="bg-blue-600 hover:bg-blue-700 text-white rounded-md text-xs font-semibold border border-blue-500"
+                                            onClick={() => handleOpenCheckProductDialog(order.id)}
+                                            disabled={kiemTraHangPending}
+                                        >
+                                            Kiểm tra hàng
+                                        </Button>
                                     )}
                                     {order.trangThai === TrangThaiPhieuHoan.TU_CHOI && (
                                         <Badge className="bg-gray-200 text-gray-800 rounded-md text-xs font-semibold border border-gray-300">
@@ -414,6 +403,7 @@ export default function ReturnOrderManager() {
     const [pageSize, setPageSize] = useState(10);
 
     const { data: phieuHoanData, isLoading } = usePhieuHoanByTrangThai(selectedTrangThai);
+    const { data: allProducts } = useSanPham();
     const duyetMutation = useDuyetPhieuHoanHang();
     const tuChoiMutation = useTuChoiPhieuHoanHang();
     const capNhatThanhToanMutation = useCapNhatThanhToanPhieuHoanHang();
@@ -433,6 +423,31 @@ export default function ReturnOrderManager() {
     const [refundAccountNumber, setRefundAccountNumber] = useState<string>("");
     const [refundAccountOwner, setRefundAccountOwner] = useState<string>("");
     const [refundAmount, setRefundAmount] = useState<number>(0);
+
+    // Dialog kiểm tra hàng
+    const [checkProductDialogOpen, setCheckProductDialogOpen] = useState(false);
+    const [checkProductTargetId, setCheckProductTargetId] = useState<number | null>(null);
+    const [checkProductData, setCheckProductData] = useState<{
+        orderInfo: {
+            orderNumber: string;
+            lineNumber: string;
+            customer: string;
+        };
+        products: Array<{
+            id: number;
+            name: string;
+            totalQuantity: number;
+            usable: number;
+            unusable: number;
+        }>;
+    }>({
+        orderInfo: {
+            orderNumber: "",
+            lineNumber: "",
+            customer: ""
+        },
+        products: []
+    });
 
     let filteredData: PhieuHoanHang[] = (phieuHoanData ?? []);
     if (filterRefund !== "ALL") {
@@ -597,29 +612,148 @@ export default function ReturnOrderManager() {
         }
     };
 
-    const handleKiemTraHang = async (idPhieu: number, suDungDuoc: boolean) => {
+    const handleOpenCheckProductDialog = (idPhieu: number) => {
+        const found = (phieuHoanData || []).find((p) => p.id === idPhieu);
+        if (!found) return;
+
+        // Lấy thông tin đơn hàng
+        const orderNumber = found.hoaDon?.maHD || `PH-${found.id}`;
+        const lineNumber = `${orderNumber}-1`;
+        const customer = found.chuTaiKhoan || found.hoaDon?.user?.ten || "Khách mới";
+
+        // Lấy tất cả sản phẩm từ chi tiết hoàn hàng
+        const products = (found?.chiTietHoanHangs || []).map((ct: any, index: number) => {
+            const idSanPham = Number((ct as any).idSanPham || ct?.sanPham?.id);
+            const soLuongHoan = Number((ct as any).soLuongHoan || 0);
+            let productName = 'Sản phẩm không xác định';
+
+            if (ct.sanPham && typeof ct.sanPham === 'object' && 'tenSanPham' in ct.sanPham && ct.sanPham.tenSanPham) {
+                productName = ct.sanPham.tenSanPham;
+            } else if (idSanPham && allProducts) {
+                const foundProduct = allProducts.find(sp => sp.id === idSanPham);
+                productName = foundProduct ? foundProduct.tenSanPham : `ID: ${idSanPham}`;
+            } else if (idSanPham) {
+                productName = `ID: ${idSanPham}`;
+            }
+
+            return {
+                id: idSanPham,
+                name: productName,
+                totalQuantity: soLuongHoan,
+                usable: 0,
+                unusable: 0
+            };
+        }).filter(p => p.id && p.totalQuantity > 0);
+
+        setCheckProductTargetId(idPhieu);
+        setCheckProductData({
+            orderInfo: {
+                orderNumber,
+                lineNumber,
+                customer
+            },
+            products
+        });
+        setCheckProductDialogOpen(true);
+    };
+
+    const handleKiemTraHang = async () => {
+        if (!checkProductTargetId) return;
+
         try {
-            const found = (phieuHoanData || []).find((p) => p.id === idPhieu);
+            const found = (phieuHoanData || []).find((p) => p.id === checkProductTargetId);
             // Chặn sai trạng thái để tránh vi phạm CHECK ở BE
             if (!found || found.trangThai !== TrangThaiPhieuHoan.DA_DUYET || found.trangThaiThanhToan !== TrangThaiThanhToan.DA_HOAN) {
                 toast.error("Phiếu chưa ở trạng thái hợp lệ (ĐÃ DUYỆT và ĐÃ HOÀN) để kiểm tra hàng");
                 return;
             }
-            const ketQuaList = (found?.chiTietHoanHangs || [])
-                .map((ct: any) => {
-                    const idSanPham = Number((ct as any).idSanPham || ct?.sanPham?.id);
-                    const soLuongHoan = Number((ct as any).soLuongHoan || 0);
-                    return { idSanPham, suDungDuoc, soLuongHoan };
-                })
-                .filter(x => x.idSanPham && x.soLuongHoan > 0);
+
+            // Validation: Kiểm tra từng sản phẩm
+            for (const product of checkProductData.products) {
+                if (product.usable + product.unusable !== product.totalQuantity) {
+                    toast.error(`Sản phẩm "${product.name}": Tổng số lượng phải bằng Dùng được + Không dùng được`);
+                    return;
+                }
+            }
+
+            // Tạo kết quả kiểm tra cho tất cả sản phẩm theo format backend mong đợi
+            // Backend yêu cầu: tổng số lượng kiểm tra cho mỗi sản phẩm phải bằng số lượng trong phiếu
+            // Cần gửi 2 record cho mỗi sản phẩm: 1 cho dùng được, 1 cho không dùng được
+            const ketQuaList: Array<{ idSanPham: number; suDungDuoc: boolean; soLuongHoan: number }> = [];
+
+            for (const product of checkProductData.products) {
+                // Gửi số lượng dùng được (nếu > 0)
+                if (product.usable > 0) {
+                    ketQuaList.push({
+                        idSanPham: product.id,
+                        suDungDuoc: true,
+                        soLuongHoan: product.usable
+                    });
+                }
+
+                // Gửi số lượng không dùng được (nếu > 0)
+                if (product.unusable > 0) {
+                    ketQuaList.push({
+                        idSanPham: product.id,
+                        suDungDuoc: false,
+                        soLuongHoan: product.unusable
+                    });
+                }
+            }
 
             if (!ketQuaList.length) {
-                toast.error("Không có sản phẩm hợp lệ (số lượng hoàn > 0) để kiểm tra");
+                toast.error("Không có sản phẩm hợp lệ để kiểm tra");
                 return;
             }
 
-            const message = await kiemTraHangMutation.mutateAsync({ idPhieu, ketQuaList });
+            // Debug log để kiểm tra dữ liệu
+            console.log("Dữ liệu gửi lên backend:", {
+                idPhieu: checkProductTargetId,
+                ketQuaList
+            });
+
+            // Validation: Kiểm tra dữ liệu trước khi gửi
+            const totalUsableInForm = checkProductData.products.reduce((sum, product) => sum + product.usable, 0);
+            const totalUnusableInForm = checkProductData.products.reduce((sum, product) => sum + product.unusable, 0);
+            const totalInForm = checkProductData.products.reduce((sum, product) => sum + product.totalQuantity, 0);
+
+            // Kiểm tra tổng số lượng trong form
+            if (totalUsableInForm + totalUnusableInForm !== totalInForm) {
+                toast.error(`Tổng số lượng trong form không khớp: Dùng được (${totalUsableInForm}) + Không dùng được (${totalUnusableInForm}) ≠ Tổng (${totalInForm})`);
+                return;
+            }
+
+            // Validation: Kiểm tra tổng số lượng kiểm tra cho từng sản phẩm
+            for (const product of checkProductData.products) {
+                const totalCheckedForProduct = ketQuaList
+                    .filter(item => item.idSanPham === product.id)
+                    .reduce((sum, item) => sum + item.soLuongHoan, 0);
+
+                if (totalCheckedForProduct !== product.totalQuantity) {
+                    toast.error(`Sản phẩm "${product.name}": Tổng số lượng kiểm tra (${totalCheckedForProduct}) không khớp với số lượng phiếu (${product.totalQuantity})`);
+                    return;
+                }
+            }
+
+            console.log("Validation:", {
+                totalUsableInForm,
+                totalUnusableInForm,
+                totalInForm,
+                products: checkProductData.products.map(p => ({
+                    name: p.name,
+                    total: p.totalQuantity,
+                    usable: p.usable,
+                    unusable: p.unusable
+                })),
+                ketQuaList
+            });
+
+            const message = await kiemTraHangMutation.mutateAsync({
+                idPhieu: checkProductTargetId,
+                ketQuaList
+            });
             toast.success(message);
+            setCheckProductDialogOpen(false);
         } catch (error: any) {
             const msg = error?.message || "Không thể gửi kết quả kiểm tra hàng";
             toast.error(msg);
@@ -666,7 +800,7 @@ export default function ReturnOrderManager() {
                     duyetMutation={duyetMutation}
                     tuChoiMutation={tuChoiMutation}
                     capNhatThanhToanMutation={capNhatThanhToanMutation}
-                    handleKiemTraHang={handleKiemTraHang}
+                    handleOpenCheckProductDialog={handleOpenCheckProductDialog}
                     kiemTraHangPending={kiemTraHangMutation.isPending}
                 />
                 <Pagination
@@ -778,6 +912,132 @@ export default function ReturnOrderManager() {
                             disabled={capNhatThanhToanMutation.isPending}
                         >
                             Xác nhận hoàn tiền
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Dialog kiểm tra hàng */}
+            <Dialog open={checkProductDialogOpen} onOpenChange={setCheckProductDialogOpen}>
+                <DialogContent className="bg-gray-900 text-white border border-gray-700 max-w-2xl">
+                    <DialogHeader className="relative">
+                        <DialogTitle className="text-xl font-bold text-left">Kiểm tra hàng trả</DialogTitle>
+                        <button
+                            onClick={() => setCheckProductDialogOpen(false)}
+                            className="absolute top-0 right-0 text-gray-400 hover:text-white text-xl"
+                        >
+                            ×
+                        </button>
+                        <div className="text-sm text-gray-300 mt-2 text-right">
+                            Đơn: {checkProductData.orderInfo.orderNumber} • Dòng: {checkProductData.orderInfo.lineNumber}
+                        </div>
+                    </DialogHeader>
+
+                    <div className="space-y-6 py-4">
+                        {/* Thông tin khách hàng */}
+                        <div className="bg-gray-800 p-4 rounded-lg border border-gray-600">
+                            <div className="text-white font-medium mb-2">
+                                KH: {checkProductData.orderInfo.customer}
+                            </div>
+                        </div>
+
+                        {/* Danh sách sản phẩm */}
+                        <div className="space-y-4">
+                            {checkProductData.products.map((product, index) => (
+                                <div key={product.id} className="bg-gray-800 p-4 rounded-lg border border-gray-600">
+                                    <div className="text-white font-medium mb-4">
+                                        {product.name}
+                                    </div>
+
+                                    <div className="grid grid-cols-3 gap-4">
+                                        <div className="space-y-2">
+                                            <label className="text-sm text-gray-300">SL tổng</label>
+                                            <Input
+                                                type="number"
+                                                min="0"
+                                                value={product.totalQuantity}
+                                                readOnly
+                                                className="bg-gray-700 border-gray-600 text-white text-center"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-sm text-gray-300">Dùng được</label>
+                                            <Input
+                                                type="number"
+                                                min="0"
+                                                max={product.totalQuantity}
+                                                value={product.usable}
+                                                onChange={(e) => {
+                                                    const usable = Math.max(0, parseInt(e.target.value) || 0);
+                                                    const maxUsable = product.totalQuantity - product.unusable;
+                                                    const finalUsable = Math.min(usable, maxUsable);
+
+                                                    const newProducts = [...checkProductData.products];
+                                                    newProducts[index] = {
+                                                        ...product,
+                                                        usable: finalUsable,
+                                                        unusable: product.totalQuantity - finalUsable
+                                                    };
+                                                    setCheckProductData(prev => ({
+                                                        ...prev,
+                                                        products: newProducts
+                                                    }));
+                                                }}
+                                                className="bg-gray-700 border-gray-600 text-white text-center"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-sm text-gray-300">Không dùng được</label>
+                                            <Input
+                                                type="number"
+                                                min="0"
+                                                max={product.totalQuantity}
+                                                value={product.unusable}
+                                                onChange={(e) => {
+                                                    const unusable = Math.max(0, parseInt(e.target.value) || 0);
+                                                    const maxUnusable = product.totalQuantity - product.usable;
+                                                    const finalUnusable = Math.min(unusable, maxUnusable);
+
+                                                    const newProducts = [...checkProductData.products];
+                                                    newProducts[index] = {
+                                                        ...product,
+                                                        unusable: finalUnusable,
+                                                        usable: product.totalQuantity - finalUnusable
+                                                    };
+                                                    setCheckProductData(prev => ({
+                                                        ...prev,
+                                                        products: newProducts
+                                                    }));
+                                                }}
+                                                className="bg-gray-700 border-gray-600 text-white text-center"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Công thức cho từng sản phẩm */}
+                                    <div className="text-sm text-gray-400 text-center mt-2">
+                                        Tổng = Dùng được + Không dùng được
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <DialogFooter className="flex justify-between">
+                        <Button
+                            variant="ghost"
+                            className="bg-gray-600 hover:bg-gray-500 text-white rounded-lg px-6 py-2"
+                            onClick={() => setCheckProductDialogOpen(false)}
+                        >
+                            Hủy
+                        </Button>
+                        <Button
+                            variant="default"
+                            className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white rounded-lg px-6 py-2"
+                            onClick={handleKiemTraHang}
+                            disabled={kiemTraHangMutation.isPending}
+                        >
+                            Lưu kết quả
                         </Button>
                     </DialogFooter>
                 </DialogContent>
