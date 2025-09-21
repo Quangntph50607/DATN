@@ -45,7 +45,7 @@ function HoaDonTable({
   page,
   setPage,
   handleViewDetail,
-  handleStatusChange,
+
   isValidTrangThaiTransition,
   PAGE_SIZE,
   onReload,
@@ -99,17 +99,13 @@ function HoaDonTable({
           pendingStatus.next
         );
 
-        if (pendingStatus.ids.length === 1) {
-          handleStatusChange(
-            pendingStatus.ids[0],
-            pendingStatus.current || "",
-            pendingStatus.next
-          );
-          // toast.success("Cập nhật trạng thái thành công!");
+        if (res.thanhCong.length > 0) {
+          toast.success("Cập nhật trạng thái thành công!");
         }
-        toast.success(
-          `Cập nhật thành công ${res.thanhCong.length} hóa đơn. Thất bại: ${res.loi.length}`
-        );
+
+        if (res.loi?.length > 0) {
+          toast.error(res.loi.join(", "));
+        }
       } catch (error: any) {
         console.error("Lỗi khi cập nhật trạng thái:", error);
         toast.error(`Lỗi cập nhật trạng thái: ${error.message}`);
