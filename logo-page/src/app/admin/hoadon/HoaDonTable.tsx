@@ -19,7 +19,6 @@ import {
 } from "@/components/types/hoaDon-types";
 import { formatDateFlexible } from "../khuyenmai/formatDateFlexible";
 
-import { Input } from "@/components/ui/input";
 import { getCurrentUserId, HoaDonService } from "@/services/hoaDonService";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/shared/ConfirmDialog";
@@ -58,21 +57,6 @@ function HoaDonTable({
     current: string | null;
     next: string | null;
   } | null>(null);
-  const [selectedIds, setSelectedIds] = useState<number[]>([]);
-
-  const toggleSelectAll = () => {
-    if (filteredData.length === selectedIds.length) {
-      setSelectedIds([]);
-    } else {
-      setSelectedIds(filteredData.map((hd) => hd.id));
-    }
-  };
-
-  const toggleSelectOne = (id: number) => {
-    setSelectedIds((prev) =>
-      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
-    );
-  };
 
   const filteredData = useMemo(() => {
     return filterLoaiHD === "all"
@@ -80,55 +64,10 @@ function HoaDonTable({
       : data?.content.filter((hd) => hd.loaiHD === filterLoaiHD) || [];
   }, [data, filterLoaiHD]);
 
-  const isCheckedAll =
-    filteredData.length > 0 && selectedIds.length === filteredData.length;
-
   const getLoaiHDLabel = (loaiHD: number | undefined) => {
     if (loaiHD === 1) return "Tại quầy";
     if (loaiHD === 2) return "Online";
     return "Không rõ";
-  };
-
-  const getNextTrangThaiForBatch = (): string | null => {
-    if (selectedIds.length === 0 || !data) return null;
-
-    const selectedHds = data.content.filter((hd) =>
-      selectedIds.includes(hd.id)
-    );
-    const allSameStatus = selectedHds.every(
-      (hd) => hd.trangThai === selectedHds[0].trangThai
-    );
-
-    if (!allSameStatus) return null;
-
-    const currentStatus = selectedHds[0].trangThai;
-    let next: string | null = null;
-
-    switch (currentStatus) {
-      case TrangThaiHoaDon.PENDING:
-        next = TrangThaiHoaDon.PROCESSING;
-        break;
-      case TrangThaiHoaDon.PROCESSING:
-        next = TrangThaiHoaDon.PACKING;
-        break;
-      case TrangThaiHoaDon.PACKING:
-        next = TrangThaiHoaDon.SHIPPED;
-        break;
-      case TrangThaiHoaDon.SHIPPED:
-        next = TrangThaiHoaDon.DELIVERED;
-        break;
-      default:
-        next = null;
-    }
-
-    // Verify if the next status is valid for all selected invoices
-    if (
-      next &&
-      selectedHds.every((hd) => isValidTrangThaiTransition(hd.trangThai, next))
-    ) {
-      return next;
-    }
-    return null;
   };
 
   const onChuyenTrangThaiClick = (ids: number | number[], next: string) => {
@@ -177,7 +116,6 @@ function HoaDonTable({
       } finally {
         setDialogOpen(false);
         setPendingStatus(null);
-        setSelectedIds([]);
         onReload();
       }
     }
@@ -217,24 +155,6 @@ function HoaDonTable({
             ))}
           </TabsList>
         </Tabs>
-
-        {/* Nút chuyển trạng thái hàng loạt */}
-        <Button
-          disabled={selectedIds.length === 0}
-          onClick={() => {
-            const nextStatus = getNextTrangThaiForBatch();
-            if (!nextStatus) {
-              toast.error(
-                "Không thể chuyển trạng thái. Vui lòng chọn các hóa đơn có cùng trạng thái hợp lệ."
-              );
-              return;
-            }
-            onChuyenTrangThaiClick(selectedIds, nextStatus);
-          }}
-          className="bg-blue-600 hover:bg-blue-700 text-white"
-        >
-          Chuyển trạng thái hàng loạt
-        </Button>
       </div>
 
       {/* Bảng */}
@@ -242,14 +162,6 @@ function HoaDonTable({
         <Table>
           <TableHeader className="bg-blue-500">
             <TableRow>
-              <TableHead>
-                <Input
-                  type="checkbox"
-                  checked={isCheckedAll}
-                  onChange={toggleSelectAll}
-                  className="form-checkbox w-4 h-4"
-                />
-              </TableHead>
               <TableHead>STT</TableHead>
               <TableHead>Mã Hóa Đơn</TableHead>
               <TableHead>Khách hàng</TableHead>
@@ -265,15 +177,6 @@ function HoaDonTable({
           <TableBody>
             {filteredData.map((hd, index) => (
               <TableRow key={hd.id}>
-                <TableCell>
-                  <Input
-                    type="checkbox"
-                    checked={selectedIds.includes(hd.id)}
-                    onChange={() => toggleSelectOne(hd.id)}
-                    className="form-checkbox w-4 h-4"
-                    disabled={hd.trangThai === TrangThaiHoaDon.COMPLETED}
-                  />
-                </TableCell>
                 <TableCell className="text-white">
                   {page * PAGE_SIZE + index + 1}
                 </TableCell>
@@ -281,10 +184,10 @@ function HoaDonTable({
                   {hd.maHD || "N/A"}
                 </TableCell>
                 <TableCell className="text-white">
-                  {hd.user?.ten || hd.ten || "Khách lẻ"}
+                  {hd.tenNguoiNhan || hd.ten || hd.user?.ten || "Khách lẻ"}
                 </TableCell>
                 <TableCell className="text-white">
-                  {hd.user?.sdt || hd.sdt1 || "N/A"}
+                  {hd.sdt || hd.sdt1 || hd.user?.sdt || "N/A"}
                 </TableCell>
                 <TableCell className="text-green-400 font-medium">
                   {hd.tongTien.toLocaleString("vi-VN")}₫
