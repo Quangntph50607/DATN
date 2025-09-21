@@ -61,7 +61,7 @@ const ReviewFilter = ({
                     </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
-                    <Calendar
+                    <Calendar className="bg-white text-black rounded-lg border border-gray-200"
                         mode="single"
                         selected={selectedDate}
                         onSelect={(date) => {

@@ -1,9 +1,10 @@
 // DanhGiaSanPham.tsx
-import { useMemo, useState, useCallback } from "react";
+import { useMemo, useState, useCallback, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { useUserStore } from "@/context/authStore.store";
 import { useAddDanhGiaWithImages, useDanhGia } from "@/hooks/useDanhGia";
 import { useListKhuyenMaiTheoSanPham } from "@/hooks/useKhuyenmai";
+import { HoaDonService } from "@/services/hoaDonService";
 
 import { Button } from "@/components/ui/button";
 
@@ -46,6 +47,9 @@ interface RatingAndFilterSectionProps {
   hasReviewedProduct: boolean;
   onShowForm: () => void;
   showDanhGiaForm: boolean;
+  hasPurchasedProduct: boolean | null;
+  isCheckingPurchase: boolean;
+  onCheckPurchase: () => void;
 }
 
 const RatingAndFilterSection = ({
@@ -57,6 +61,9 @@ const RatingAndFilterSection = ({
   hasReviewedProduct,
   onShowForm,
   showDanhGiaForm,
+  hasPurchasedProduct,
+  isCheckingPurchase,
+  onCheckPurchase,
 }: RatingAndFilterSectionProps) => {
   // Component cho đánh giá tổng quan
   const RatingOverview = ({
@@ -141,7 +148,34 @@ const RatingAndFilterSection = ({
       {/* Nút đánh giá và thông báo */}
       {user && !hasReviewedProduct && !showDanhGiaForm && (
         <div className="text-center mb-8">
-          <Button onClick={onShowForm}>✍️ Viết đánh giá</Button>
+          {isCheckingPurchase ? (
+            <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl">
+              <div className="flex items-center justify-center gap-2 text-blue-800">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+                <p className="font-medium">Đang kiểm tra lịch sử mua hàng...</p>
+              </div>
+            </div>
+          ) : hasPurchasedProduct === false ? (
+            <div className="p-4 bg-orange-50 border border-orange-200 rounded-xl">
+              <div className="flex items-center justify-center gap-2 text-orange-800">
+                <span className="text-2xl">🛒</span>
+                  <div className="text-center">
+                    <p className="font-semibold">Bạn cần mua sản phẩm này trước khi đánh giá</p>
+                    <p className="text-sm mt-1">Chỉ có thể đánh giá sản phẩm đã mua và hoàn tất trong vòng 7 ngày gần nhất</p>
+                    <p className="text-xs mt-1 text-orange-600">Hãy mua hàng, nhận được sản phẩm và đơn hàng hoàn tất để chia sẻ trải nghiệm của bạn</p>
+                  <Button 
+                    onClick={onCheckPurchase} 
+                    className="mt-2 text-xs"
+                    variant="outline"
+                  >
+                    🔄 Kiểm tra lại
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <Button onClick={onShowForm}>✍️ Viết đánh giá</Button>
+          )}
         </div>
       )}
       {user && hasReviewedProduct && (
@@ -190,6 +224,140 @@ export default function DanhGiaSanPham() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  
+  // State để kiểm tra xem user đã mua sản phẩm chưa
+  const [hasPurchasedProduct, setHasPurchasedProduct] = useState<boolean | null>(null);
+  const [isCheckingPurchase, setIsCheckingPurchase] = useState(false);
+
+  // Function để kiểm tra xem user đã mua sản phẩm chưa
+  const checkUserPurchase = useCallback(async () => {
+    if (!user || !sanPhamID) return;
+    
+    setIsCheckingPurchase(true);
+    try {
+      const hoaDons = await HoaDonService.getHoaDonByUserId(user.id);
+      
+      console.log("🔍 Debug - Hóa đơn của user:", hoaDons);
+      console.log("🔍 Debug - San phẩm ID cần tìm:", sanPhamID);
+      
+      // Lọc hóa đơn trong vòng 7 ngày gần nhất
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      
+      const recentHoaDons = hoaDons.filter(hoaDon => {
+        console.log("🔍 Debug - Hóa đơn ngày:", hoaDon.ngayTao);
+        console.log("🔍 Debug - Trạng thái hóa đơn:", hoaDon.trangThai);
+        
+        // Kiểm tra trạng thái đơn hàng phải là "Hoàn tất"
+        if (hoaDon.trangThai !== "Hoàn tất") {
+          console.log("🔍 Debug - Hóa đơn chưa hoàn tất, bỏ qua:", hoaDon.trangThai);
+          return false;
+        }
+        
+        let hoaDonDate: Date;
+        
+        // Xử lý format ngày tháng khác nhau
+        if (Array.isArray(hoaDon.ngayTao)) {
+          // Format: [2025, 9, 22, 0, 2, 31, 787000000]
+          const [year, month, day, hour = 0, minute = 0, second = 0] = hoaDon.ngayTao;
+          hoaDonDate = new Date(year, month - 1, day, hour, minute, second);
+        } else if (typeof hoaDon.ngayTao === 'string') {
+          // Format: "2025-09-22T00:02:31.787Z" hoặc "2025-09-22"
+          hoaDonDate = new Date(hoaDon.ngayTao);
+        } else {
+          // Format: timestamp hoặc Date object
+          hoaDonDate = new Date(hoaDon.ngayTao);
+        }
+        
+        console.log("🔍 Debug - Hóa đơn date object:", hoaDonDate);
+        console.log("🔍 Debug - So sánh:", hoaDonDate, ">=", sevenDaysAgo, "=", hoaDonDate >= sevenDaysAgo);
+        
+        return hoaDonDate >= sevenDaysAgo;
+      });
+      
+      console.log("🔍 Debug - Tổng số hóa đơn:", hoaDons.length);
+      console.log("🔍 Debug - Hóa đơn trong 7 ngày gần nhất:", recentHoaDons.length);
+      console.log("🔍 Debug - Ngày 7 ngày trước:", sevenDaysAgo.toISOString());
+      console.log("🔍 Debug - Ngày hiện tại:", new Date().toISOString());
+      
+      // Kiểm tra hóa đơn trong vòng 7 ngày gần nhất
+      let hasPurchased = false;
+      
+      for (const hoaDon of recentHoaDons) {
+        console.log("🔍 Debug - Hóa đơn:", hoaDon.id);
+        console.log("🔍 Debug - Toàn bộ hóa đơn:", hoaDon);
+        console.log("🔍 Debug - Tất cả thuộc tính:", Object.keys(hoaDon));
+        
+        // Tìm thuộc tính chứa chi tiết sản phẩm
+        let chiTietArray = hoaDon.hoaDonChiTiet || [];
+        
+        if (chiTietArray.length === 0) {
+          console.log("🔍 Debug - Không có chi tiết sản phẩm trong hóa đơn, thử gọi API...");
+          try {
+            // Gọi API lấy chi tiết hóa đơn
+            const chiTietSanPham = await HoaDonService.getChiTietSanPhamByHoaDonId(hoaDon.id);
+            console.log("🔍 Debug - Chi tiết từ API:", chiTietSanPham);
+            chiTietArray = chiTietSanPham || [];
+          } catch (error) {
+            console.log("🔍 Debug - Lỗi khi gọi API chi tiết:", error);
+            continue;
+          }
+        }
+        
+        if (chiTietArray.length === 0) {
+          console.log("🔍 Debug - Vẫn không có chi tiết sản phẩm trong hóa đơn này");
+          continue;
+        }
+        
+        const found = chiTietArray.some((chiTiet: unknown) => {
+          console.log("🔍 Debug - Chi tiết sản phẩm:", chiTiet);
+          
+          // Type assertion để truy cập thuộc tính
+          const chiTietData = chiTiet as Record<string, unknown>;
+          
+          console.log("🔍 Debug - spId:", chiTietData.spId);
+          console.log("🔍 Debug - spId.id:", (chiTietData.spId as Record<string, unknown>)?.id);
+          console.log("🔍 Debug - idSanPham:", chiTietData.idSanPham);
+          console.log("🔍 Debug - sanPhamId:", chiTietData.sanPhamId);
+          console.log("🔍 Debug - productId:", chiTietData.productId);
+          console.log("🔍 Debug - So với sanPhamID:", sanPhamID);
+          
+          // Thử nhiều cách kiểm tra
+          const match1 = (chiTietData.spId as Record<string, unknown>)?.id === sanPhamID;
+          const match2 = typeof chiTietData.spId === 'number' && chiTietData.spId === sanPhamID;
+          const match3 = chiTietData.idSanPham === sanPhamID;
+          const match4 = chiTietData.sanPhamId === sanPhamID;
+          const match5 = chiTietData.productId === sanPhamID;
+          const match6 = (chiTietData.sanPham as Record<string, unknown>)?.id === sanPhamID;
+          
+          console.log("🔍 Debug - Các cách so sánh:", { match1, match2, match3, match4, match5, match6 });
+          
+          return match1 || match2 || match3 || match4 || match5 || match6;
+        });
+        
+        if (found) {
+          console.log("🔍 Debug - Tìm thấy sản phẩm trong hóa đơn", hoaDon.id);
+          hasPurchased = true;
+          break;
+        }
+      }
+      
+      console.log("🔍 Debug - Kết quả đã mua:", hasPurchased);
+      setHasPurchasedProduct(hasPurchased);
+    } catch (error) {
+      console.error("Lỗi khi kiểm tra lịch sử mua hàng:", error);
+      setHasPurchasedProduct(false);
+    } finally {
+      setIsCheckingPurchase(false);
+    }
+  }, [user, sanPhamID]);
+
+  // Kiểm tra khi component mount hoặc user thay đổi
+  useEffect(() => {
+    if (user && sanPhamID) {
+      checkUserPurchase();
+    }
+  }, [user, sanPhamID, checkUserPurchase]);
 
   // Các hàm tiện ích và computed values (giữ nguyên)
   // Utility function
@@ -283,6 +451,20 @@ export default function DanhGiaSanPham() {
       return;
     }
 
+    // Kiểm tra xem user đã mua sản phẩm chưa
+    if (hasPurchasedProduct === false) {
+      setErrorMessage("Bạn cần mua sản phẩm này trước khi có thể đánh giá. Vui lòng mua hàng và nhận được sản phẩm để có thể chia sẻ trải nghiệm của mình.");
+      setShowErrorModal(true);
+      return;
+    }
+
+    // Nếu đang kiểm tra lịch sử mua hàng
+    if (isCheckingPurchase) {
+      setErrorMessage("Đang kiểm tra lịch sử mua hàng, vui lòng chờ...");
+      setShowErrorModal(true);
+      return;
+    }
+
     if (!tieuDe.trim() || !textDanhGia.trim()) {
       setErrorMessage("Vui lòng điền đầy đủ thông tin đánh giá");
       setShowErrorModal(true);
@@ -362,6 +544,9 @@ export default function DanhGiaSanPham() {
           hasReviewedProduct={hasReviewedProduct}
           onShowForm={() => setShowDanhGiaForm(true)}
           showDanhGiaForm={showDanhGiaForm}
+          hasPurchasedProduct={hasPurchasedProduct}
+          isCheckingPurchase={isCheckingPurchase}
+          onCheckPurchase={checkUserPurchase}
         />
         {/* Form đánh giá mới */}
         {user && showDanhGiaForm && (
