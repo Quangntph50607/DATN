@@ -49,7 +49,6 @@ interface RatingAndFilterSectionProps {
   showDanhGiaForm: boolean;
   hasPurchasedProduct: boolean | null;
   isCheckingPurchase: boolean;
-  onCheckPurchase: () => void;
 }
 
 const RatingAndFilterSection = ({
@@ -63,7 +62,6 @@ const RatingAndFilterSection = ({
   showDanhGiaForm,
   hasPurchasedProduct,
   isCheckingPurchase,
-  onCheckPurchase,
 }: RatingAndFilterSectionProps) => {
   // Component cho đánh giá tổng quan
   const RatingOverview = ({
@@ -163,13 +161,6 @@ const RatingAndFilterSection = ({
                     <p className="font-semibold">Bạn cần mua sản phẩm này trước khi đánh giá</p>
                     <p className="text-sm mt-1">Chỉ có thể đánh giá sản phẩm đã mua và hoàn tất trong vòng 7 ngày gần nhất</p>
                     <p className="text-xs mt-1 text-orange-600">Hãy mua hàng, nhận được sản phẩm và đơn hàng hoàn tất để chia sẻ trải nghiệm của bạn</p>
-                  <Button 
-                    onClick={onCheckPurchase} 
-                    className="mt-2 text-xs"
-                    variant="outline"
-                  >
-                    🔄 Kiểm tra lại
-                  </Button>
                 </div>
               </div>
             </div>
@@ -237,20 +228,13 @@ export default function DanhGiaSanPham() {
     try {
       const hoaDons = await HoaDonService.getHoaDonByUserId(user.id);
       
-      console.log("🔍 Debug - Hóa đơn của user:", hoaDons);
-      console.log("🔍 Debug - San phẩm ID cần tìm:", sanPhamID);
-      
       // Lọc hóa đơn trong vòng 7 ngày gần nhất
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
       
       const recentHoaDons = hoaDons.filter(hoaDon => {
-        console.log("🔍 Debug - Hóa đơn ngày:", hoaDon.ngayTao);
-        console.log("🔍 Debug - Trạng thái hóa đơn:", hoaDon.trangThai);
-        
         // Kiểm tra trạng thái đơn hàng phải là "Hoàn tất"
         if (hoaDon.trangThai !== "Hoàn tất") {
-          console.log("🔍 Debug - Hóa đơn chưa hoàn tất, bỏ qua:", hoaDon.trangThai);
           return false;
         }
         
@@ -269,58 +253,33 @@ export default function DanhGiaSanPham() {
           hoaDonDate = new Date(hoaDon.ngayTao);
         }
         
-        console.log("🔍 Debug - Hóa đơn date object:", hoaDonDate);
-        console.log("🔍 Debug - So sánh:", hoaDonDate, ">=", sevenDaysAgo, "=", hoaDonDate >= sevenDaysAgo);
-        
         return hoaDonDate >= sevenDaysAgo;
       });
-      
-      console.log("🔍 Debug - Tổng số hóa đơn:", hoaDons.length);
-      console.log("🔍 Debug - Hóa đơn trong 7 ngày gần nhất:", recentHoaDons.length);
-      console.log("🔍 Debug - Ngày 7 ngày trước:", sevenDaysAgo.toISOString());
-      console.log("🔍 Debug - Ngày hiện tại:", new Date().toISOString());
       
       // Kiểm tra hóa đơn trong vòng 7 ngày gần nhất
       let hasPurchased = false;
       
       for (const hoaDon of recentHoaDons) {
-        console.log("🔍 Debug - Hóa đơn:", hoaDon.id);
-        console.log("🔍 Debug - Toàn bộ hóa đơn:", hoaDon);
-        console.log("🔍 Debug - Tất cả thuộc tính:", Object.keys(hoaDon));
-        
         // Tìm thuộc tính chứa chi tiết sản phẩm
         let chiTietArray = hoaDon.hoaDonChiTiet || [];
         
         if (chiTietArray.length === 0) {
-          console.log("🔍 Debug - Không có chi tiết sản phẩm trong hóa đơn, thử gọi API...");
           try {
             // Gọi API lấy chi tiết hóa đơn
             const chiTietSanPham = await HoaDonService.getChiTietSanPhamByHoaDonId(hoaDon.id);
-            console.log("🔍 Debug - Chi tiết từ API:", chiTietSanPham);
             chiTietArray = chiTietSanPham || [];
-          } catch (error) {
-            console.log("🔍 Debug - Lỗi khi gọi API chi tiết:", error);
+          } catch {
             continue;
           }
         }
         
         if (chiTietArray.length === 0) {
-          console.log("🔍 Debug - Vẫn không có chi tiết sản phẩm trong hóa đơn này");
           continue;
         }
         
         const found = chiTietArray.some((chiTiet: unknown) => {
-          console.log("🔍 Debug - Chi tiết sản phẩm:", chiTiet);
-          
           // Type assertion để truy cập thuộc tính
           const chiTietData = chiTiet as Record<string, unknown>;
-          
-          console.log("🔍 Debug - spId:", chiTietData.spId);
-          console.log("🔍 Debug - spId.id:", (chiTietData.spId as Record<string, unknown>)?.id);
-          console.log("🔍 Debug - idSanPham:", chiTietData.idSanPham);
-          console.log("🔍 Debug - sanPhamId:", chiTietData.sanPhamId);
-          console.log("🔍 Debug - productId:", chiTietData.productId);
-          console.log("🔍 Debug - So với sanPhamID:", sanPhamID);
           
           // Thử nhiều cách kiểm tra
           const match1 = (chiTietData.spId as Record<string, unknown>)?.id === sanPhamID;
@@ -330,19 +289,14 @@ export default function DanhGiaSanPham() {
           const match5 = chiTietData.productId === sanPhamID;
           const match6 = (chiTietData.sanPham as Record<string, unknown>)?.id === sanPhamID;
           
-          console.log("🔍 Debug - Các cách so sánh:", { match1, match2, match3, match4, match5, match6 });
-          
           return match1 || match2 || match3 || match4 || match5 || match6;
         });
         
         if (found) {
-          console.log("🔍 Debug - Tìm thấy sản phẩm trong hóa đơn", hoaDon.id);
           hasPurchased = true;
           break;
         }
       }
-      
-      console.log("🔍 Debug - Kết quả đã mua:", hasPurchased);
       setHasPurchasedProduct(hasPurchased);
     } catch (error) {
       console.error("Lỗi khi kiểm tra lịch sử mua hàng:", error);
@@ -546,7 +500,6 @@ export default function DanhGiaSanPham() {
           showDanhGiaForm={showDanhGiaForm}
           hasPurchasedProduct={hasPurchasedProduct}
           isCheckingPurchase={isCheckingPurchase}
-          onCheckPurchase={checkUserPurchase}
         />
         {/* Form đánh giá mới */}
         {user && showDanhGiaForm && (
