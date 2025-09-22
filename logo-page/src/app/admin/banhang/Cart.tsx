@@ -13,6 +13,7 @@ import { accountSchema, AccountFormData } from '@/lib/accountSchema';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { CartItem } from '@/components/types/order.type';
 import Image from 'next/image';
+import { toast } from 'sonner';
 
 function getValidImageUrl(url?: string) {
   if (!url) return "/images/avatar-admin.png";
@@ -267,7 +268,50 @@ const Cart: React.FC<Props> = ({ cart, updateQuantity, removeFromCart, customerN
                   <Button variant="ghost" size="icon" onClick={() => updateQuantity(item.id, -1)} className="w-8 h-8 bg-slate-700 hover:bg-primary/80 rounded-full">
                     <MinusCircle className="w-5 h-5 text-primary" />
                   </Button>
-                  <span className="text-base text-white w-6 text-center font-bold">{item.quantity}</span>
+                  <Input
+                    type="text"
+                    value={item.quantity}
+                    onChange={(e) => {
+                      const inputValue = e.target.value;
+                      
+                      // Cho phép xóa hết để nhập số mới
+                      if (inputValue === '') {
+                        return;
+                      }
+                      
+                      const value = parseInt(inputValue);
+                      if (isNaN(value) || value < 0) {
+                        return;
+                      }
+                      
+                      if (value > item.soLuongTon) {
+                        toast.error(`Chỉ còn ${item.soLuongTon} sản phẩm trong kho`);
+                        return;
+                      }
+                      
+                      const difference = value - item.quantity;
+                      updateQuantity(item.id, difference);
+                    }}
+                    onBlur={(e) => {
+                      const inputValue = e.target.value;
+                      if (inputValue === '' || isNaN(parseInt(inputValue)) || parseInt(inputValue) < 1) {
+                        // Reset về 1 nếu nhập số không hợp lệ
+                        const difference = 1 - item.quantity;
+                        updateQuantity(item.id, difference);
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      // Cho phép xóa hết bằng phím Delete hoặc Backspace
+                      if (e.key === 'Delete' || e.key === 'Backspace') {
+                        if (e.currentTarget.value.length === 1) {
+                          // Nếu chỉ còn 1 ký tự, cho phép xóa hết
+                          e.currentTarget.value = '';
+                        }
+                      }
+                    }}
+                    className="w-16 h-8 text-center text-white bg-slate-700 border-slate-600 focus:border-primary/60 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    placeholder="1"
+                  />
                   <Button variant="ghost" size="icon" onClick={() => updateQuantity(item.id, 1)} className="w-8 h-8 bg-slate-700 hover:bg-primary/80 rounded-full">
                     <PlusCircle className="w-5 h-5 text-primary" />
                   </Button>

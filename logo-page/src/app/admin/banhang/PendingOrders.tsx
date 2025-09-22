@@ -39,7 +39,7 @@ const PendingOrders: React.FC<PendingOrdersProps> = ({ orders, onLoad, onDelete 
     });
 
     return (
-        <Card className="glass-card mt-4 w-full flex flex-col">
+        <Card className="bg-gradient-to-br from-blue-900/30 to-purple-900/30 border border-blue-400/60 rounded-2xl mt-4 w-full flex flex-col">
             <CardHeader>
                 <CardTitle className="flex items-center text-lg text-white">
                     <History className="w-5 h-5 mr-3 text-primary" />
