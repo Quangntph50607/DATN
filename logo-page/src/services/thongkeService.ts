@@ -1,13 +1,16 @@
 import {
+  BayNgayGanDay,
   DoanhThuDanhMucResponse,
   DoanhThuPTThanhToanResponse,
   DoanhThuTheoNgayResponse,
   DoanhThuXuatXuResponse,
+  HoatDongGanDay,
   KhuyenMaiHieuQuaResponse,
   LyDoHoanHoang,
   SanPhamHetHangRequest,
   SanPhamHetHangResponse,
   TiLeHoanResponse,
+  TongNguoiDung,
   TopKhachHangResponse,
   TopSanPhamBanChayResponse,
 } from "@/components/types/thongke.type";
@@ -25,7 +28,6 @@ function buildUrl(endpoint: string, params: Record<string, string>) {
   const query = new URLSearchParams(params).toString();
   return `${API_URL}/${endpoint}?${query}`;
 }
-
 export const thongKeService = {
   getDoanhThuTheoNgay: (startDate: string, endDate: string) =>
     fetchData<DoanhThuTheoNgayResponse>(
@@ -74,4 +76,11 @@ export const thongKeService = {
 
   getLyDoHoan: (startDate: string, endDate: string) =>
     fetchData<LyDoHoanHoang[]>(buildUrl("ly-do-hoan", { startDate, endDate })),
+
+  getTongNguoiDung: () =>
+    fetchData<TongNguoiDung>(`${API_URL}/tong-nguoi-dung`),
+
+  getHoatDongGanDay: () => fetchData<HoatDongGanDay[]>(`${API_URL}/gan-day`),
+
+  getBayNgayGanDay: () => fetchData<BayNgayGanDay[]>(`${API_URL}/last7days`),
 };
