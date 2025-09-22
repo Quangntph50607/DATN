@@ -56,7 +56,6 @@ export enum TrangThaiHoaDon {
   DELIVERED = "Đã giao",
   COMPLETED = "Hoàn tất",
   CANCELLED = "Đã hủy",
-  FAILED = "Thất bại",
   // PARTIAL_RETURN = "Hoàn một phần",
   FULL_RETURN = "Hoàn toàn bộ",
   // RETURN = "Hoàn hàng",

@@ -2,9 +2,6 @@
 import React, { useState } from "react";
 import { ShoppingCart, Gift } from "lucide-react";
 import { PhieuGiamGiaResponse } from "@/components/types/vi-phieu-giam-gia";
-import { useGetViPhieuGiamGiaTheoUser } from "@/hooks/useViPhieuGiamGia";
-import { formatDateFlexible } from "@/app/admin/khuyenmai/formatDateFlexible";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,

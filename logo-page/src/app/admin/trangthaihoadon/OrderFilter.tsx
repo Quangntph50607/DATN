@@ -8,7 +8,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { HoaDonDTO, TrangThaiHoaDon, PaymentMethods } from "@/components/types/hoaDon-types";
+import {
+  HoaDonDTO,
+  TrangThaiHoaDon,
+  PaymentMethods,
+} from "@/components/types/hoaDon-types";
 
 interface OrderFilterProps {
   search: string;
@@ -30,8 +34,6 @@ function OrderFilter({
   filterPayment,
   setFilterPayment,
   setPage,
-  orders,
-  PAGE_SIZE,
 }: OrderFilterProps) {
   const STATUS = Object.entries(TrangThaiHoaDon).map(([key, label]) => ({
     value: key.toUpperCase(),
@@ -85,7 +87,11 @@ function OrderFilter({
           <SelectItem value="ALL">Tất cả trạng thái</SelectItem>
           {STATUS.map((st) => (
             <SelectItem key={st.value} value={st.value}>
-              <span className={`text-xs font-semibold ${statusColors[st.value] || "text-white"}`}>
+              <span
+                className={`text-xs font-semibold ${
+                  statusColors[st.value] || "text-white"
+                }`}
+              >
                 {st.label}
               </span>
             </SelectItem>

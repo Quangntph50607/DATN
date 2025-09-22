@@ -40,26 +40,13 @@ const statusColors: Record<string, string> = {
   FAILED: "border-rose-500",
 };
 
-// Map enumKey -> Label (hiển thị)
-const statusLabels: Record<string, string> = {
-  PENDING: "Chờ xác nhận",
-  PROCESSING: "Đang xử lý",
-  PACKING: "Đóng gói",
-  SHIPPED: "Đang giao",
-  DELIVERED: "Đã giao",
-  COMPLETED: "Hoàn tất",
-  CANCELLED: "Đã hủy",
-  FAILED: "Thất bại",
-};
-
 // Mapping ngược: label → enumKey
-const labelToEnumKey: Record<string, string> = Object.entries(TrangThaiHoaDon).reduce(
-  (acc, [key, label]) => {
-    acc[label] = key.toUpperCase(); // để khớp enumKey (COMPLETED, CANCELLED,...)
-    return acc;
-  },
-  {} as Record<string, string>
-);
+const labelToEnumKey: Record<string, string> = Object.entries(
+  TrangThaiHoaDon
+).reduce((acc, [key, label]) => {
+  acc[label] = key.toUpperCase(); // để khớp enumKey (COMPLETED, CANCELLED,...)
+  return acc;
+}, {} as Record<string, string>);
 
 interface StatusCardListProps {
   statusCounts: Record<string, number>; // ví dụ: { "Đã hủy": 2, "Hoàn tất": 3 }
@@ -72,15 +59,17 @@ function StatusCardList({
   filterStatus,
   onCardClick,
 }: StatusCardListProps) {
-  const allEnumStatuses = Object.entries(TrangThaiHoaDon).map(([key, label]) => {
-    const enumKey = key.toUpperCase();
-    const count = statusCounts[label] || 0; // BE trả label → cần map lại
-    return {
-      enumKey,
-      label,
-      count,
-    };
-  });
+  const allEnumStatuses = Object.entries(TrangThaiHoaDon).map(
+    ([key, label]) => {
+      const enumKey = key.toUpperCase();
+      const count = statusCounts[label] || 0; // BE trả label → cần map lại
+      return {
+        enumKey,
+        label,
+        count,
+      };
+    }
+  );
 
   return (
     <div className="flex flex-wrap items-center justify-center gap-4 mb-8">
@@ -93,19 +82,27 @@ function StatusCardList({
           <div
             key={enumKey}
             onClick={() => onCardClick(enumKey)}
-            className={`relative w-40 h-24 group cursor-pointer transition-transform duration-300 rounded-xl ${isActive ? "scale-[1.04]" : ""
-              }`}
+            className={`relative w-40 h-24 group cursor-pointer transition-transform duration-300 rounded-xl ${
+              isActive ? "scale-[1.04]" : ""
+            }`}
           >
-            <Card className={`relative w-full h-full border-2 ${borderColor} rounded-xl z-10 bg-white/5`}>
+            <Card
+              className={`relative w-full h-full border-2 ${borderColor} rounded-xl z-10 bg-white/5`}
+            >
               <CardContent className="p-3 flex flex-col justify-between h-full">
                 <div className="text-xs text-gray-300 tracking-wide mb-1 flex items-center gap-1">
                   <Icon className="w-4 h-4 text-blue-300" />
                   {label}
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-xl font-semibold text-white">{count}</span>
+                  <span className="text-xl font-semibold text-white">
+                    {count}
+                  </span>
                   {isActive && (
-                    <Badge variant="outline" className="border-blue-400 text-blue-400 text-xs">
+                    <Badge
+                      variant="outline"
+                      className="border-blue-400 text-blue-400 text-xs"
+                    >
                       Lọc
                     </Badge>
                   )}

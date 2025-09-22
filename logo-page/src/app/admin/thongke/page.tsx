@@ -34,6 +34,9 @@ import DataTable from "./DataTable";
 import { format } from "date-fns";
 import { DateTimePicker } from "@/components/ui/date-picker";
 import SimpleChart from "./SimpleChart";
+import TongNguoiDungStats from "./TongNguoiDungStats";
+import HoatDongGanDay from "./HoatDongGanDay";
+import BayNgayGanDay from "./BayNgayGanDay";
 
 interface SimpleBarChartProps {
   title: string;
@@ -178,6 +181,13 @@ export default function ThongKePage() {
             </div>
           </div>
         </div>
+
+        {/* Tổng người dùng stats */}
+        <TongNguoiDungStats />
+
+        {/* Hoạt động gần đây và doanh thu 7 ngày */}
+        <HoatDongGanDay />
+        <BayNgayGanDay />
 
         {/* Overview Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
@@ -338,7 +348,7 @@ export default function ThongKePage() {
         </div>
 
         {/* Full Width Tables */}
-        <div className="space-y-8">
+        {/* <div className="space-y-8">
           <DataTable
             title="Khuyến Mãi Hiệu Quả"
             headers={[
@@ -375,7 +385,7 @@ export default function ThongKePage() {
               </>
             )}
           />
-        </div>
+        </div> */}
       </div>
     </div>
   );
