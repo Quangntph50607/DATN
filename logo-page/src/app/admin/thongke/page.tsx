@@ -32,7 +32,6 @@ import { Label } from "@/components/ui/label";
 import StatCard from "./StatCard";
 import DataTable from "./DataTable";
 import { format } from "date-fns";
-import { DateTimePicker } from "@/components/ui/date-picker";
 import SimpleChart from "./SimpleChart";
 import TongNguoiDungStats from "./TongNguoiDungStats";
 import HoatDongGanDay from "./HoatDongGanDay";
@@ -47,14 +46,19 @@ interface SimpleBarChartProps {
 
 export default function ThongKePage() {
   const today = new Date();
-  const [startDate, setStartDate] = useState<Date | null>(
-    new Date(today.getFullYear(), today.getMonth(), today.getDate() - 30)
+  const defaultStart = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate() - 30
   );
-  const [endDate, setEndDate] = useState<Date | null>(today);
+  const [startDate, setStartDate] = useState<string>(
+    format(defaultStart, "yyyy-MM-dd")
+  );
+  const [endDate, setEndDate] = useState<string>(format(today, "yyyy-MM-dd"));
 
-  // format yyyy-MM-dd để truyền vào hooks API
-  const startDateStr = startDate ? format(startDate, "yyyy-MM-dd") : "";
-  const endDateStr = endDate ? format(endDate, "yyyy-MM-dd") : "";
+  // đã là yyyy-MM-dd, truyền thẳng vào hooks API
+  const startDateStr = startDate || "";
+  const endDateStr = endDate || "";
 
   // Gọi các hook
   const doanhThuNgay = useThongKeTheoNgay(startDateStr, endDateStr);
@@ -157,11 +161,13 @@ export default function ThongKePage() {
                   Ngày bắt đầu
                 </Label>
                 <div className="relative">
-                  <DateTimePicker
+                  <input
+                    type="date"
+                    className="w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     value={startDate}
-                    onChange={setStartDate}
                     placeholder="Chọn ngày bắt đầu"
-                    mode="date"
+                    title="Chọn ngày bắt đầu"
+                    onChange={(e) => setStartDate(e.target.value)}
                   />
                 </div>
               </div>
@@ -170,11 +176,13 @@ export default function ThongKePage() {
                   Ngày kết thúc
                 </Label>
                 <div className="relative">
-                  <DateTimePicker
+                  <input
+                    type="date"
+                    className="w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     value={endDate}
-                    onChange={setEndDate}
                     placeholder="Chọn ngày kết thúc"
-                    mode="date"
+                    title="Chọn ngày kết thúc"
+                    onChange={(e) => setEndDate(e.target.value)}
                   />
                 </div>
               </div>
