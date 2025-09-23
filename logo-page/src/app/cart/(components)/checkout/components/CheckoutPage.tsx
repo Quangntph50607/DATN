@@ -144,12 +144,7 @@ export default function CheckoutPage() {
       tenNguoiNhan: selectedAddress.hoTen,
       sdt: cleanPhone,
       diaChiGiaoHang,
-      phuongThucThanhToan:
-        paymentMethod === "COD"
-          ? "COD"
-          : paymentMethod === "VNPay"
-          ? "VNPay"
-          : "Chuyển khoản",
+      phuongThucThanhToan: paymentMethod === "COD" ? "COD" : "Chuyển khoản",
       cartItems,
       idPhieuGiam: selectedVoucher?.id,
       loaiVanChuyen: shippingMethod === "Nhanh" ? 1 : 2,
@@ -161,6 +156,7 @@ export default function CheckoutPage() {
       ).toISOString(),
     };
 
+<<<<<<< HEAD
     // Xử lý COD - tạo hóa đơn ngay lập tức
     if (paymentMethod === "COD") {
       try {
@@ -185,60 +181,59 @@ export default function CheckoutPage() {
           totalAmount: checkoutTotal.toString(),
           tienGiam: checkoutDiscount.toString(),
         };
+=======
+    try {
+      const hoaDon = await createHoaDonMutation.mutateAsync(orderData as any);
+      const emailData: GuiHoaDonRequest = {
+        idHD: hoaDon.id,
+        toEmail: user?.email || "",
+        tenKH: selectedAddress.hoTen,
+        maHD: hoaDon.maHD,
+        ngayTao: new Date().toLocaleDateString("vi-VN"),
+        diaChi: diaChiGiaoHang,
+        pttt:
+          paymentMethod === "COD"
+            ? "Thanh toán khi nhận hàng"
+            : "Chuyển khoản VNPay",
+        ptvc: shippingMethod === "Nhanh" ? "GIAO NHANH" : "GIAO TIẾT KIỆM",
+        listSp: checkoutProducts.map((item) => ({
+          ten: item.name,
+          ma: item.id.toString(),
+          gia: item.price.toString(),
+          soLuong: item.quantity,
+          tongTien: (item.price * item.quantity).toString(),
+        })),
+        phiShip: shippingFee.toString(),
+        totalAmount: checkoutTotal.toString(),
+        tienGiam: checkoutDiscount.toString(),
+      };
+>>>>>>> parent of 81c0b32 (thêm trang thanh toán thất bại online)
 
-        guiEmail(emailData, {
-          onSuccess: () => console.log("Gửi email thành công"),
-          onError: (err) => console.error("Gửi email thất bại:", err),
-        });
+      guiEmail(emailData, {
+        onSuccess: () => console.log("Gửi email thành công"),
+        onError: (err) => console.error("Gửi email thất bại:", err),
+      });
 
+<<<<<<< HEAD
         const successMessage = user 
           ? "Đặt hàng thành công! Đơn hàng sẽ được giao và thanh toán khi nhận hàng."
           : "Đặt hàng thành công! Bạn có thể theo dõi đơn hàng qua số điện thoại. Đơn hàng sẽ được giao và thanh toán khi nhận hàng.";
         toast.success(successMessage);
+=======
+      if (paymentMethod === "COD") {
+        toast.success(
+          "Đặt hàng thành công! Đơn hàng sẽ được giao và thanh toán khi nhận hàng."
+        );
+>>>>>>> parent of 81c0b32 (thêm trang thanh toán thất bại online)
         removeOrderedItemsFromCart();
-        router.push(`/thanh-toan-thanh-cong?hoaDonId=${hoaDon.id}`);
-        return;
-      } catch (err: any) {
-        console.error("Lỗi khi tạo hóa đơn COD:", err);
-
-        // Xác định loại lỗi và chuyển hướng phù hợp
-        let errorType = "system_error";
-        let errorMessage = "Có lỗi xảy ra khi tạo đơn hàng";
-
-        if (
-          err.message?.includes("hết hàng") ||
-          err.message?.includes("out of stock")
-        ) {
-          errorType = "out_of_stock";
-          errorMessage = "Một số sản phẩm đã hết hàng";
-        } else if (
-          err.message?.includes("validation") ||
-          err.message?.includes("thông tin")
-        ) {
-          errorType = "validation_error";
-          errorMessage = "Thông tin đơn hàng không hợp lệ";
-        }
-
-        toast.error("Có lỗi xảy ra khi tạo đơn hàng. Vui lòng thử lại.");
-
-        // Chuyển hướng đến trang lỗi với thông tin chi tiết
-        setTimeout(() => {
-          router.push(
-            `/thanh-toan-that-bai?type=${errorType}&message=${encodeURIComponent(
-              errorMessage
-            )}`
-          );
-        }, 1000);
-
+        router.push(`/cart/checkout/success?hoaDonId=${hoaDon.id}`);
         return;
       }
-    }
 
-    // Xử lý VN Pay - KHÔNG tạo hóa đơn ngay, chỉ lưu thông tin tạm
-    if (paymentMethod === "VNPay" || paymentMethod === "Chuyển khoản") {
+      // Thanh toán VNPAY
       const amountInVND = Math.round(checkoutTotal);
-
       try {
+<<<<<<< HEAD
         // Lưu thông tin đơn hàng vào localStorage để xử lý sau khi thanh toán thành công
         localStorage.setItem("pendingOrder", JSON.stringify(orderData));
         localStorage.setItem("checkoutTotal", checkoutTotal.toString());
@@ -256,6 +251,8 @@ export default function CheckoutPage() {
         localStorage.setItem("soNgayGiao", soNgayGiao.toString());
         localStorage.setItem("userEmail", user?.email || selectedAddress?.email || "");
 
+=======
+>>>>>>> parent of 81c0b32 (thêm trang thanh toán thất bại online)
         const res = await fetch(
           `http://localhost:8080/api/lego-store/payment/create-payment?amount=${amountInVND}`,
           { method: "GET", headers: { "Content-Type": "application/json" } }
@@ -263,34 +260,20 @@ export default function CheckoutPage() {
         const data = await res.json();
 
         if (data && data.status === "OK" && data.url) {
-          toast.success("Đang chuyển sang cổng thanh toán VNPAY...");
+          removeOrderedItemsFromCart();
+          toast.success(
+            "Đặt hàng thành công! Đang chuyển sang cổng thanh toán VNPAY..."
+          );
           window.location.href = data.url;
         } else {
           toast.error("Không lấy được link thanh toán VNPAY!");
-          // Xóa dữ liệu tạm nếu không lấy được URL
-          localStorage.removeItem("pendingOrder");
-          localStorage.removeItem("checkoutTotal");
-          localStorage.removeItem("checkoutDiscount");
-          localStorage.removeItem("checkoutProducts");
-          localStorage.removeItem("selectedAddress");
-          localStorage.removeItem("shippingMethod");
-          localStorage.removeItem("shippingFee");
-          localStorage.removeItem("soNgayGiao");
-          localStorage.removeItem("userEmail");
         }
       } catch (err) {
         toast.error("Lỗi khi gọi API VNPAY!");
-        // Xóa dữ liệu tạm nếu có lỗi
-        localStorage.removeItem("pendingOrder");
-        localStorage.removeItem("checkoutTotal");
-        localStorage.removeItem("checkoutDiscount");
-        localStorage.removeItem("checkoutProducts");
-        localStorage.removeItem("selectedAddress");
-        localStorage.removeItem("shippingMethod");
-        localStorage.removeItem("shippingFee");
-        localStorage.removeItem("soNgayGiao");
-        localStorage.removeItem("userEmail");
       }
+    } catch (err) {
+      toast.error("Lỗi khi tạo hóa đơn!");
+    } finally {
     }
   };
 

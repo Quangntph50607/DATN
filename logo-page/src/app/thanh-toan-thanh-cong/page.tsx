@@ -1,21 +1,11 @@
 "use client";
-import {
-  ShoppingBag,
-  Package,
-  ArrowLeft,
-  Phone,
-  MessageCircle,
-} from "lucide-react";
+import { ShoppingBag, Package, ArrowLeft, Phone, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { useRouter, useSearchParams } from "next/navigation"; // Import useRouter and useSearchParams for navigation
+import { useRouter } from "next/navigation"; // Import useRouter for navigation
 
 export default function ThanhToanThanhCongPage() {
   const router = useRouter(); // Initialize router
-  const searchParams = useSearchParams(); // Get URL search parameters
-
-  // Get order ID from URL parameters
-  const hoaDonId = searchParams.get("hoaDonId") || "";
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-orange-100 flex items-center justify-center p-4">
@@ -26,11 +16,7 @@ export default function ThanhToanThanhCongPage() {
             <ShoppingBag className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-2xl font-bold mb-2">Thanh toán thành công!</h1>
-          <p className="text-orange-100">
-            {hoaDonId
-              ? `Đơn hàng #${hoaDonId}`
-              : "Đơn hàng đã được tạo thành công"}
-          </p>
+          <p className="text-orange-100">Đơn hàng #DH20241001</p>
         </div>
 
         {/* Content */}
@@ -41,8 +27,9 @@ export default function ThanhToanThanhCongPage() {
               Cảm ơn bạn đã mua LEGO! 🧱✨
             </h2>
             <p className="text-gray-600 text-sm leading-relaxed">
-              Bộ LEGO tuyệt vời của bạn đã được xác nhận và sẽ nhanh chóng được
-              vận chuyển đến tay bạn để bắt đầu cuộc phiêu lưu xây dựng!
+              Bộ LEGO tuyệt vời của bạn đã được xác nhận và sẽ nhanh
+              chóng được vận chuyển đến tay bạn để bắt đầu cuộc
+              phiêu lưu xây dựng!
             </p>
           </div>
           {/* Shipping Info */}
@@ -52,12 +39,10 @@ export default function ThanhToanThanhCongPage() {
                 <Package className="w-3 h-3 text-orange-600" />
               </div>
               <div>
-                <h3 className="font-medium text-gray-800 mb-1">
-                  📦 Thông tin vận chuyển
-                </h3>
+                <h3 className="font-medium text-gray-800 mb-1">📦 Thông tin vận chuyển</h3>
                 <p className="text-sm text-gray-600">
-                  Bộ LEGO của bạn sẽ được đóng gói cẩn thận và gửi thông tin
-                  theo dõi qua email khi bắt đầu vận chuyển.
+                  Bộ LEGO của bạn sẽ được đóng gói cẩn thận và gửi
+                  thông tin theo dõi qua email khi bắt đầu vận chuyển.
                 </p>
               </div>
             </div>
