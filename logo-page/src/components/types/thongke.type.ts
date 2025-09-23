@@ -62,7 +62,7 @@ export interface TongNguoiDung {
 export interface HoatDongGanDay {
   type: "Hủy đơn hàng" | "Đơn hàng mới" | "Người dùng mới đăng ký";
   userName: string;
-  time: string; // ISO string
+  time: string | number | number[]; // ISO, epoch (ms/s) hoặc [y,M,d,H,m,s,nanos]
 }
 
 //  Doanh thu theo ngày

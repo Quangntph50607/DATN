@@ -3,35 +3,67 @@
 import React from "react";
 import { useHoatDongGanDay } from "@/hooks/useThongKe";
 import { Activity, UserPlus, ShoppingCart, XCircle, Clock } from "lucide-react";
-import { format, parseISO, isValid } from "date-fns";
+import { format, parseISO, isValid, parse as parseWithFormat } from "date-fns";
 import { vi } from "date-fns/locale";
 
 export default function HoatDongGanDay() {
   const { data, isLoading, error } = useHoatDongGanDay();
 
-  // Hàm format thời gian
-  const formatTime = (timeString: string) => {
+  // Parse thời gian linh hoạt: ISO, custom formats, timestamp giây/ms
+  const parseSafe = (value: string | number | number[] | Date | undefined | null) => {
+    if (value === null || value === undefined) return null;
     try {
-      const date = parseISO(timeString);
-      if (!isValid(date)) {
-        return "Thời gian không hợp lệ";
+      if (value instanceof Date) return isValid(value) ? value : null;
+      // mảng [year, month(1-12), day, hour, minute, second, nanos]
+      if (Array.isArray(value)) {
+        const [y, M, d, H = 0, m = 0, s = 0, nanos = 0] = value as number[];
+        if (typeof y === "number" && typeof M === "number" && typeof d === "number") {
+          const ms = Math.floor(nanos / 1_000_000);
+          const date = new Date(y, (M - 1), d, H, m, s, ms);
+          return isValid(date) ? date : null;
+        }
       }
-      return format(date, "HH:mm", { locale: vi });
+      if (typeof value === "number") {
+        const ms = String(value).length <= 10 ? value * 1000 : value;
+        const d = new Date(ms);
+        return isValid(d) ? d : null;
+      }
+      const s = String(value).trim();
+      // numeric string timestamp
+      if (/^\d+$/.test(s)) {
+        const n = Number(s);
+        const ms = s.length <= 10 ? n * 1000 : n;
+        const d = new Date(ms);
+        if (isValid(d)) return d;
+      }
+      let d = parseISO(s);
+      if (!isValid(d)) {
+        const fmts = [
+          "yyyy-MM-dd HH:mm:ss",
+          "dd/MM/yyyy HH:mm:ss",
+          "dd-MM-yyyy HH:mm:ss",
+          "yyyy-MM-dd'T'HH:mm:ss",
+        ];
+        for (const f of fmts) {
+          d = parseWithFormat(s, f, new Date());
+          if (isValid(d)) break;
+        }
+        if (!isValid(d)) d = new Date(s);
+      }
+      return isValid(d) ? d : null;
     } catch {
-      return "Thời gian không hợp lệ";
+      return null;
     }
   };
 
-  const formatDate = (timeString: string) => {
-    try {
-      const date = parseISO(timeString);
-      if (!isValid(date)) {
-        return "Ngày không hợp lệ";
-      }
-      return format(date, "dd/MM/yyyy", { locale: vi });
-    } catch {
-      return "Ngày không hợp lệ";
-    }
+  const formatTime = (value: string | number | number[]) => {
+    const d = parseSafe(value);
+    return d ? format(d, "HH:mm", { locale: vi }) : "Thời gian không hợp lệ";
+  };
+
+  const formatDate = (value: string | number | number[]) => {
+    const d = parseSafe(value);
+    return d ? format(d, "dd/MM/yyyy", { locale: vi }) : "Ngày không hợp lệ";
   };
 
   // Icon và màu sắc cho từng loại hoạt động
