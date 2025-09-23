@@ -60,8 +60,8 @@ export const LegoCategoryForm: React.FC<LegoCategoryFormProps> = ({
 
   return (
     <div>
-      <h2 className="text-xl font-bold text-white mb-4">
-        {categoryToEdit ? "Chỉnh sửa danh mục LEGO" : "Thêm danh mục LEGO mới"}
+      <h2 className="text-xl font-bold text-white mb-4 text-center">
+        {categoryToEdit ? "Chỉnh sửa danh mục" : "Thêm danh mục mới"}
       </h2>
       <form onSubmit={handleSubmit} className="space-y-6 mt-2 w-full mx-auto ">
         <div>
@@ -95,11 +95,9 @@ export const LegoCategoryForm: React.FC<LegoCategoryFormProps> = ({
           />
         </div>
         <div className="flex justify-end gap-3">
-          {categoryToEdit && (
-            <Button type="button" variant="outline" onClick={onClearEdit}>
-              Hủy sửa
-            </Button>
-          )}
+          <Button type="button" variant="outline" onClick={onClearEdit}>
+            Hủy
+          </Button>
           <Button type="submit" variant="default">
             <PlusCircle className="mr-2 h-5 w-5" />{" "}
             {categoryToEdit ? "Lưu thay đổi" : "Thêm danh mục"}

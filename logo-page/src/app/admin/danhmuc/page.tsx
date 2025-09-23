@@ -52,6 +52,7 @@ export default function LegoCategoryPage() {
         onSuccess: () => {
           toast.success("Thêm thành công!");
           setShowForm(false);
+          setCurrentPage(1);
         },
         onError: () => toast.error("Thêm thất bại!"),
       });
@@ -104,10 +105,11 @@ export default function LegoCategoryPage() {
       cat.tenDanhMuc.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (cat.moTa?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
   );
-  // Phân trang
+  // Sắp xếp mới nhất trước khi phân trang
+  const sortedCategories = [...filteredCategories].sort((a, b) => (b.id ?? 0) - (a.id ?? 0));
   const itemPerPage = 10;
-  const totalPages = Math.ceil(filteredCategories.length / itemPerPage);
-  const paginatedData = filteredCategories.slice(
+  const totalPages = Math.ceil(sortedCategories.length / itemPerPage);
+  const paginatedData = sortedCategories.slice(
     (currentPage - 1) * itemPerPage,
     currentPage * itemPerPage
   );

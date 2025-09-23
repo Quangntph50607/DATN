@@ -45,9 +45,15 @@ ConfirmDialogProps) {
           <AlertDialogTitle className="text-xl font-bold text-blue-600">
             {title}
           </AlertDialogTitle>
-          <AlertDialogDescription className="text-sm text-gray-600">
-            {description}
-          </AlertDialogDescription>
+          {typeof description === "string" || typeof description === "number" ? (
+            <AlertDialogDescription className="text-sm text-gray-600">
+              {description}
+            </AlertDialogDescription>
+          ) : description ? (
+            <AlertDialogDescription asChild>
+              <div className="text-sm text-gray-600">{description}</div>
+            </AlertDialogDescription>
+          ) : null}
         </AlertDialogHeader>
         <AlertDialogFooter>
           <Button

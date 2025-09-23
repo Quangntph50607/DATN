@@ -69,6 +69,7 @@ export interface SanPham {
   xuatXuId: number;
   thuongHieuId: number;
   anhUrls?: (AnhSanPhamChiTiet | string)[];
+  phanTramKhuyenMai: number;
 }
 export interface ProductData {
   tenSanPham: string;
