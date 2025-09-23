@@ -140,9 +140,11 @@ const HoaDonManagement = () => {
         filtered = filtered.filter((hd) => {
           const user = users.find((u) => u.id === hd.user?.id);
           return (
+            hd.ten?.toLowerCase().includes(kw) ||
             user?.ten?.toLowerCase().includes(kw) ||
             hd.maHD?.toLowerCase().includes(kw) ||
             user?.sdt?.includes(kw) ||
+            hd.sdt?.includes(kw) ||
             (hd.id + "").includes(kw)
           );
         });
