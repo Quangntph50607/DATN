@@ -56,6 +56,7 @@ export default function LegoCollectionPage() {
         onSuccess: () => {
           toast.success("Thêm thành công!");
           setShowForm(false);
+          setCurrentPage(1);
         },
         onError: () => toast.error("Thêm thất bại!"),
       });
@@ -109,9 +110,10 @@ export default function LegoCollectionPage() {
       c.moTa.toLowerCase().includes(searchTerm.toLowerCase()) ||
       c.namPhatHanh.toString().includes(searchTerm)
   );
+  const sortedCollections = [...filteredCollections].sort((a, b) => (b.id ?? 0) - (a.id ?? 0));
   const itemPerPage = 10;
-  const totalPages = Math.ceil(filteredCollections.length / itemPerPage);
-  const paginatedData = filteredCollections.slice(
+  const totalPages = Math.ceil(sortedCollections.length / itemPerPage);
+  const paginatedData = sortedCollections.slice(
     (currentPage - 1) * itemPerPage,
     currentPage * itemPerPage
   );

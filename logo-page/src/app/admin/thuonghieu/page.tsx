@@ -54,6 +54,7 @@ export default function ThuongHieuPage() {
         onSuccess: () => {
           toast.success("Thêm thành công!");
           setShowForm(false);
+          setCurrentPage(1);
         },
         onError: () => toast.error("Thêm thất bại!"),
       });
@@ -107,10 +108,11 @@ export default function ThuongHieuPage() {
       (th.moTa?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
   );
 
-  // Phân trang
+  // Sắp xếp mới nhất trước khi phân trang
+  const sortedThuongHieus = [...filteredThuongHieus].sort((a, b) => (b.id ?? 0) - (a.id ?? 0));
   const itemPerPage = 10;
-  const totalPages = Math.ceil(filteredThuongHieus.length / itemPerPage);
-  const paginatedData = filteredThuongHieus.slice(
+  const totalPages = Math.ceil(sortedThuongHieus.length / itemPerPage);
+  const paginatedData = sortedThuongHieus.slice(
     (currentPage - 1) * itemPerPage,
     currentPage * itemPerPage
   );

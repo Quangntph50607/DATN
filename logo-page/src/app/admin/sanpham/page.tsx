@@ -7,6 +7,7 @@ import {
   useAddSanPham,
   useXoaSanPham,
   useEditSanPham,
+  useSanPham,
 } from "@/hooks/useSanPham";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
@@ -22,7 +23,6 @@ import { Modal } from "@/components/layout/(components)/(pages)/Modal";
 import { PlusIcon } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ConfirmDialog } from "@/shared/ConfirmDialog";
-import { useListKhuyenMaiTheoSanPham } from "@/hooks/useKhuyenmai";
 import { Loader2 } from "lucide-react";
 import { useThuongHieu } from "@/hooks/useThuongHieu";
 import { useXuatXu } from "@/hooks/useXuatXu";
@@ -34,7 +34,7 @@ export default function SanPhamPage() {
     data: sanPhams = [],
     isLoading,
     refetch,
-  } = useListKhuyenMaiTheoSanPham();
+  } = useSanPham();
   const { data: danhMucs = [] } = useDanhMuc();
   const { data: boSuuTaps = [] } = useBoSuutap();
   const { data: xuatXus = [] } = useXuatXu();
@@ -80,6 +80,8 @@ export default function SanPhamPage() {
       } else {
         await addSanPhamMutation.mutateAsync(data);
         toast.success("Thêm sản phẩm thành công!");
+        // Sau khi thêm, đưa về trang 1 để thấy sản phẩm mới nhất
+        setCurrentPage(1);
       }
       refetch();
     } catch {
@@ -280,9 +282,11 @@ export default function SanPhamPage() {
                       );
                     });
                     // Pagination
+                    // Sắp xếp mới nhất trước khi phân trang
+                    const sorted = [...filtered].sort((a, b) => (b.id ?? 0) - (a.id ?? 0));
                     const itemPerPage = 10;
-                    const totalPages = Math.ceil(filtered.length / itemPerPage);
-                    const paginated = filtered.slice(
+                    const totalPages = Math.ceil(sorted.length / itemPerPage);
+                    const paginated = sorted.slice(
                       (currentPage - 1) * itemPerPage,
                       currentPage * itemPerPage
                     );
