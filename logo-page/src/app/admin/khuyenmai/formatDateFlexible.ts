@@ -5,15 +5,20 @@ export function formatDateFlexible(
   withTime: boolean = true
 ): string {
   if (!date) return "";
+
+  let dt: Date;
+
   if (Array.isArray(date)) {
     // Xử lý kiểu mảng số
     const [y, m, d, h = 0, min = 0, s = 0, nano = 0] = date;
-    const dt = new Date(y, m - 1, d, h, min, s, Math.floor(nano / 1_000_000));
-    return format(dt, "dd-MM-yyyy HH:mm:ss");
+    dt = new Date(y, m - 1, d, h, min, s, Math.floor(nano / 1_000_000));
+  } else {
+    // Xử lý kiểu string
+    dt = new Date(date);
+    if (isNaN(dt.getTime())) return "";
   }
-  // Xử lý kiểu string
-  const dt = new Date(date);
-  if (isNaN(dt.getTime())) return "";
+
+  // format theo withTime
   return format(dt, withTime ? "dd-MM-yyyy HH:mm:ss" : "dd-MM-yyyy");
 }
 // Chuyển chuỗi ngày 'dd/MM/yyyy' -> Date chỉ có phần ngày

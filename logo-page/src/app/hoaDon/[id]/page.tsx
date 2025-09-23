@@ -45,7 +45,6 @@ const getBadgeClass = (status: TrangThaiHoaDon): string => {
     [TrangThaiHoaDon.DELIVERED]: "bg-green-400 text-white",
     [TrangThaiHoaDon.COMPLETED]: "bg-emerald-400 text-white",
     [TrangThaiHoaDon.CANCELLED]: "bg-gray-400 text-white",
-    [TrangThaiHoaDon.FAILED]: "bg-red-400 text-white",
     [TrangThaiHoaDon.FULL_RETURN]: "bg-orange-400 text-white",
   };
   return badgeClasses[status] || "bg-gray-300 text-gray-800";

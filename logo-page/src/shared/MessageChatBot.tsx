@@ -194,7 +194,10 @@ export default function ChatWidget() {
                                   {p.tenSanPham}
                                 </p>
                                 <p className="text-xs text-gray-500">
-                                  {p.gia.toLocaleString("vi-VN")} ₫
+                                  {Number(p.giaKhuyenMai).toLocaleString(
+                                    "vi-VN"
+                                  )}
+                                  ₫
                                 </p>
 
                                 <Button
