@@ -75,7 +75,8 @@ export const danhMucService = {
         method: "DELETE",
       });
       if (!res.ok) {
-        throw new Error("Không thể xóa danh múc");
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || "Không thể xóa danh mục");
       }
     } catch (error) {
       throw error;

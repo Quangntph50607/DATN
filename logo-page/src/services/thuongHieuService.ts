@@ -34,6 +34,9 @@ export const thuongHieuService = {
         const res = await fetchWithAuth(`${API_URL}/deleteTH/${id}`, {
             method: "DELETE"
         });
-        if (!res.ok) throw new Error("Không thể xóa thương hiệu");
+        if (!res.ok) {
+            const errorData = await res.json().catch(() => ({}));
+            throw new Error(errorData.message || "Không thể xóa thương hiệu");
+        }
     },
 }; 

@@ -19,6 +19,7 @@ import { Card } from "@/components/ui/card";
 import { PlusIcon } from "lucide-react";
 import { Modal } from "@/components/layout/(components)/(pages)/Modal";
 import LichSuLogTimeline from "@/shared/LichSuLogTimeline";
+import { ConfirmDialog } from "@/shared/ConfirmDialog";
 
 export default function LegoCategoryPage() {
   const { data: categories = [], isLoading } = useDanhMuc();
@@ -27,6 +28,8 @@ export default function LegoCategoryPage() {
   const [showForm, setShowForm] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [isOpenLog, setIsOpenLog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deleteItem, setDeleteItem] = useState<{id: number, name: string} | null>(null);
 
   const addMutation = useAddSDanhMuc();
   const editMutation = useEditDanhMuc();
@@ -61,12 +64,29 @@ export default function LegoCategoryPage() {
   };
 
   const handleDelete = (id: number, tenDanhMuc: string) => {
-    if (confirm(`Bạn có chắc chắn muốn xóa "${tenDanhMuc}"?`)) {
-      deleteMutation.mutate(id, {
-        onSuccess: () => toast.success("Xóa thành công!"),
-        onError: () => toast.error("Xóa thất bại!"),
+    setDeleteItem({ id, name: tenDanhMuc });
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDelete = () => {
+    if (deleteItem) {
+      deleteMutation.mutate(deleteItem.id, {
+        onSuccess: () => {
+          toast.success("Xóa thành công!");
+          setShowDeleteDialog(false);
+          setDeleteItem(null);
+        },
+        onError: (error: { response?: { data?: { message?: string } }; message?: string }) => {
+          const errorMessage = error?.response?.data?.message || error?.message || "Xóa thất bại!";
+          toast.error(errorMessage);
+        },
       });
     }
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteDialog(false);
+    setDeleteItem(null);
   };
 
   const handleClearEdit = () => {
@@ -191,6 +211,24 @@ export default function LegoCategoryPage() {
             Trang sau
           </Button>
         </div>
+
+        {/* Confirm Delete Dialog */}
+        <ConfirmDialog
+          open={showDeleteDialog}
+          onConfirm={confirmDelete}
+          onCancel={cancelDelete}
+          title="Xác nhận xóa"
+          description={
+            <div>
+              <p>Bạn có chắc chắn muốn xóa danh mục: <span className="font-bold text-red-600">&quot;{deleteItem?.name}&quot;</span></p>
+              <p className="text-sm text-gray-500 mt-2">
+                Hành động này không thể hoàn tác!
+              </p>
+            </div>
+          }
+          confirmText="Xóa"
+          cancelText="Hủy"
+        />
       </Card>
     </ToastProvider>
   );

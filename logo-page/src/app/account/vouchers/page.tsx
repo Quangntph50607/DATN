@@ -29,6 +29,24 @@ interface Voucher {
     giamTriToiDa?: number;
 }
 
+// API types
+type ApiDateTuple = [number, number, number, number?, number?, number?, number?] | undefined;
+interface ApiVoucher {
+    id: number;
+    tenPhieu: string;
+    soLuong: number;
+    giaTriToiThieu: number;
+    giaTriGiam: number;
+    ngayBatDau?: ApiDateTuple;
+    ngayKetThuc?: ApiDateTuple;
+    ngayNhan?: ApiDateTuple;
+    trangThaiThucTe: string;
+    maVoucher?: string;
+    maPhieu?: string;
+    loaiPhieuGiam?: string;
+    giamTriToiDa?: number;
+}
+
 const PRODUCT_LIST_PATH = "/product";
 
 const getUserIdFromLocalStorage = (): number | null => {
@@ -51,9 +69,14 @@ const getStatusBadgeClasses = (status: string) => {
     return "bg-gray-100 text-gray-700 border border-gray-200";
 };
 
+// Helper: Check if voucher is percentage type
+const isPercentageType = (type?: string) => {
+    return type === "Theo %" || type === "theo_phan_tram";
+};
+
 // Helper: Voucher type badge classes
 const getTypeBadgeClasses = (type?: string) => {
-    if (type === "Theo %") {
+    if (isPercentageType(type)) {
         return "bg-gradient-to-r from-purple-400 to-indigo-400 text-white shadow-sm";
     }
     return "bg-gradient-to-r from-teal-400 to-emerald-400 text-white shadow-sm";
@@ -69,7 +92,7 @@ const getCardRingClasses = (status: string) => {
 
 const VoucherPageContent = () => {
     const [vouchers, setVouchers] = useState<Voucher[]>([]);
-    const [totalValue, setTotalValue] = useState(0);
+    // Removed unused totalValue state
     const [loading, setLoading] = useState(true);
     const [userId, setUserId] = useState<number | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -90,10 +113,10 @@ const VoucherPageContent = () => {
             setError(null);
             const data = await viPhieuGiamService.layPhieuGiamTheoUser(userId, "active");
 
-            const mappedVouchers: Voucher[] = data.map((item: any) => {
-                const formatDate = (arr: any[]): string | undefined => {
+            const mappedVouchers: Voucher[] = (data as unknown as ApiVoucher[]).map((item: ApiVoucher) => {
+                const formatDate = (arr: ApiDateTuple): string | undefined => {
                     if (Array.isArray(arr) && arr.length >= 3) {
-                        const [y, m, d, h = 0, min = 0, s = 0, nano = 0] = arr;
+                        const [y, m, d, h = 0, min = 0, s = 0, nano = 0] = arr as [number, number, number, number?, number?, number?, number?];
                         const date = new Date(y, m - 1, d, h, min, s, Math.floor(nano / 1_000_000));
                         return isValid(date) ? format(date, "dd/MM/yyyy HH:mm:ss") : "Ngày không hợp lệ";
                     }
@@ -118,8 +141,6 @@ const VoucherPageContent = () => {
             });
 
             setVouchers(mappedVouchers);
-            const total = mappedVouchers.reduce((sum, v) => sum + (v.giaTriGiam || 0), 0);
-            setTotalValue(total);
         } catch (err) {
             console.error("Error fetching vouchers:", err);
             setError("Không thể tải danh sách voucher. Vui lòng thử lại sau.");
@@ -235,7 +256,7 @@ const VoucherPageContent = () => {
                                         </Badge>
 
                                         <Badge className={`${getTypeBadgeClasses(voucher.loaiPhieuGiam)} rounded-full px-3 py-1`}>
-                                            {voucher.loaiPhieuGiam === "Theo %"
+                                            {isPercentageType(voucher.loaiPhieuGiam)
                                                 ? `${voucher.giaTriGiam}% OFF`
                                                 : `${voucher.giaTriGiam?.toLocaleString()}đ OFF`}
                                         </Badge>
@@ -249,7 +270,7 @@ const VoucherPageContent = () => {
                                     <p className="text-sm text-gray-600 mt-1">
                                         Giảm{" "}
                                         <span className="font-semibold text-gray-800">
-                                            {voucher.loaiPhieuGiam === "Theo %"
+                                            {isPercentageType(voucher.loaiPhieuGiam)
                                                 ? `${voucher.giaTriGiam}%`
                                                 : `${voucher.giaTriGiam?.toLocaleString()}đ`}
                                         </span>{" "}
@@ -259,7 +280,7 @@ const VoucherPageContent = () => {
                                         </span>
                                     </p>
 
-                                    {voucher.giamTriToiDa != null && voucher.loaiPhieuGiam === "Theo %" && (
+                                    {voucher.giamTriToiDa != null && isPercentageType(voucher.loaiPhieuGiam) && (
                                         <p className="text-xs text-gray-500 mt-0.5">
                                             Giảm tối đa: {voucher.giamTriToiDa.toLocaleString()}đ
                                         </p>

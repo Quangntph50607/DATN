@@ -24,7 +24,7 @@ import { LichSuButton } from "@/components/layout/(components)/(exchange-points)
 export default function ExchangePointsPage() {
   const { user } = useUserStore();
   const queryClient = useQueryClient();
-  const [selectedVoucher, setSelectedVoucher] = useState<PhieuGiamGia | null>(null);
+  // Selected voucher is handled transiently through function params to avoid setState race conditions
   const [showSuccessNotification, setShowSuccessNotification] = useState(false);
   const [showErrorNotification, setShowErrorNotification] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState("");
@@ -72,18 +72,18 @@ export default function ExchangePointsPage() {
     }
   });
 
-  const handleExchange = async () => {
-    if (!selectedVoucher || !user?.id) return;
+  const handleExchange = async (voucher: PhieuGiamGia) => {
+    if (!voucher || !user?.id) return;
 
     try {
       await doiDiemMutation.mutateAsync({
         userId: user.id,
-        phieuGiamGiaId: selectedVoucher.id,
+        phieuGiamGiaId: voucher.id,
       });
 
       // Cập nhật điểm user trong store (trừ điểm đã đổi)
-      if (user.diemTichLuy && selectedVoucher.diemDoi) {
-        const newPoints = user.diemTichLuy - selectedVoucher.diemDoi;
+      if (user.diemTichLuy && voucher.diemDoi) {
+        const newPoints = user.diemTichLuy - voucher.diemDoi;
         useUserStore.getState().updateUser({ diemTichLuy: newPoints });
       }
 
@@ -97,9 +97,8 @@ export default function ExchangePointsPage() {
         window.location.reload();
       }, 1000);
 
-      setNotificationMessage(`✅ Đổi phiếu thành công! 🎉 Bạn đã đổi thành công phiếu "${selectedVoucher.tenPhieu}". Phiếu đã được thêm vào ví của bạn!`);
+      setNotificationMessage(`✅ Đổi phiếu thành công! 🎉 Bạn đã đổi thành công phiếu "${voucher.tenPhieu}". Phiếu đã được thêm vào ví của bạn!`);
       setShowSuccessNotification(true);
-      setSelectedVoucher(null);
 
       // Tự động ẩn thông báo sau 3 giây
       setTimeout(() => {
@@ -191,8 +190,7 @@ export default function ExchangePointsPage() {
   const handleConfirmExchange = async () => {
     setShowConfirmDialog(false);
     if (voucherToExchange) {
-      setSelectedVoucher(voucherToExchange);
-      await handleExchange();
+      await handleExchange(voucherToExchange);
     }
     setVoucherToExchange(null);
   };
