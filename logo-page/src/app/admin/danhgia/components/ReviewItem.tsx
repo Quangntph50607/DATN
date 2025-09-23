@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -9,8 +9,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Star, MoreVertical, Trash2, Reply, CornerDownRight, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import ReplyDialog from "./ReplyDialog";
-import DeleteReplyDialog from "./DeleteReplyDialog";
-import DeleteReviewDialog from "./DeleteReviewDialog";
+import { ConfirmDialog } from "@/shared/ConfirmDialog";
 import VideoModal from "./VideoModal";
 import { ReviewItemProps } from "@/components/types/danhGia-type";
 
@@ -33,11 +32,39 @@ export default function ReviewItem({
     isSelected?: boolean;
     onSelectionChange?: (reviewId: number, selected: boolean) => void;
 }) {
+    const restoreBodyPointerEvents = () => {
+        try {
+            if (typeof document !== 'undefined' && document.body && document.body.style) {
+                document.body.style.pointerEvents = '';
+            }
+        } catch {
+            // no-op
+        }
+    };
     const [isReplyDialogOpen, setIsReplyDialogOpen] = useState(false);
     const [isDeleteReplyDialogOpen, setIsDeleteReplyDialogOpen] = useState(false);
     const [isDeleteReviewDialogOpen, setIsDeleteReviewDialogOpen] = useState(false);
     const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
     const [replyText, setReplyText] = useState(review.textPhanHoi || '');
+
+    useEffect(() => {
+        if (!isDeleteReviewDialogOpen && !isDeleteReplyDialogOpen) {
+            const clear = () => {
+                try {
+                    if (typeof document !== 'undefined' && document.body && document.body.style) {
+                        if (document.body.style.pointerEvents === 'none') {
+                            document.body.style.pointerEvents = '';
+                        }
+                    }
+                } catch {
+                    // no-op
+                }
+            };
+            const id = window.requestAnimationFrame(clear);
+            return () => window.cancelAnimationFrame(id);
+        }
+        return;
+    }, [isDeleteReviewDialogOpen, isDeleteReplyDialogOpen]);
 
     const handleReplyClick = () => {
         setReplyText(review.textPhanHoi || '');
@@ -86,6 +113,7 @@ export default function ReviewItem({
             await onUpdateReview(review.id, { ...review, textPhanHoi: '' });
             toast.success("Đã xóa phản hồi!");
             setIsDeleteReplyDialogOpen(false);
+            restoreBodyPointerEvents();
         } catch (error) {
             console.error("Error in confirmDeleteReply:", error);
             // Error sẽ được xử lý trong page component
@@ -101,6 +129,7 @@ export default function ReviewItem({
         try {
             await onDeleteReview(review.id);
             setIsDeleteReviewDialogOpen(false);
+            restoreBodyPointerEvents();
         } catch (error) {
             console.error("Error in confirmDeleteReview:", error);
             // Error sẽ được xử lý trong page component
@@ -323,38 +352,56 @@ export default function ReviewItem({
                 hasExistingReply={!!hasReply}
             />
 
-            <DeleteReplyDialog
-                isOpen={isDeleteReplyDialogOpen}
-                onClose={() => setIsDeleteReplyDialogOpen(false)}
+            <ConfirmDialog
+                open={isDeleteReplyDialogOpen}
                 onConfirm={confirmDeleteReply}
-                customerName={(() => {
-                    let displayName = "Khách hàng";
-                    if (review.user?.ten && review.user.ten.trim()) {
-                        displayName = review.user.ten.trim();
-                    } else if (review.tenNguoiDung && review.tenNguoiDung.trim()) {
-                        displayName = review.tenNguoiDung.trim();
-                    } else if (review.tenKH && review.tenKH.trim()) {
-                        displayName = review.tenKH.trim();
-                    }
-                    return displayName;
-                })()}
+                onCancel={() => { setIsDeleteReplyDialogOpen(false); restoreBodyPointerEvents(); }}
+                title="Bạn có chắc chắn muốn xóa?"
+                description={
+                    <span>
+                        Hành động này sẽ xóa vĩnh viễn phản hồi của bạn cho đánh giá từ <span className="font-semibold text-blue-600">{
+                            (() => {
+                                let displayName = "Khách hàng";
+                                if (review.user?.ten && review.user.ten.trim()) {
+                                    displayName = review.user.ten.trim();
+                                } else if (review.tenNguoiDung && review.tenNguoiDung.trim()) {
+                                    displayName = review.tenNguoiDung.trim();
+                                } else if (review.tenKH && review.tenKH.trim()) {
+                                    displayName = review.tenKH.trim();
+                                }
+                                return displayName;
+                            })()
+                        }</span>. Bạn không thể hoàn tác hành động này.
+                    </span>
+                }
+                confirmText="Xóa"
+                cancelText="Hủy"
             />
 
-            <DeleteReviewDialog
-                isOpen={isDeleteReviewDialogOpen}
-                onClose={() => setIsDeleteReviewDialogOpen(false)}
+            <ConfirmDialog
+                open={isDeleteReviewDialogOpen}
                 onConfirm={confirmDeleteReview}
-                customerName={(() => {
-                    let displayName = "Khách hàng";
-                    if (review.user?.ten && review.user.ten.trim()) {
-                        displayName = review.user.ten.trim();
-                    } else if (review.tenNguoiDung && review.tenNguoiDung.trim()) {
-                        displayName = review.tenNguoiDung.trim();
-                    } else if (review.tenKH && review.tenKH.trim()) {
-                        displayName = review.tenKH.trim();
-                    }
-                    return displayName;
-                })()}
+                onCancel={() => { setIsDeleteReviewDialogOpen(false); restoreBodyPointerEvents(); }}
+                title="Bạn có chắc chắn muốn xóa?"
+                description={
+                    <span>
+                        Hành động này sẽ xóa vĩnh viễn đánh giá từ <span className="font-semibold text-blue-600">{
+                            (() => {
+                                let displayName = "Khách hàng";
+                                if (review.user?.ten && review.user.ten.trim()) {
+                                    displayName = review.user.ten.trim();
+                                } else if (review.tenNguoiDung && review.tenNguoiDung.trim()) {
+                                    displayName = review.tenNguoiDung.trim();
+                                } else if (review.tenKH && review.tenKH.trim()) {
+                                    displayName = review.tenKH.trim();
+                                }
+                                return displayName;
+                            })()
+                        }</span>. Bạn không thể hoàn tác hành động này.
+                    </span>
+                }
+                confirmText="Xóa đánh giá"
+                cancelText="Hủy"
             />
 
             <VideoModal

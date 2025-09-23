@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Edit, Eye, SwitchCameraIcon } from "lucide-react";
+import { Edit, SwitchCameraIcon } from "lucide-react";
 
 import {
   Table,

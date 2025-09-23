@@ -73,12 +73,7 @@ export interface ReplyDialogProps {
   hasExistingReply: boolean;
 }
 
-export interface DeleteReplyDialogProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onConfirm: () => Promise<void>;
-  customerName: string;
-}
+// Deprecated: DeleteReplyDialogProps removed in favor of shared ConfirmDialog
 
 export interface ReviewFilterProps {
   filterRating: string;

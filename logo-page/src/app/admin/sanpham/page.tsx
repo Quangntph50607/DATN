@@ -26,6 +26,8 @@ import { useListKhuyenMaiTheoSanPham } from "@/hooks/useKhuyenmai";
 import { Loader2 } from "lucide-react";
 import { useThuongHieu } from "@/hooks/useThuongHieu";
 import { useXuatXu } from "@/hooks/useXuatXu";
+import { useHangThanhLy } from "@/hooks/useHangThanhLy";
+import HangThanhLyTable from "./HangThanhLyTable";
 
 export default function SanPhamPage() {
   const {
@@ -38,8 +40,9 @@ export default function SanPhamPage() {
   const { data: xuatXus = [] } = useXuatXu();
   const { data: thuongHieus = [] } = useThuongHieu();
   const [activedTabs, setActivetedTabs] = useState<
-    "Đang kinh doanh" | "Ngừng kinh doanh" | "Hết hàng"
+    "Đang kinh doanh" | "Ngừng kinh doanh" | "Hết hàng" | "Hàng thanh lý"
   >("Đang kinh doanh");
+  const { data: hangThanhLy = [], isLoading: loadingHTL } = useHangThanhLy();
   const [editSanPham, setEditSanPham] = useState<SanPham | null>(null);
   const { keyword, setKeyword } = useSearchStore();
   const [selectedDanhMuc, setSelectedDanhMuc] = useState<number | null>(null);
@@ -212,7 +215,11 @@ export default function SanPhamPage() {
                 value={activedTabs}
                 onValueChange={(value) => {
                   setActivetedTabs(
-                    value as "Đang kinh doanh" | "Ngừng kinh doanh" | "Hết hàng"
+                    value as
+                      | "Đang kinh doanh"
+                      | "Ngừng kinh doanh"
+                      | "Hết hàng"
+                      | "Hàng thanh lý"
                   );
                   setCurrentPage(1);
                 }}
@@ -226,6 +233,9 @@ export default function SanPhamPage() {
                   </TabsTrigger>
                   <TabsTrigger value="Hết hàng">
                     <span className=""> Hết hàng</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="Hàng thanh lý">
+                    <span className=""> Hàng thanh lý</span>
                   </TabsTrigger>
                 </TabsList>
 
@@ -316,6 +326,13 @@ export default function SanPhamPage() {
                     );
                   }
                 )}
+                <TabsContent value="Hàng thanh lý">
+                  {loadingHTL ? (
+                    <p>Đang tải hàng thanh lý...</p>
+                  ) : (
+                    <HangThanhLyTable items={hangThanhLy} />
+                  )}
+                </TabsContent>
                 <ConfirmDialog
                   open={confirmOpen}
                   onConfirm={handleDelete}

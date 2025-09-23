@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ReviewStats from "./components/ReviewStats";
 import ReviewList from "./components/ReviewList";
@@ -22,6 +22,31 @@ export default function DanhGiaPage() {
     const updateDanhGiaMutation = useUpdateDanhGiaWithFiles();
     const deleteDanhGiaMutation = useDeleteDanhGia();
     const { user } = useUserStore();
+
+    // Safety: ensure body remains interactive even after dialogs close
+    useEffect(() => {
+        const restorePointer = () => {
+            try {
+                if (typeof document !== 'undefined' && document.body && document.body.style) {
+                    if (document.body.style.pointerEvents === 'none') {
+                        document.body.style.pointerEvents = '';
+                    }
+                }
+            } catch {
+                // no-op
+            }
+        };
+        const onAny = () => restorePointer();
+        const intervalId = window.setInterval(restorePointer, 500);
+        document.addEventListener('click', onAny, true);
+        document.addEventListener('keydown', onAny, true);
+        return () => {
+            window.clearInterval(intervalId);
+            document.removeEventListener('click', onAny, true);
+            document.removeEventListener('keydown', onAny, true);
+            restorePointer();
+        };
+    }, []);
 
     if (isLoading) {
         return (
