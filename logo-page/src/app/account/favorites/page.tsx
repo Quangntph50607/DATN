@@ -13,6 +13,7 @@ import { ConfirmDeleteDialog } from '@/components/layout/(components)/(wishlist)
 import { ShareWishListDialog } from '@/components/layout/(components)/(wishlist)/ShareWishListDialog';
 import { toast, Toaster } from 'sonner';
 import { WishListProduct } from '@/components/types/wishlist-type';
+import { wishListService } from '@/services/wishListService';
 import { SuccessNotification } from '@/components/ui/success-notification';
 
 interface LocalCartItem {
@@ -173,44 +174,39 @@ export default function FavoritesPage() {
 
     // Lấy số lượng sản phẩm và tổng giá cho mỗi wish list
     useEffect(() => {
-        if (wishLists && wishLists.length > 0) {
-            const fetchProductData = async () => {
-                const counts: { [key: number]: number } = {};
-                const totalCosts: { [key: number]: number } = {};
+        if (!wishLists || wishLists.length === 0) return;
 
-                for (const wishList of wishLists) {
-                    try {
-                        const response = await fetch(`http://localhost:8080/api/lego-store/san-pham-yeu-thich/user/${wishList.id}`, {
-                            headers: {
-                                'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                            },
-                        });
+        const fetchProductData = async () => {
+            const counts: { [key: number]: number } = {};
+            const totalCosts: { [key: number]: number } = {};
 
-                        if (response.ok) {
-                            const products: WishListProduct[] = await response.json();
-                            counts[wishList.id] = products.length;
-                            // Tính tổng giá cho wish list này
-                            const totalCost = products.reduce((total: number, product: WishListProduct) =>
-                                total + (product.giaKM || product.gia), 0);
-                            totalCosts[wishList.id] = totalCost;
-                        } else {
-                            counts[wishList.id] = 0;
-                            totalCosts[wishList.id] = 0;
-                        }
-                    } catch (error) {
-                        console.error(`Error fetching products for wishlist ${wishList.id}:`, error);
-                        counts[wishList.id] = 0;
-                        totalCosts[wishList.id] = 0;
-                    }
+            for (const wishList of wishLists) {
+                try {
+                    const products: WishListProduct[] = await wishListService.getWishListProducts(wishList.id);
+                    counts[wishList.id] = products.length;
+
+                    // Tính tổng giá: ưu tiên giá khuyến mãi nếu có, nhân với quantity nếu có
+                    const totalCost = products.reduce((sum: number, p: WishListProduct) => {
+                        const unit = (p.giaKM && p.giaKM > 0 ? p.giaKM : p.gia) || 0;
+                        // một số API không trả quantity => mặc định 1
+                        const qtyRaw = (p as unknown as { quantity?: number }).quantity;
+                        const qty = typeof qtyRaw === 'number' && !isNaN(qtyRaw) ? qtyRaw : 1;
+                        return sum + unit * qty;
+                    }, 0);
+                    totalCosts[wishList.id] = totalCost;
+                } catch (error) {
+                    console.error(`Error fetching products for wishlist ${wishList.id}:`, error);
+                    counts[wishList.id] = 0;
+                    totalCosts[wishList.id] = 0;
                 }
+            }
 
-                setWishListProductCounts(counts);
-                setWishListTotalCosts(totalCosts);
-            };
+            setWishListProductCounts(counts);
+            setWishListTotalCosts(totalCosts);
+        };
 
-            fetchProductData();
-        }
-    }, [wishLists, selectedWishList, wishListProducts]);
+        fetchProductData();
+    }, [wishLists]);
 
     if (!user) {
         return (
