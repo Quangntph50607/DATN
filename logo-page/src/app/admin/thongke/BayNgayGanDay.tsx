@@ -133,9 +133,8 @@ export default function BayNgayGanDay() {
         {/* Tỷ lệ tăng trưởng */}
         <div className="text-right">
           <div
-            className={`flex items-center gap-1 text-sm font-medium ${
-              growthRate >= 0 ? "text-green-600" : "text-red-600"
-            }`}
+            className={`flex items-center gap-1 text-sm font-medium ${growthRate >= 0 ? "text-green-600" : "text-red-600"
+              }`}
           >
             <TrendingUp
               className={`h-4 w-4 ${growthRate < 0 ? "rotate-180" : ""}`}
@@ -150,7 +149,7 @@ export default function BayNgayGanDay() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <div className="bg-green-50 rounded-lg p-3 border border-green-200">
           <p className="text-xs font-medium text-green-600 mb-1">
-            Tổng Doanh Thu
+            Tổng Doanh Thu trong 7 ngày
           </p>
           <p className="text-lg font-bold text-green-700">
             {formatCurrency(totalRevenue)}
