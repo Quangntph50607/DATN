@@ -2,24 +2,15 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
-import {
-  ShoppingBag,
-  Eye,
-  XCircle,
-  CheckCircle,
-  Loader2,
-  Package,
-} from "lucide-react";
+import { ShoppingBag, Eye, XCircle, CheckCircle, Package } from "lucide-react";
 import { formatDateFlexible } from "@/app/admin/khuyenmai/formatDateFlexible";
 import { EnrichedOrder } from "./types";
 import { palette, statusBadge } from "./palette";
 import { useRouter } from "next/navigation";
-import {
-  anhSanPhamSevice,
-  getAnhByFileName,
-} from "@/services/anhSanPhamService";
+import { anhSanPhamSevice } from "@/services/anhSanPhamService";
+import Image from "next/image";
+import Link from "next/link";
 
 interface OrderCardProps {
   order: EnrichedOrder;
@@ -28,10 +19,8 @@ interface OrderCardProps {
   handleCancelOrder: (orderId: number) => void;
   handleConfirmDelivery: (orderId: number) => void;
   handleReorder: (order: EnrichedOrder) => void;
-  handleReturnOrder: (orderId: number) => void;
   cancelingId: number | null;
   reorderingId: number | null;
-  returningId: number | null;
 }
 
 export default function OrderCard({
@@ -39,60 +28,24 @@ export default function OrderCard({
   handleViewDetail,
   handleCancelOrder,
   handleConfirmDelivery,
-  handleReorder,
-  handleReturnOrder,
   cancelingId,
-  reorderingId,
-  returningId,
 }: OrderCardProps) {
   const router = useRouter();
-  const [imageUrls, setImageUrls] = useState<Record<number, string>>({});
-
-  const handleProductImageClick = (productId?: number, item?: any) => {
-    console.log("Debug - Item Data:", item);
-    if (productId) {
-      console.log("Navigating to product ID:", productId);
-      router.push(`/product/${productId}`);
-    } else {
-      console.log("Product ID is undefined or null. Item data:", item);
+  const [imageUrls, setImageUrls] = React.useState<Record<number, string>>({});
+  async function fetchProductImage(pid: number) {
+    const list = await anhSanPhamSevice.getAnhSanPhamTheoSanPhamId(pid);
+    if (Array.isArray(list) && list.length > 0) {
+      const main = list.find((i) => i.anhChinh) || list[0];
+      if (main?.url) setImageUrls((prev) => ({ ...prev, [pid]: main.url }));
     }
-  };
+  }
 
-  // Fetch images using anhSanPhamService
-  const fetchProductImages = async (pid: number) => {
-    try {
-      const response = await anhSanPhamSevice.getAnhSanPhamTheoSanPhamId(pid);
-      // Check if response is an array and has at least one element
-      if (
-        Array.isArray(response) &&
-        response.length > 0 &&
-        typeof response[0].anhChinh === "string"
-      ) {
-        const blob = await getAnhByFileName(response[0].anhChinh);
-        const url = URL.createObjectURL(blob);
-        setImageUrls((prev) => ({ ...prev, [pid]: url }));
-      } else {
-        console.warn(`No valid AnhChinh for product ID: ${pid}`, response);
-      }
-    } catch (error) {
-      console.error("Lỗi khi tải ảnh cho product ID:", pid, error);
-    }
-  };
-
-  // Load images when component mounts or order changes
-  useEffect(() => {
-    const pids =
-      order.chiTietSanPham
-        ?.map((item) => item.sanPham?.id)
-        .filter((id): id is number => !!id) || [];
-    pids.forEach((pid) => fetchProductImages(pid));
-
-    // Cleanup object URLs
-    return () => {
-      Object.values(imageUrls).forEach((url) => URL.revokeObjectURL(url));
-    };
+  React.useEffect(() => {
+    const pids = (order.chiTietSanPham || [])
+      .map((it) => it.sanPham?.id)
+      .filter((id): id is number => !!id);
+    pids.forEach(fetchProductImage);
   }, [order]);
-
   return (
     <Card
       className={`${palette.panelBg} ${palette.border} rounded-2xl shadow-[0_6px_20px_rgba(0, 0, 0, 0.08)]`}
@@ -170,40 +123,43 @@ export default function OrderCard({
             Sản phẩm ({order.chiTietSanPham?.length || 0})
           </p>
           <div className="space-y-2">
-            {order.chiTietSanPham?.map((item, idx) => {
+            {order.chiTietSanPham?.map((item) => {
               const pid = item.sanPham?.id;
               return (
-                <motion.div
-                  key={idx}
-                  className={`flex items-center gap-3 p-2 bg-white rounded-lg border border-slate-200 hover:border-yellow-300`}
-                  whileHover={{ scale: 1.01 }}
-                  transition={{ duration: 0.15 }}
-                >
-                  {imageUrls[pid as number] ? (
-                    <img
-                      src={imageUrls[pid as number]}
+                <div className="flex justify-between items-center gap-3 p-2 bg-white rounded-lg border border-slate-200 hover:border-yellow-300">
+                  <Link
+                    href={`/product/${pid}`}
+                    className="flex items-center gap-3"
+                  >
+                    <Image
+                      src={imageUrls[pid!] ?? "/images/logoM.jpg"}
                       alt={item.sanPham?.tenSanPham || ""}
-                      className="w-12 h-12 object-cover rounded-lg cursor-pointer hover:ring-2 hover:ring-yellow-300 transition-all duration-200"
-                      onClick={() => handleProductImageClick(pid, item)}
+                      width={48}
+                      height={48}
+                      className="w-12 h-12 object-cover rounded-lg"
                     />
-                  ) : (
-                    <Skeleton className="w-12 h-12 rounded-lg" />
-                  )}
-                  <div className="flex-1">
-                    <p className={`font-medium ${palette.text} text-sm`}>
-                      {item.sanPham?.tenSanPham || "Sản phẩm không tồn tại"}
-                    </p>
-                    <p className={`text-xs ${palette.subText}`}>
-                      Số lượng: {item.soLuong || 0}
-                    </p>
-                  </div>
+                    <div className="flex-1">
+                      <p className={`font-medium ${palette.text} text-sm`}>
+                        {item.sanPham?.tenSanPham || "Sản phẩm không tồn tại"}
+                      </p>
+                      <p className={`text-xs ${palette.subText}`}>
+                        Số lượng: {item.soLuong || 0}
+                      </p>
+                    </div>
+                  </Link>
                   <p className="font-semibold text-[#E3000B]">
                     ₫
-                    {(
-                      (item.sanPham?.gia || 0) * (item.soLuong || 0)
-                    ).toLocaleString()}
+                    {(() => {
+                      const unit =
+                        (item as any)?.gia ??
+                        (item.sanPham as any)?.giaKhuyenMai ??
+                        (item.sanPham?.gia || 0);
+                      return Number(
+                        unit * (item.soLuong || 0)
+                      ).toLocaleString();
+                    })()}
                   </p>
-                </motion.div>
+                </div>
               );
             })}
           </div>
@@ -211,7 +167,7 @@ export default function OrderCard({
 
         {/* Actions */}
         <div className="flex flex-wrap gap-2">
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          <div>
             <Button
               size="sm"
               className="flex items-center gap-2 border border-yellow-300 text-black bg-[#FFD400] hover:bg-[#FFE066] transition-colors duration-200"
@@ -220,7 +176,7 @@ export default function OrderCard({
               <Eye className="w-4 h-4" />
               Xem Chi Tiết
             </Button>
-          </motion.div>
+          </div>
 
           {order.trangThai === "Đang xử lý" && (
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
@@ -264,29 +220,6 @@ export default function OrderCard({
               >
                 <Package className="w-4 h-4" />
                 Hoàn Hàng
-              </Button>
-            </motion.div>
-          )}
-
-          {(order.trangThai === "Hoàn tất" || order.trangThai === "Đã hủy") && (
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button
-                size="sm"
-                onClick={() => handleReorder(order)}
-                disabled={reorderingId === order.id}
-                className="flex items-center gap-2 border border-yellow-400 text-black bg-white hover:bg-yellow-70 transition-colors duration-200"
-              >
-                {reorderingId === order.id ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Đang thêm...
-                  </>
-                ) : (
-                  <>
-                    <ShoppingBag className="w-4 h-4" />
-                    Mua lại
-                  </>
-                )}
               </Button>
             </motion.div>
           )}

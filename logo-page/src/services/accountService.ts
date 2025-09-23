@@ -45,7 +45,9 @@ export const accountService = {
   },
 
   async getRoles(): Promise<Role[]> {
-    const res = await fetchWithAuth(`${API_URL}/getRole`, { cache: "no-store" });
+    const res = await fetchWithAuth(`${API_URL}/getRole`, {
+      cache: "no-store",
+    });
     if (!res.ok) throw new Error("Không thể tải danh sách vai trò");
 
     const result = await res.json();
@@ -80,7 +82,10 @@ export const accountService = {
       console.error("❌ Create user error:", errorText);
 
       // Xử lý lỗi cụ thể từ backend
-      if (errorText.includes("Email da ton tai") || errorText.includes("email")) {
+      if (
+        errorText.includes("Email da ton tai") ||
+        errorText.includes("email")
+      ) {
         throw new Error("Email đã tồn tại trong hệ thống");
       }
       if (errorText.includes("khong tim thay id role")) {
@@ -107,7 +112,10 @@ export const accountService = {
       console.error("❌ Update error body:", errorText);
 
       // Xử lý lỗi cụ thể từ backend
-      if (errorText.includes("Email da ton tai") || errorText.includes("email")) {
+      if (
+        errorText.includes("Email da ton tai") ||
+        errorText.includes("email")
+      ) {
         throw new Error("Email đã tồn tại trong hệ thống");
       }
       if (errorText.includes("Khong tim thay id user")) {
@@ -125,13 +133,16 @@ export const accountService = {
   },
 
   // API đổi mật khẩu
-  async changePassword(userId: number, newPassword: string): Promise<{ message: string }> {
+  async changePassword(
+    userId: number,
+    newPassword: string
+  ): Promise<{ message: string }> {
     const res = await fetchWithAuth(`${API_URL}/doiMatKhau/${userId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
       body: JSON.stringify({
-        matKhauMoi: newPassword
+        matKhauMoi: newPassword,
       }),
     });
 
@@ -161,12 +172,18 @@ export const accountService = {
   },
 
   // Cộng điểm tích lũy cho user
-  async addPoints(userId: number, diemCong: number = 100): Promise<{ message: string }> {
-    const res = await fetchWithAuth(`${API_URL}/${userId}/cong-diem?diem=${diemCong}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-    });
+  async addPoints(
+    userId: number,
+    diemCong: number = 100
+  ): Promise<{ message: string }> {
+    const res = await fetchWithAuth(
+      `${API_URL}/${userId}/cong-diem?diem=${diemCong}`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      }
+    );
 
     if (!res.ok) {
       const errorText = await res.text();
@@ -179,7 +196,5 @@ export const accountService = {
     }
     const text = await res.text();
     return { message: text };
-  }
+  },
 };
-
-

@@ -1,7 +1,12 @@
-import { DanhGiaResponse, CreateDanhGiaDTO } from "@/components/types/danhGia-type";
+import {
+  DanhGiaResponse,
+  CreateDanhGiaDTO,
+} from "@/components/types/danhGia-type";
 import { fetchWithAuth } from "./fetchWithAuth";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/lego-store/danh-gia";
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  "http://localhost:8080/api/lego-store/danh-gia";
 
 export const danhGiaService = {
   async getBySanPham(spId: number): Promise<DanhGiaResponse[]> {
@@ -36,20 +41,24 @@ export const danhGiaService = {
     }
   },
 
-  async createWithImages(data: CreateDanhGiaDTO, images: File[], video?: File): Promise<DanhGiaResponse> {
+  async createWithImages(
+    data: CreateDanhGiaDTO,
+    images: File[],
+    video?: File
+  ): Promise<DanhGiaResponse> {
     try {
       const formData = new FormData();
-      formData.append('tieuDe', data.tieuDe);
-      formData.append('textDanhGia', data.textDanhGia);
-      formData.append('soSao', data.soSao.toString());
-      formData.append('user_id', data.user_id.toString());
-      formData.append('sp_id', data.sp_id.toString());
+      formData.append("tieuDe", data.tieuDe);
+      formData.append("textDanhGia", data.textDanhGia);
+      formData.append("soSao", data.soSao.toString());
+      formData.append("user_id", data.user_id.toString());
+      formData.append("sp_id", data.sp_id.toString());
 
-      images.forEach(image => formData.append('fileAnh', image));
-      if (video) formData.append('fileVid', video);
+      images.forEach((image) => formData.append("fileAnh", image));
+      if (video) formData.append("fileVid", video);
 
       const res = await fetchWithAuth(`${API_URL}/CreateWithFileImages`, {
-        method: 'POST',
+        method: "POST",
         body: formData,
       });
 
@@ -79,22 +88,32 @@ export const danhGiaService = {
 
     try {
       const formData = new FormData();
-      formData.append('soSao', soSao.toString());
-      formData.append('tieuDe', tieuDe);
-      formData.append('textDanhGia', textDanhGia);
-      formData.append('textPhanHoi', textPhanHoi || ""); // Đảm bảo không null
+      formData.append("soSao", soSao.toString());
+      formData.append("tieuDe", tieuDe);
+      formData.append("textDanhGia", textDanhGia);
+      formData.append("textPhanHoi", textPhanHoi || ""); // Đảm bảo không null
 
       // BE có thể expect fileAnh và fileVid luôn luôn được gửi
-      const emptyBlob = new Blob([], { type: 'application/octet-stream' });
-      formData.append('fileAnh', emptyBlob, 'empty.jpg');
-      formData.append('fileVid', emptyBlob, 'empty.mp4');
+      const emptyBlob = new Blob([], { type: "application/octet-stream" });
+      formData.append("fileAnh", emptyBlob, "empty.jpg");
+      formData.append("fileVid", emptyBlob, "empty.mp4");
 
-      console.log("🔍 Update request data:", { idDanhGia, idNv, soSao, tieuDe, textDanhGia, textPhanHoi });
-
-      const res = await fetchWithAuth(`${API_URL}/update/${idDanhGia}/${idNv}`, {
-        method: 'PUT',
-        body: formData,
+      console.log("🔍 Update request data:", {
+        idDanhGia,
+        idNv,
+        soSao,
+        tieuDe,
+        textDanhGia,
+        textPhanHoi,
       });
+
+      const res = await fetchWithAuth(
+        `${API_URL}/update/${idDanhGia}/${idNv}`,
+        {
+          method: "PUT",
+          body: formData,
+        }
+      );
 
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
@@ -125,64 +144,81 @@ export const danhGiaService = {
 
     try {
       // Nếu không có files mới, sử dụng method update thông thường
-      if ((!newImages || newImages.length === 0) && (!newVideo || newVideo.size === 0)) {
+      if (
+        (!newImages || newImages.length === 0) &&
+        (!newVideo || newVideo.size === 0)
+      ) {
         console.log("🔍 No files to update, using regular update method");
-        return await this.update(idDanhGia, idNv, soSao, tieuDe, textDanhGia, textPhanHoi);
+        return await this.update(
+          idDanhGia,
+          idNv,
+          soSao,
+          tieuDe,
+          textDanhGia,
+          textPhanHoi
+        );
       }
 
-      console.log("🔍 Updating with files:", { 
-        newImages: newImages?.length, 
+      console.log("🔍 Updating with files:", {
+        newImages: newImages?.length,
         newVideo: newVideo?.size,
-        videoName: newVideo?.name 
+        videoName: newVideo?.name,
       });
 
       // Nếu có files, sử dụng FormData
       const formData = new FormData();
-      formData.append('soSao', soSao.toString());
-      formData.append('tieuDe', tieuDe);
-      formData.append('textDanhGia', textDanhGia);
-      formData.append('textPhanHoi', textPhanHoi || ""); // Đảm bảo không null
+      formData.append("soSao", soSao.toString());
+      formData.append("tieuDe", tieuDe);
+      formData.append("textDanhGia", textDanhGia);
+      formData.append("textPhanHoi", textPhanHoi || ""); // Đảm bảo không null
 
       // Thêm files nếu có
       if (newImages && newImages.length > 0) {
-        newImages.forEach(image => formData.append('fileAnh', image));
+        newImages.forEach((image) => formData.append("fileAnh", image));
       } else {
         // Gửi file rỗng nếu không có ảnh mới
-        const emptyBlob = new Blob([], { type: 'image/jpeg' });
-        formData.append('fileAnh', emptyBlob, 'empty.jpg');
+        const emptyBlob = new Blob([], { type: "image/jpeg" });
+        formData.append("fileAnh", emptyBlob, "empty.jpg");
       }
 
       if (newVideo && newVideo.size > 0) {
-        console.log("🔍 Adding video to form data:", { 
-          name: newVideo.name, 
-          size: newVideo.size, 
-          type: newVideo.type 
+        console.log("🔍 Adding video to form data:", {
+          name: newVideo.name,
+          size: newVideo.size,
+          type: newVideo.type,
         });
-        formData.append('fileVid', newVideo);
+        formData.append("fileVid", newVideo);
       } else {
         // Gửi file rỗng nếu không có video mới
-        const emptyBlob = new Blob([], { type: 'video/mp4' });
-        formData.append('fileVid', emptyBlob, 'empty.mp4');
+        const emptyBlob = new Blob([], { type: "video/mp4" });
+        formData.append("fileVid", emptyBlob, "empty.mp4");
       }
 
       // Sử dụng endpoint update thông thường vì BE chỉ có endpoint này
-      console.log("🔍 Sending request to:", `${API_URL}/update/${idDanhGia}/${idNv}`);
-      
+      console.log(
+        "🔍 Sending request to:",
+        `${API_URL}/update/${idDanhGia}/${idNv}`
+      );
+
       // Thêm timeout cho video upload (5 phút)
-      const timeoutDuration = newVideo && newVideo.size > 0 ? 5 * 60 * 1000 : 30 * 1000;
-      
+      const timeoutDuration =
+        newVideo && newVideo.size > 0 ? 5 * 60 * 1000 : 30 * 1000;
+
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), timeoutDuration);
-      
+
       try {
-        const res = await fetchWithAuth(`${API_URL}/update/${idDanhGia}/${idNv}`, {
-          method: 'PUT',
-          body: formData,
-          signal: controller.signal,
-        });
-        
+        const res = await fetchWithAuth(
+          `${API_URL}/update/${idDanhGia}/${idNv}`,
+          {
+            method: "PUT",
+            body: formData,
+            signal: controller.signal,
+          }
+        );
+
         clearTimeout(timeoutId);
-        
+
         if (!res.ok) {
           const errorData = await res.json().catch(() => ({}));
           console.error("❌ Update error response:", errorData);
@@ -194,7 +230,7 @@ export const danhGiaService = {
         return result;
       } catch (error) {
         clearTimeout(timeoutId);
-        if (error instanceof Error && error.name === 'AbortError') {
+        if (error instanceof Error && error.name === "AbortError") {
           throw new Error("Upload timeout - vui lòng thử lại với file nhỏ hơn");
         }
         throw error;
@@ -265,9 +301,12 @@ export const danhGiaService = {
     }
 
     try {
-      const res = await fetchWithAuth(`${API_URL}/delete/${idDanhGia}/${idNv}`, {
-        method: 'DELETE',
-      });
+      const res = await fetchWithAuth(
+        `${API_URL}/delete/${idDanhGia}/${idNv}`,
+        {
+          method: "DELETE",
+        }
+      );
 
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
@@ -287,7 +326,9 @@ export const danhGiaService = {
   },
 
   getVideoUrl(fileName: string): string {
-    return `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"}/api/lego-store/danh-gia/videos/${fileName}`;
+    return `${
+      process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"
+    }/api/lego-store/danh-gia/videos/${fileName}`;
   },
 
   async deleteAnh(idAnh: number, idNv: number): Promise<string> {
@@ -296,9 +337,12 @@ export const danhGiaService = {
     }
 
     try {
-      const res = await fetchWithAuth(`${API_URL}/delete-anh/${idAnh}/${idNv}`, {
-        method: 'DELETE',
-      });
+      const res = await fetchWithAuth(
+        `${API_URL}/delete-anh/${idAnh}/${idNv}`,
+        {
+          method: "DELETE",
+        }
+      );
 
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
@@ -319,9 +363,12 @@ export const danhGiaService = {
     }
 
     try {
-      const res = await fetchWithAuth(`${API_URL}/delete-vid/${idVid}/${idNv}`, {
-        method: 'DELETE',
-      });
+      const res = await fetchWithAuth(
+        `${API_URL}/delete-vid/${idVid}/${idNv}`,
+        {
+          method: "DELETE",
+        }
+      );
 
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));

@@ -28,7 +28,6 @@ import {
 
 export default function ReturnForm() {
   const { id } = useParams();
-  const router = useRouter();
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [returnType, setReturnType] = useState<"partial" | "full">("partial");
@@ -236,7 +235,13 @@ export default function ReturnForm() {
           return {
             productId: pid,
             name: product?.tenSanPham || `Sản phẩm #${pid}`,
-            unitPrice: Number(product?.gia ?? ct.gia ?? 0),
+            unitPrice: (() => {
+              const line = Number(ct?.gia);
+              if (Number.isFinite(line) && line > 0) return line;
+              const promo = Number(product?.giaKhuyenMai);
+              if (Number.isFinite(promo) && promo > 0) return promo;
+              return Number(product?.gia ?? 0);
+            })(),
             maxQuantity: Number(ct.soLuong || 1),
             selected: true,
             quantity: Number(ct.soLuong || 1),
@@ -561,12 +566,7 @@ export default function ReturnForm() {
           )}
           <div className="space-y-3">
             {items.map((it, idx) => (
-              <motion.div
-                key={it.productId}
-                whileHover={{ scale: 1.005 }}
-                transition={{ duration: 0.15 }}
-                className="rounded-xl bg-white border p-3 flex items-center gap-3 transition-all duration-200 ease-out hover:border-yellow-300 hover:shadow-sm"
-              >
+              <div className="rounded-xl bg-white border p-3 flex items-center gap-3 transition-all duration-200 ease-out hover:border-yellow-300 hover:shadow-sm">
                 <Checkbox
                   checked={returnType === "full" ? true : it.selected}
                   disabled={returnType === "full"}
@@ -629,7 +629,7 @@ export default function ReturnForm() {
                     {errors.itemQty[it.productId]}
                   </div>
                 )}
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
@@ -664,14 +664,14 @@ export default function ReturnForm() {
             <div className="text-xs text-red-600 mt-2">{errors.reason}</div>
           )}
           {reason === "Lý do khác" && (
-            <div className="mt-3">
+            <div className="mt-3 space-y-2 text-black">
               <Label htmlFor="other-reason">Mô tả chi tiết</Label>
               <Textarea
                 id="other-reason"
                 placeholder="Vui lòng mô tả lý do hoàn hàng..."
                 value={otherReason}
                 onChange={(e) => setOtherReason(e.target.value)}
-                className="mt-1 transition-all duration-200 ease-out focus:ring-2 focus:ring-yellow-300"
+                className="border border-gray-500"
               />
             </div>
           )}
@@ -829,82 +829,61 @@ export default function ReturnForm() {
               </label>
             </div>
 
-            <motion.div
-              initial={false}
-              animate={{
-                height: refundMethod === "bank" ? "auto" : 0,
-                opacity: refundMethod === "bank" ? 1 : 0,
-              }}
-              style={{ overflow: "hidden" }}
-            >
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 border rounded-xl p-4">
-                <div>
-                  <Label htmlFor="bankOwner">Chủ tài khoản</Label>
-                  <Input
-                    id="bankOwner"
-                    placeholder="Nguyễn Văn A"
-                    value={bankOwner}
-                    onChange={(e) => setBankOwner(e.target.value)}
-                    className={`transition-all duration-200 ease-out focus:ring-2 ${
-                      errors.bankOwner
-                        ? "border-red-400 focus:ring-red-400"
-                        : "focus:ring-yellow-300"
-                    }`}
-                  />
-                  {errors.bankOwner && (
-                    <div className="text-xs text-red-600 mt-1">
-                      {errors.bankOwner}
-                    </div>
-                  )}
-                </div>
-                <div>
-                  <Label htmlFor="bankNumber">Số tài khoản</Label>
-                  <Input
-                    id="bankNumber"
-                    placeholder="0123 4567 890"
-                    value={bankNumber}
-                    onChange={(e) => setBankNumber(e.target.value)}
-                    className={`transition-all duration-200 ease-out focus:ring-2 ${
-                      errors.bankNumber
-                        ? "border-red-400 focus:ring-red-400"
-                        : "focus:ring-yellow-300"
-                    }`}
-                  />
-                  {errors.bankNumber && (
-                    <div className="text-xs text-red-600 mt-1">
-                      {errors.bankNumber}
-                    </div>
-                  )}
-                </div>
-                <div>
-                  <Label htmlFor="bankName">Ngân hàng</Label>
-                  <Input
-                    id="bankName"
-                    placeholder="Vietcombank, Techcombank..."
-                    value={bankName}
-                    onChange={(e) => setBankName(e.target.value)}
-                    className={`transition-all duration-200 ease-out focus:ring-2 ${
-                      errors.bankName
-                        ? "border-red-400 focus:ring-red-400"
-                        : "focus:ring-yellow-300"
-                    }`}
-                  />
-                  {errors.bankName && (
-                    <div className="text-xs text-red-600 mt-1">
-                      {errors.bankName}
-                    </div>
-                  )}
-                </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 border  rounded-xl p-4">
+              <div className="space-y-3">
+                <Label htmlFor="bankOwner">Chủ tài khoản</Label>
+                <Input
+                  id="bankOwner"
+                  placeholder="Nguyễn Văn A"
+                  value={bankOwner}
+                  onChange={(e) => setBankOwner(e.target.value)}
+                  className="border border-gray-500"
+                />
+                {errors.bankOwner && (
+                  <div className="text-xs text-red-600 mt-1">
+                    {errors.bankOwner}
+                  </div>
+                )}
               </div>
-            </motion.div>
-
-            {refundMethod === "store" && (
-              <div className="mt-2 text-xs text-slate-600">
-                Tiền hoàn sẽ được cộng vào ví cửa hàng của bạn ngay khi yêu cầu
-                được duyệt.
+              <div className="space-y-3">
+                <Label htmlFor="bankNumber">Số tài khoản</Label>
+                <Input
+                  id="bankNumber"
+                  placeholder="0123 4567 890"
+                  value={bankNumber}
+                  onChange={(e) => setBankNumber(e.target.value)}
+                  className="border border-gray-500"
+                />
+                {errors.bankNumber && (
+                  <div className="text-xs text-red-600 mt-1">
+                    {errors.bankNumber}
+                  </div>
+                )}
               </div>
-            )}
+              <div className="space-y-3">
+                <Label htmlFor="bankName">Ngân hàng</Label>
+                <Input
+                  id="bankName"
+                  placeholder="Vietcombank, Techcombank..."
+                  value={bankName}
+                  onChange={(e) => setBankName(e.target.value)}
+                  className="border border-gray-500"
+                />
+                {errors.bankName && (
+                  <div className="text-xs text-red-600 mt-1">
+                    {errors.bankName}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
+
+          {refundMethod === "store" && (
+            <div className="mt-2 text-xs text-slate-600">
+              Tiền hoàn sẽ được cộng vào ví cửa hàng của bạn ngay khi yêu cầu
+              được duyệt.
+            </div>
+          )}
         </div>
 
         <div className="sticky bottom-4 bg-transparent pt-2">
