@@ -62,10 +62,10 @@ const LegoCollectionForm: React.FC<Props> = ({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <h2 className="text-2xl font-bold mb-6 text-white pos-gradient-text">
+      <h2 className="text-2xl font-bold mb-6 text-white text-center">
         {collectionToEdit
-          ? "Chỉnh sửa bộ sưu tập LEGO"
-          : "Thêm bộ sưu tập LEGO mới"}
+          ? "Chỉnh sửa bộ sưu tập"
+          : "Thêm bộ sưu tập mới"}
       </h2>
 
       <div>
@@ -104,16 +104,14 @@ const LegoCollectionForm: React.FC<Props> = ({
       </div>
 
       <div className="flex justify-end gap-3 pt-6">
-        {collectionToEdit && (
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onClearEdit}
-            className="border-white/30 text-white hover:bg-white/10"
-          >
-            Hủy sửa
-          </Button>
-        )}
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onClearEdit}
+          className="border-white/30 text-white hover:bg-white/10"
+        >
+          Hủy
+        </Button>
         <Button type="submit" variant="default" className="shadow-lg">
           <PlusCircle className="mr-2 h-5 w-5" />
           {collectionToEdit ? "Lưu thay đổi" : "Thêm bộ sưu tập"}

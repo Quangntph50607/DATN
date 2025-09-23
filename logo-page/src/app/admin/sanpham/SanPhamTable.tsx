@@ -11,11 +11,11 @@ import {
 } from "@/components/ui/table";
 import { useXuatXu } from "@/hooks/useXuatXu";
 import { useThuongHieu } from "@/hooks/useThuongHieu";
-import { KhuyenMaiTheoSanPham } from "@/components/types/khuyenmai-type";
+import { SanPham } from "@/components/types/product.type";
 
 interface Props {
-  sanPhams: KhuyenMaiTheoSanPham[];
-  onEdit: (product: KhuyenMaiTheoSanPham) => void;
+  sanPhams: SanPham[];
+  onEdit: (product: SanPham) => void;
   onDelete: (id: number) => void;
 }
 

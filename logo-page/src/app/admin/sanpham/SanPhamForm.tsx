@@ -14,6 +14,17 @@ import { useBoSuutap } from "@/hooks/useBoSutap";
 import { useXuatXu } from "@/hooks/useXuatXu";
 import { useThuongHieu } from "@/hooks/useThuongHieu";
 import { useXoaAnhSanPham, useAddAnhSanPham } from "@/hooks/useAnhSanPham";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { PlusCircle } from "lucide-react";
+import { LegoCategoryForm } from "@/app/admin/danhmuc/LegoCategoryForm";
+import LegoCollectionForm from "@/app/admin/bosuutap/LegoCollectionForm";
+import { ThuongHieuForm } from "@/app/admin/thuonghieu/ThuongHieuForm";
+import { XuatXuForm } from "@/app/admin/xuatxu/XuatXuForm";
+import { ToastProvider } from "@/components/ui/toast-provider";
+import { useAddSDanhMuc } from "@/hooks/useDanhMuc";
+import { useAddBoSuuTap } from "@/hooks/useBoSutap";
+import { useAddThuongHieu } from "@/hooks/useThuongHieu";
+import { useAddXuatXu } from "@/hooks/useXuatXu";
 
 import {
   Form,
@@ -79,6 +90,18 @@ export default function SanPhamForm({
   const { data: sanPhamList = [] } = useSanPham();
   const { data: xuatXuList = [] } = useXuatXu();
   const { data: thuongHieuList = [] } = useThuongHieu();
+
+  // Add-new dialogs state
+  const [openDanhMuc, setOpenDanhMuc] = useState(false);
+  const [openBoSuuTap, setOpenBoSuuTap] = useState(false);
+  const [openThuongHieu, setOpenThuongHieu] = useState(false);
+  const [openXuatXu, setOpenXuatXu] = useState(false);
+
+  // Mutations for quick create
+  const { mutateAsync: addDanhMuc } = useAddSDanhMuc();
+  const { mutateAsync: addBoSuuTap } = useAddBoSuuTap();
+  const { mutateAsync: addThuongHieu } = useAddThuongHieu();
+  const { mutateAsync: addXuatXu } = useAddXuatXu();
 
   // Thêm nhanh
   const [suggestVisible, setSuggestVisible] = useState(false);
@@ -341,27 +364,32 @@ export default function SanPhamForm({
               control={form.control}
               name="danhMucId"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Danh mục</FormLabel>
-                  <FormControl>
-                    <Select
+            <FormItem>
+              <FormLabel>Danh mục</FormLabel>
+              <FormControl>
+                <div className="flex items-center gap-2">
+                  <Select
                       onValueChange={(v) => field.onChange(Number(v))}
                       value={field.value?.toString()}
                     >
-                      <SelectTrigger className="w-77">
+                      <SelectTrigger className="w-full">
                         <SelectValue placeholder="Chọn danh mục" />
-                        {/* {getName(field.value, danhMucList, "tenDanhMuc")}
-                        </SelectValue> */}
                       </SelectTrigger>
                       <SelectContent>
-                        {danhMucList.map((dm) => (
+                        {[...danhMucList]
+                          .sort((a, b) => (b.id ?? 0) - (a.id ?? 0))
+                          .map((dm) => (
                           <SelectItem key={dm.id} value={dm.id.toString()}>
                             {dm.tenDanhMuc}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
-                  </FormControl>
+                    <Button type="button" size="icon" variant="outline" onClick={() => setOpenDanhMuc(true)}>
+                      <PlusCircle className="w-4 h-4" />
+                    </Button>
+                </div>
+              </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -372,27 +400,32 @@ export default function SanPhamForm({
               control={form.control}
               name="boSuuTapId"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Bộ sưu tập</FormLabel>
-                  <FormControl>
-                    <Select
+            <FormItem>
+              <FormLabel>Bộ sưu tập</FormLabel>
+              <FormControl>
+                <div className="flex items-center gap-2">
+                  <Select
                       onValueChange={(v) => field.onChange(Number(v))}
                       value={field.value?.toString()}
                     >
-                      <SelectTrigger className="w-77">
+                      <SelectTrigger className="w-full">
                         <SelectValue placeholder="Chọn bộ sưu tập" />
-                        {/* {getName(field.value, boSuuTapList, "tenBoSuuTap")}
-                        </SelectValue> */}
                       </SelectTrigger>
                       <SelectContent>
-                        {boSuuTapList.map((bst) => (
+                        {[...boSuuTapList]
+                          .sort((a, b) => (b.id ?? 0) - (a.id ?? 0))
+                          .map((bst) => (
                           <SelectItem key={bst.id} value={bst.id.toString()}>
                             {bst.tenBoSuuTap}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
-                  </FormControl>
+                    <Button type="button" size="icon" variant="outline" onClick={() => setOpenBoSuuTap(true)}>
+                      <PlusCircle className="w-4 h-4" />
+                    </Button>
+                </div>
+              </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -403,25 +436,32 @@ export default function SanPhamForm({
               control={form.control}
               name="xuatXuId"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Xuất xứ</FormLabel>
-                  <FormControl>
-                    <Select
+            <FormItem>
+              <FormLabel>Xuất xứ</FormLabel>
+              <FormControl>
+                <div className="flex items-center gap-2">
+                  <Select
                       onValueChange={(v) => field.onChange(Number(v))}
                       value={field.value?.toString()}
                     >
-                      <SelectTrigger className="w-77">
+                      <SelectTrigger className="w-full">
                         <SelectValue placeholder="Chọn xuất xứ" />
                       </SelectTrigger>
                       <SelectContent>
-                        {xuatXuList.map((xx) => (
+                        {[...xuatXuList]
+                          .sort((a, b) => (b.id ?? 0) - (a.id ?? 0))
+                          .map((xx) => (
                           <SelectItem key={xx.id} value={xx.id.toString()}>
                             {xx.ten}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
-                  </FormControl>
+                    <Button type="button" size="icon" variant="outline" onClick={() => setOpenXuatXu(true)}>
+                      <PlusCircle className="w-4 h-4" />
+                    </Button>
+                </div>
+              </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -431,25 +471,32 @@ export default function SanPhamForm({
               control={form.control}
               name="thuongHieuId"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Thương hiệu</FormLabel>
-                  <FormControl>
-                    <Select
+            <FormItem>
+              <FormLabel>Thương hiệu</FormLabel>
+              <FormControl>
+                <div className="flex items-center gap-2">
+                  <Select
                       onValueChange={(v) => field.onChange(Number(v))}
                       value={field.value?.toString()}
                     >
-                      <SelectTrigger className="w-77">
+                      <SelectTrigger className="w-full">
                         <SelectValue placeholder="Chọn thương hiệu" />
                       </SelectTrigger>
                       <SelectContent>
-                        {thuongHieuList.map((th) => (
+                        {[...thuongHieuList]
+                          .sort((a, b) => (b.id ?? 0) - (a.id ?? 0))
+                          .map((th) => (
                           <SelectItem key={th.id} value={th.id.toString()}>
                             {th.ten}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
-                  </FormControl>
+                    <Button type="button" size="icon" variant="outline" onClick={() => setOpenThuongHieu(true)}>
+                      <PlusCircle className="w-4 h-4" />
+                    </Button>
+                </div>
+              </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -822,6 +869,95 @@ export default function SanPhamForm({
           </div>
         </form>
       </Form>
+      {/* Dialogs for quick add */}
+      <Dialog open={openDanhMuc} onOpenChange={setOpenDanhMuc}>
+        <DialogContent className="bg-gray-800 text-white border-white/10">
+          <DialogTitle className="sr-only">Thêm danh mục</DialogTitle>
+          <ToastProvider>
+            <LegoCategoryForm
+              onSubmit={async (data) => {
+                try {
+                  const created = await addDanhMuc(data);
+                  toast.success("Đã thêm danh mục!");
+                  if (created && created.id) {
+                    form.setValue("danhMucId", Number(created.id));
+                  }
+                  setOpenDanhMuc(false);
+                } catch {
+                  toast.error("Thêm danh mục thất bại");
+                }
+              }}
+              onClearEdit={() => setOpenDanhMuc(false)}
+            />
+          </ToastProvider>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={openBoSuuTap} onOpenChange={setOpenBoSuuTap}>
+        <DialogContent className="bg-gray-800 text-white border-white/10">
+          <DialogTitle className="sr-only">Thêm bộ sưu tập</DialogTitle>
+          <LegoCollectionForm
+            collectionToEdit={null}
+            onSubmit={async (data) => {
+              try {
+                const created = await addBoSuuTap(data);
+                toast.success("Đã thêm bộ sưu tập!");
+                if (created && created.id) {
+                  form.setValue("boSuuTapId", Number(created.id));
+                }
+                setOpenBoSuuTap(false);
+              } catch {
+                toast.error("Thêm bộ sưu tập thất bại");
+              }
+            }}
+            onClearEdit={() => setOpenBoSuuTap(false)}
+          />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={openThuongHieu} onOpenChange={setOpenThuongHieu}>
+        <DialogContent className="bg-gray-800 text-white border-white/10">
+          <DialogTitle className="sr-only">Thêm thương hiệu</DialogTitle>
+          <ThuongHieuForm
+            thuongHieuToEdit={null}
+            onSubmit={async (data) => {
+              try {
+                const created = await addThuongHieu(data);
+                toast.success("Đã thêm thương hiệu!");
+                if (created && created.id) {
+                  form.setValue("thuongHieuId", Number(created.id));
+                }
+                setOpenThuongHieu(false);
+              } catch {
+                toast.error("Thêm thương hiệu thất bại");
+              }
+            }}
+            onClearEdit={() => setOpenThuongHieu(false)}
+          />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={openXuatXu} onOpenChange={setOpenXuatXu}>
+        <DialogContent className="bg-gray-800 text-white border-white/10">
+          <DialogTitle className="sr-only">Thêm xuất xứ</DialogTitle>
+          <XuatXuForm
+            xuatXuToEdit={null}
+            onSubmit={async (data) => {
+              try {
+                const created = await addXuatXu(data);
+                toast.success("Đã thêm xuất xứ!");
+                if (created && created.id) {
+                  form.setValue("xuatXuId", Number(created.id));
+                }
+                setOpenXuatXu(false);
+              } catch {
+                toast.error("Thêm xuất xứ thất bại");
+              }
+            }}
+            onClearEdit={() => setOpenXuatXu(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

@@ -52,6 +52,7 @@ export default function XuatXuPage() {
         onSuccess: () => {
           toast.success("Thêm thành công!");
           setShowForm(false);
+          setCurrentPage(1);
         },
         onError: () => toast.error("Thêm thất bại!"),
       });
@@ -105,10 +106,11 @@ export default function XuatXuPage() {
       (xx.moTa?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
   );
 
-  // Phân trang
+  // Sắp xếp mới nhất trước khi phân trang
+  const sortedXuatXus = [...filteredXuatXus].sort((a, b) => (b.id ?? 0) - (a.id ?? 0));
   const itemPerPage = 10;
-  const totalPages = Math.ceil(filteredXuatXus.length / itemPerPage);
-  const paginatedData = filteredXuatXus.slice(
+  const totalPages = Math.ceil(sortedXuatXus.length / itemPerPage);
+  const paginatedData = sortedXuatXus.slice(
     (currentPage - 1) * itemPerPage,
     currentPage * itemPerPage
   );
