@@ -46,14 +46,6 @@ export default function KhuyenMaiForm({
       ngayKetThuc: new Date(),
     },
   });
-  const convertDateToArray = (date: Date): number[] => [
-    date.getFullYear(),
-    date.getMonth() + 1,
-    date.getDate(),
-    date.getHours(),
-    date.getMinutes(),
-  ];
-
   useEffect(() => {
     if (editing) {
       if (
@@ -113,8 +105,6 @@ export default function KhuyenMaiForm({
           data: {
             ...payload,
             id: editing.id,
-            ngayBatDau: convertDateToArray(data.ngayBatDau),
-            ngayKetThuc: convertDateToArray(data.ngayKetThuc),
             trangThai: editing.trangThai,
           },
         },

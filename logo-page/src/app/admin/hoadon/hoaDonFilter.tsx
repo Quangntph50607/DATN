@@ -56,20 +56,19 @@ export default function HoaDonFilter({
     filters.to ? new Date(filters.to) : undefined
   );
 
-  const matchesKeyword = (hd: HoaDonDTO, keyword: string) => {
-    const lowerKeyword = keyword.toLowerCase();
-    return (
-      (hd.id + "").includes(lowerKeyword) ||
-      hd.maHD?.toLowerCase().includes(lowerKeyword) ||
-      hd.ten?.toLowerCase().includes(lowerKeyword) ||
-      hd.sdt?.includes(lowerKeyword)
-    );
-  };
-
   const getSuggestions = (value: string) => {
     const inputValue = value.trim().toLowerCase();
     if (!inputValue) return [];
-    return hoaDons.filter((hd) => matchesKeyword(hd, inputValue)).slice(0, 5);
+
+    return hoaDons
+      .filter(
+        (hd) =>
+          (hd.id + "").includes(inputValue) ||
+          hd.maHD?.toLowerCase().includes(inputValue) ||
+          hd.ten?.toLowerCase().includes(inputValue) ||
+          hd.sdt?.includes(inputValue)
+      )
+      .slice(0, 5);
   };
 
   const resetFilters = () => {
@@ -86,29 +85,24 @@ export default function HoaDonFilter({
   };
 
   return (
-    <div className="w-full space-y-4 p-4 bg-[#181e29] text-white rounded-lg border border-blue-400 shadow mb-6">
+    <div className="space-y-2 p-3 bg-[#181e29] text-white rounded-lg border border-blue-400 shadow mb-6">
       {/* Header */}
-      <div className="flex items-center justify-between pb-3 border-b border-gray-600">
-        <span className="text-base font-medium text-white flex items-center gap-2">
+      <div className="flex items-center justify-between pb-2 border-b border-gray-600">
+        <span className="text-sm font-medium text-white flex items-center gap-1">
           📋 Bộ lọc hóa đơn
         </span>
-        <Button
-          type="button"
-          variant="outline"
-          onClick={resetFilters}
-          className="px-4 py-2"
-        >
-          <RotateCcw className="w-4 h-4 mr-2" />
+        <Button type="button" variant="outline" onClick={resetFilters}>
+          <RotateCcw className="w-3 h-3 mr-1" />
           Đặt lại
         </Button>
       </div>
 
-      {/* Tìm kiếm - Chiếm toàn bộ chiều rộng */}
-      <div className="w-full space-y-2">
-        <span className="text-sm font-medium text-gray-300 flex items-center gap-2">
+      {/* Hàng 1: Tìm kiếm */}
+      <div className="flex  flex-col  gap-2">
+        <span className="text-sm font-medium text-gray-300 min-w-fit">
           🔍 Từ khóa:
         </span>
-        <div className="w-full relative">
+        <div className="flex-1 relative">
           <Input
             placeholder="Mã hóa đơn, tên khách, SĐT..."
             value={filters.keyword}
@@ -131,7 +125,7 @@ export default function HoaDonFilter({
               }
             }}
             onBlur={() => setTimeout(() => setShowSuggestions(false), 300)}
-            className="w-full h-10 text-base"
+            className="h-9"
           />
           {showSuggestions && suggestions.length > 0 && (
             <ul className="absolute z-10 bg-popover border rounded w-full mt-1 max-h-40 overflow-y-auto text-sm shadow-lg">
@@ -159,11 +153,11 @@ export default function HoaDonFilter({
         </div>
       </div>
 
-      {/* Các bộ lọc khác - Grid tự động điều chỉnh */}
-      <div className="w-full grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      {/* Hàng 2: Trạng thái + Phương thức + Ngày */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {/* Trạng thái */}
-        <div className="flex flex-col space-y-2">
-          <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+        <div>
+          <label className="text-xs font-medium text-gray-300 mb-1 block">
             📊 Trạng thái
           </label>
           <Select
@@ -176,7 +170,7 @@ export default function HoaDonFilter({
               setPage(0);
             }}
           >
-            <SelectTrigger className="w-full h-10">
+            <SelectTrigger className="h-9">
               <SelectValue placeholder="Chọn trạng thái" />
             </SelectTrigger>
             <SelectContent>
@@ -191,8 +185,8 @@ export default function HoaDonFilter({
         </div>
 
         {/* Phương thức thanh toán */}
-        <div className="flex flex-col space-y-2">
-          <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+        <div>
+          <label className="text-xs font-medium text-gray-300 mb-1 block">
             💳 Thanh toán
           </label>
           <Select
@@ -205,7 +199,7 @@ export default function HoaDonFilter({
               setPage(0);
             }}
           >
-            <SelectTrigger className="w-full h-10">
+            <SelectTrigger className="h-9">
               <SelectValue placeholder="Chọn phương thức" />
             </SelectTrigger>
             <SelectContent>
@@ -220,47 +214,43 @@ export default function HoaDonFilter({
         </div>
 
         {/* Từ ngày */}
-        <div className="flex flex-col space-y-2">
-          <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+        <div>
+          <label className="text-xs font-medium text-gray-300 mb-1 block">
             📅 Từ ngày
           </label>
-          <div className="w-full">
-            <DateTimePicker
-              value={fromDate || null}
-              onChange={(date) => {
-                setFromDate(date || undefined);
-                setFilters((f) => ({
-                  ...f,
-                  from: date ? format(date, "yyyy-MM-dd'T'HH:mm:ss") : "",
-                }));
-                setPage(0);
-              }}
-              mode="date"
-              placeholder="Chọn ngày"
-            />
-          </div>
+          <DateTimePicker
+            value={fromDate || null}
+            onChange={(date) => {
+              setFromDate(date || undefined);
+              setFilters((f) => ({
+                ...f,
+                from: date ? format(date, "yyyy-MM-dd'T'HH:mm:ss") : "",
+              }));
+              setPage(0);
+            }}
+            mode="date"
+            placeholder="Chọn ngày"
+          />
         </div>
 
         {/* Đến ngày */}
-        <div className="flex flex-col space-y-2">
-          <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+        <div>
+          <label className="text-xs font-medium text-gray-300 mb-1 block">
             📅 Đến ngày
           </label>
-          <div className="w-full">
-            <DateTimePicker
-              value={toDate || null}
-              onChange={(date) => {
-                setToDate(date || undefined);
-                setFilters((f) => ({
-                  ...f,
-                  to: date ? format(date, "yyyy-MM-dd'T'HH:mm:ss") : "",
-                }));
-                setPage(0);
-              }}
-              mode="date"
-              placeholder="Chọn ngày"
-            />
-          </div>
+          <DateTimePicker
+            value={toDate || null}
+            onChange={(date) => {
+              setToDate(date || undefined);
+              setFilters((f) => ({
+                ...f,
+                to: date ? format(date, "yyyy-MM-dd'T'HH:mm:ss") : "",
+              }));
+              setPage(0);
+            }}
+            mode="date"
+            placeholder="Chọn ngày"
+          />
         </div>
       </div>
     </div>

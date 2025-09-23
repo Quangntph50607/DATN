@@ -2,7 +2,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import ReusableCombobox from "@/shared/ReusableCombobox";
 import { useSearchStore } from "@/context/useSearch.store";
-import { useEffect, useState } from "react";
 
 interface Props {
   danhMucs: { id: number; tenDanhMuc: string }[];
@@ -48,18 +47,6 @@ export default function SanPhamFilter({
   onResetFilter,
 }: Props) {
   const { keyword, setKeyword } = useSearchStore();
-  const [localKeyword, setLocalKeyword] = useState(keyword);
-  useEffect(() => {
-    setLocalKeyword(keyword);
-  }, [keyword]);
-
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      setKeyword(localKeyword);
-    }, 1000);
-
-    return () => clearTimeout(timeout);
-  }, [localKeyword]);
 
   return (
     <div className="space-y-4 p-3  rounded-lg border my-4">
@@ -77,8 +64,8 @@ export default function SanPhamFilter({
         </span>
         <Input
           placeholder="Tìm theo tên, mã sản phẩm, hoặc tuổi"
-          value={localKeyword}
-          onChange={(e) => setLocalKeyword(e.target.value)}
+          value={keyword}
+          onChange={(e) => setKeyword(e.target.value)}
         />
       </div>
 

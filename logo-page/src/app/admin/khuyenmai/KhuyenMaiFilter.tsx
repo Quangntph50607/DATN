@@ -1,11 +1,7 @@
-"use client";
-
 import { Button } from "@/components/ui/button";
-import { DateTimePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useSearchStore } from "@/context/useSearch.store";
-import { parse, format, isValid, parseISO } from "date-fns";
 import React from "react";
 
 interface Props {
@@ -15,7 +11,6 @@ interface Props {
   onChangeTodate: (date: string) => void;
   onResetFilter: () => void;
 }
-
 export default function KhuyenMaiFilter({
   fromDate,
   toDate,
@@ -24,29 +19,6 @@ export default function KhuyenMaiFilter({
   onResetFilter,
 }: Props) {
   const { keyword, setKeyword } = useSearchStore();
-
-  // Convert string → Date
-  const fromDateObj = fromDate ? parseISO(fromDate) : null;
-  const toDateObj = toDate ? parseISO(toDate) : null;
-
-  const handleFromDateChange = (date: Date | null) => {
-    if (date) {
-      onChangeFromDate(format(date, "yyyy-MM-dd"));
-    } else {
-      onChangeFromDate("");
-    }
-  };
-
-  const handleToDateChange = (date: Date | null) => {
-    if (date) {
-      onChangeTodate(format(date, "yyyy-MM-dd"));
-    } else {
-      onChangeTodate("");
-    }
-  };
-  console.log("fromDate:", fromDate);
-  console.log("toDate:", toDate);
-
   return (
     <div className="flex flex-wrap gap-4 my-4 items-end">
       {/* Từ khóa */}
@@ -63,20 +35,22 @@ export default function KhuyenMaiFilter({
       {/* Từ ngày */}
       <div className="flex flex-col">
         <Label className="mb-1">Ngày bắt đầu</Label>
-        <DateTimePicker
-          value={fromDateObj}
-          onChange={handleFromDateChange}
-          mode="date"
+        <Input
+          type="date"
+          value={fromDate}
+          onChange={(e) => onChangeFromDate(e.target.value)}
+          className="w-[150px]"
         />
       </div>
 
       {/* Đến ngày */}
       <div className="flex flex-col">
         <Label className="mb-1">Ngày kết thúc</Label>
-        <DateTimePicker
-          value={toDateObj}
-          onChange={handleToDateChange}
-          mode="date"
+        <Input
+          type="date"
+          value={toDate}
+          onChange={(e) => onChangeTodate(e.target.value)}
+          className="w-[150px]"
         />
       </div>
 
