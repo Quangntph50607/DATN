@@ -162,7 +162,7 @@ export default function CheckoutPage() {
 
         const emailData: GuiHoaDonRequest = {
           idHD: hoaDon.id,
-          toEmail: user?.email || "",
+          toEmail: user?.email || selectedAddress.email || "",
           tenKH: selectedAddress.hoTen,
           maHD: hoaDon.maHD,
           ngayTao: new Date().toLocaleDateString("vi-VN"),
@@ -206,7 +206,7 @@ export default function CheckoutPage() {
         shippingMethod,
         paymentMethod: "VNPAY",
         diaChiGiaoHang,
-        userEmail: user?.email || "",
+        userEmail: user?.email || selectedAddress.email || "",
         listSp: checkoutProducts.map((item) => ({
           ten: item.name,
           ma: item.id.toString(),
