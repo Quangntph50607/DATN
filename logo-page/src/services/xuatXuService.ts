@@ -34,6 +34,9 @@ export const xuatXuService = {
         const res = await fetchWithAuth(`${API_URL}/deleteXX/${id}`, {
             method: "DELETE"
         });
-        if (!res.ok) throw new Error("Không thể xóa xuất xứ");
+        if (!res.ok) {
+            const errorData = await res.json().catch(() => ({}));
+            throw new Error(errorData.message || "Không thể xóa xuất xứ");
+        }
     },
 }; 

@@ -79,7 +79,8 @@ export const boSuuTapService = {
         method: "DELETE",
       });
       if (!res.ok) {
-        throw new Error("Không thể xóa bộ sưu tập");
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || "Không thể xóa bộ sưu tập");
       }
     } catch (error) {
       throw error;

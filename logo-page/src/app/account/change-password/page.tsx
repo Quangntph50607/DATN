@@ -8,10 +8,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Lock, Eye, EyeOff, Shield, Mail } from "lucide-react";
 import { useState, useMemo } from "react";
-import { useRouter } from "next/navigation";
+// import { useRouter } from "next/navigation"; // Removed unused import
 import { useUserStore } from "@/context/authStore.store";
 import { accountService } from "@/services/accountService";
-import { toast } from "sonner";
+// import { toast } from "sonner"; // Removed toast
 import {
     AlertDialog,
     AlertDialogContent,
@@ -39,12 +39,13 @@ const changePasswordSchema = z.object({
 type ChangePasswordForm = z.infer<typeof changePasswordSchema>;
 
 export default function ChangePasswordPage() {
-    const router = useRouter();
+    // const router = useRouter(); // Removed unused
     const [isLoading, setIsLoading] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [showConfirmDialog, setShowConfirmDialog] = useState(false);
     const [pendingFormData, setPendingFormData] = useState<ChangePasswordForm | null>(null);
+    const [message, setMessage] = useState<{type: 'success' | 'error', text: string} | null>(null);
 
     // Lấy thông tin user từ store
     const { user } = useUserStore();
@@ -57,17 +58,19 @@ export default function ChangePasswordPage() {
         },
     });
 
+    // Debug message state - removed
+
     // Password strength calculator
+    const newPassword = form.watch("newPassword");
     const passwordStrength = useMemo(() => {
-        const password = form.watch("newPassword");
-        if (!password) return { level: 0, text: "", color: "", bgColor: "" };
+        if (!newPassword) return { level: 0, text: "", color: "", bgColor: "" };
 
         let level = 0;
-        if (password.length >= 6) level++;
-        if (password.length >= 8) level++;
-        if (/[A-Z]/.test(password)) level++;
-        if (/[0-9]/.test(password)) level++;
-        if (/[^A-Za-z0-9]/.test(password)) level++;
+        if (newPassword.length >= 6) level++;
+        if (newPassword.length >= 8) level++;
+        if (/[A-Z]/.test(newPassword)) level++;
+        if (/[0-9]/.test(newPassword)) level++;
+        if (/[^A-Za-z0-9]/.test(newPassword)) level++;
 
         const strength = {
             1: { text: "Rất yếu", color: "text-red-600", bgColor: "bg-red-500" },
@@ -78,7 +81,7 @@ export default function ChangePasswordPage() {
         };
 
         return { level, ...strength[level as keyof typeof strength] || strength[1] };
-    }, [form.watch("newPassword")]);
+    }, [newPassword]);
 
     const handleChangePassword = async (data: ChangePasswordForm) => {
         // Bỏ event?.preventDefault() ở đây vì nó block navigation
@@ -90,32 +93,28 @@ export default function ChangePasswordPage() {
 
     const handleConfirmChange = async () => {
         if (!pendingFormData || !user?.id) {
-            toast.error("Không tìm thấy thông tin người dùng");
+            setMessage({type: 'error', text: "Không tìm thấy thông tin người dùng"});
             return;
         }
 
         setIsLoading(true);
         setShowConfirmDialog(false);
+        setMessage(null);
 
         try {
             // Gọi API đổi mật khẩu
             await accountService.changePassword(user.id, pendingFormData.newPassword);
 
-            toast.success("🎉 Đổi mật khẩu thành công!", {
-                description: "Mật khẩu của bạn đã được cập nhật.",
-                duration: 4000,
-            });
+            setMessage({type: 'success', text: "🎉 Đổi mật khẩu thành công! Mật khẩu của bạn đã được cập nhật."});
 
             // Reset form và pending data
             form.reset();
             setPendingFormData(null);
 
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error("Change password error:", err);
-            toast.error("❌ Đổi mật khẩu thất bại", {
-                description: err.message || "Vui lòng thử lại sau.",
-                duration: 4000,
-            });
+            const errorMessage = err instanceof Error ? err.message : "Vui lòng thử lại sau.";
+            setMessage({type: 'error', text: `❌ Đổi mật khẩu thất bại: ${errorMessage}`});
         } finally {
             setIsLoading(false);
         }
@@ -156,6 +155,34 @@ export default function ChangePasswordPage() {
                             Cập nhật mật khẩu để bảo mật tài khoản
                         </p>
                     </div>
+
+                    {/* Message Display */}
+                    {message && (
+                        <motion.div
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className={`mb-6 p-4 rounded-lg border ${
+                                message.type === 'success' 
+                                    ? 'bg-green-50 border-green-200 text-green-800' 
+                                    : 'bg-red-50 border-red-200 text-red-800'
+                            }`}
+                        >
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center">
+                                    <div className={`w-2 h-2 rounded-full mr-3 ${
+                                        message.type === 'success' ? 'bg-green-500' : 'bg-red-500'
+                                    }`}></div>
+                                    <span className="text-sm font-medium">{message.text}</span>
+                                </div>
+                                <button
+                                    onClick={() => setMessage(null)}
+                                    className="text-gray-400 hover:text-gray-600 ml-2"
+                                >
+                                    ×
+                                </button>
+                            </div>
+                        </motion.div>
+                    )}
 
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(handleChangePassword)} className="space-y-6">

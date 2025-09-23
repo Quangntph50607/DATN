@@ -4,9 +4,7 @@ import {
 } from "@/components/types/danhGia-type";
 import { fetchWithAuth } from "./fetchWithAuth";
 
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL ||
-  "http://localhost:8080/api/lego-store/danh-gia";
+const API_URL = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"}/api/lego-store/danh-gia`;
 
 export const danhGiaService = {
   async getBySanPham(spId: number): Promise<DanhGiaResponse[]> {
@@ -326,9 +324,7 @@ export const danhGiaService = {
   },
 
   getVideoUrl(fileName: string): string {
-    return `${
-      process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"
-    }/api/lego-store/danh-gia/videos/${fileName}`;
+    return `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"}/api/lego-store/danh-gia/videos/${fileName}`;
   },
 
   async deleteAnh(idAnh: number, idNv: number): Promise<string> {
