@@ -112,7 +112,9 @@ const OrderPage = () => {
         toast.error(`Chỉ còn ${product.soLuongTon ?? 0} sản phẩm trong kho`);
       }
     } else {
-      // Convert KhuyenMaiTheoSanPham to CartItem with proper type handling
+      // Lấy phanTramKhuyenMai an toàn, mặc định 0 nếu null/undefined
+      const percent = typeof product.phanTramKhuyenMai === 'number' ? product.phanTramKhuyenMai : 0;
+
       const cartItem: CartItem = {
         ...product,
         quantity: 1,
@@ -124,6 +126,8 @@ const OrderPage = () => {
         soLuongManhGhep: typeof product.soLuongManhGhep === 'number' ? product.soLuongManhGhep : 0,
         xuatXuId: product.xuatXuId ?? 0,
         thuongHieuId: product.thuongHieuId ?? 0,
+        phanTramKhuyenMai: percent,
+        giaKhuyenMai: typeof product.giaKhuyenMai === 'number' ? product.giaKhuyenMai : null,
       };
       console.log("cartItem.anhDaiDien:", cartItem.anhDaiDien);
       setCart([...cart, cartItem]);

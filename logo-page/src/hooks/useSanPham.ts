@@ -1,6 +1,5 @@
 import { SanPham } from "@/components/types/product.type";
 import { ProductData, ProductDataWithoutFiles } from "@/lib/sanphamschema";
-import { KhuyenMaiTheoSanPham } from "@/components/types/khuyenmai-type";
 
 import { sanPhamService } from "@/services/sanPhamService";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";

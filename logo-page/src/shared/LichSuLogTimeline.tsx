@@ -78,7 +78,9 @@ export default function LichSuLogTimeline({
                       >
                         <User className="w-4 h-4 mr-1.5" />
                         User thay đổi:
-                        <span>{log.userId ?? "Không rõ"}</span>
+                        <span className="ml-1">
+                          {log.user?.ten || log.user?.email || "Không rõ"}
+                        </span>
                       </Badge>
                     </div>
                   </div>

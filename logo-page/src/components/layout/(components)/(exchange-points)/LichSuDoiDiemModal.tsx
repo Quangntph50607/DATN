@@ -23,9 +23,19 @@ export const LichSuDoiDiemModal: React.FC<LichSuDoiDiemModalProps> = ({
   lichSuData,
   isLoading,
 }) => {
-  const formatDate = (dateString: string) => {
+  const formatDate = (raw: string | number[]) => {
     try {
-      const date = new Date(dateString);
+      let date: Date;
+      if (Array.isArray(raw)) {
+        // raw = [year, month, day, hour, minute, second, nano?]
+        const [y, m, d, hh = 0, mm = 0, ss = 0] = raw as number[];
+        // JavaScript months are 0-based
+        date = new Date(y, (m ?? 1) - 1, d ?? 1, hh, mm, ss);
+      } else {
+        // Fall back to ISO string or any parsable format
+        date = new Date(raw);
+      }
+      if (isNaN(date.getTime())) return "Không xác định";
       return format(date, "dd/MM/yyyy HH:mm", { locale: vi });
     } catch {
       return "Không xác định";
@@ -33,7 +43,7 @@ export const LichSuDoiDiemModal: React.FC<LichSuDoiDiemModalProps> = ({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden bg-white border-2 border-blue-200 shadow-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-blue-600 text-xl">
