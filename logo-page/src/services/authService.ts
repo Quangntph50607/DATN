@@ -63,4 +63,43 @@ export const authenService = {
     }
     return data;
   },
+
+  // Quên mật khẩu - gửi OTP
+  async forgotPassword(email: string): Promise<{ code: number; message: string }> {
+    const res = await fetch(`${API_BASE_URL}/forgot-password?email=${encodeURIComponent(email)}` , {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+    });
+    return handleResponse<{ code: number; message: string }>(res);
+  },
+
+  // Xác minh OTP
+  async verifyOtp(email: string, otp: string): Promise<{ code: number; message: string }> {
+    const res = await fetch(
+      `${API_BASE_URL}/verify-otp?email=${encodeURIComponent(email)}&otp=${encodeURIComponent(otp)}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      }
+    );
+    return handleResponse<{ code: number; message: string }>(res);
+  },
+
+  // Đặt lại mật khẩu
+  async resetPassword(
+    email: string,
+    newPassword: string
+  ): Promise<{ code: number; message: string }> {
+    const res = await fetch(
+      `${API_BASE_URL}/reset-password?email=${encodeURIComponent(email)}&newPassword=${encodeURIComponent(newPassword)}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      }
+    );
+    return handleResponse<{ code: number; message: string }>(res);
+  },
 };

@@ -28,8 +28,11 @@ import { useThuongHieu } from "@/hooks/useThuongHieu";
 import { useXuatXu } from "@/hooks/useXuatXu";
 import { useHangThanhLy } from "@/hooks/useHangThanhLy";
 import HangThanhLyTable from "./HangThanhLyTable";
+import LichSuLogTimeline from "@/shared/LichSuLogTimeline";
 
 export default function SanPhamPage() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
   const {
     data: sanPhams = [],
     isLoading,
@@ -61,6 +64,7 @@ export default function SanPhamPage() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isOpenLog, setIsOpenLog] = useState(false);
   const addSanPhamMutation = useAddSanPham();
   const deleteSanPhamMutation = useXoaSanPham();
   const editSanPhamMutation = useEditSanPham();
@@ -127,6 +131,8 @@ export default function SanPhamPage() {
     setTuoiMin(null);
     setTuoiMax(null);
   };
+
+  if (!mounted) return null;
 
   return (
     <>
@@ -207,9 +213,14 @@ export default function SanPhamPage() {
             <>
               <div className="flex items-center  justify-between">
                 <p className="text-2xl font-bold ">Danh sách sản phẩm</p>
-                <Button onClick={() => setIsModalOpen(true)} className=" px-2">
-                  <PlusIcon /> Thêm sản phẩm
-                </Button>
+                <div className="flex gap-2">
+                  <Button onClick={() => setIsOpenLog(true)} variant="destructive">
+                    <PlusIcon /> Xem lịch sử
+                  </Button>
+                  <Button onClick={() => setIsModalOpen(true)} className=" px-2">
+                    <PlusIcon /> Thêm sản phẩm
+                  </Button>
+                </div>
               </div>
 
               <Tabs
@@ -348,6 +359,16 @@ export default function SanPhamPage() {
                   description="Bạn có chắc muốn thay đổi trạng thái sản phẩm này?"
                 />
               </Tabs>
+              {/* Modal xem lịch sử log */}
+              <Modal
+                open={isOpenLog}
+                onOpenChange={() => setIsOpenLog(false)}
+                title="Lịch sử  thay đổi"
+                className="max-w-6xl"
+                scrollContentOnly
+              >
+                <LichSuLogTimeline bang="sanPham" title="Lịch sử user log" />
+              </Modal>
             </>
           )}
         </div>

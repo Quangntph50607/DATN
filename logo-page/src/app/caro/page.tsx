@@ -37,6 +37,37 @@ type GameMode = '2player' | 'ai';
 
 const BOARD_SIZE = 15;
 const WIN_LENGTH = 5;
+const DAILY_CAP = 1000; // tối đa cộng 1000 điểm/ngày từ game caro
+
+function getTodayStorageKey(userId: number): string {
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, '0');
+  const dd = String(today.getDate()).padStart(2, '0');
+  return `caro_points_${userId}_${yyyy}-${mm}-${dd}`;
+}
+
+function getAwardedToday(userId: number): number {
+  try {
+    const key = getTodayStorageKey(userId);
+    const raw = typeof window !== 'undefined' ? window.localStorage.getItem(key) : null;
+    return raw ? Math.max(0, parseInt(raw, 10)) : 0;
+  } catch {
+    return 0;
+  }
+}
+
+function addAwardedToday(userId: number, amount: number): void {
+  try {
+    const key = getTodayStorageKey(userId);
+    const current = getAwardedToday(userId);
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(key, String(current + amount));
+    }
+  } catch {
+    // ignore storage errors
+  }
+}
 
 const CaroGame: React.FC = () => {
   const user = useUserStore((s) => s.user);
@@ -515,24 +546,35 @@ const CaroGame: React.FC = () => {
         [gameState.currentPlayer]: prev[gameState.currentPlayer] + 1
       }));
 
-      // Cộng điểm khi người chơi (X) thắng AI
+      // Cộng điểm khi người chơi (X) thắng AI với giới hạn tối đa 1000 điểm/ngày
       if (gameMode === 'ai' && gameState.currentPlayer === 'X' && user?.id) {
-        addPoints(
-          { userId: user.id, diemCong: 100 },
-          {
-            onSuccess: () => {
-              // Cập nhật điểm trong store (nếu có sẵn)
-              useUserStore.getState().updateUser({ diemTichLuy: (user.diemTichLuy || 0) + 100 });
-              setWinMessage("+100 điểm! Chúc mừng bạn đã thắng AI.");
-              setShowWinNotice(true);
-              setTimeout(() => setShowWinNotice(false), 2000);
-            },
-            onError: () => {
-              // Có thể hiển thị một cơ chế thông báo lỗi khác nếu bạn có
-              console.error("Cộng điểm thất bại");
+        const basePoints = 100;
+        const awarded = getAwardedToday(user.id);
+        const remaining = Math.max(0, DAILY_CAP - awarded);
+        const grant = Math.min(basePoints, remaining);
+
+        if (grant > 0) {
+          addPoints(
+            { userId: user.id, diemCong: grant },
+            {
+              onSuccess: () => {
+                addAwardedToday(user.id, grant);
+                // Cập nhật điểm trong store
+                useUserStore.getState().updateUser({ diemTichLuy: (user.diemTichLuy || 0) + grant });
+                setWinMessage(`+${grant} điểm! Chúc mừng bạn đã thắng AI.`);
+                setShowWinNotice(true);
+                setTimeout(() => setShowWinNotice(false), 2000);
+              },
+              onError: () => {
+                console.error("Cộng điểm thất bại");
+              }
             }
-          }
-        );
+          );
+        } else {
+          setWinMessage("Bạn đã đạt giới hạn +1000 điểm/ngày khi chơi caro.");
+          setShowWinNotice(true);
+          setTimeout(() => setShowWinNotice(false), 2500);
+        }
       }
     }
 

@@ -3,7 +3,8 @@ import { fetchWithAuth } from './fetchWithAuth';
 export interface LichSuDoiDiemResponse {
   id: number;
   diemDaDoi: number;
-  ngayDoi: string;
+  // Backend có thể trả về chuỗi ISO hoặc mảng thời gian [yyyy, MM, dd, HH, mm, ss, ...]
+  ngayDoi: string | number[];
   moTa: string;
   maPhieu?: string;
 }
