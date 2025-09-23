@@ -215,6 +215,9 @@ export default function CheckoutPage() {
           tongTien: (item.price * item.quantity).toString(),
         })),
       };
+      try {
+        localStorage.removeItem("pendingOrderStatus");
+      } catch {}
       localStorage.setItem("pendingOrder", JSON.stringify(pendingOrder));
 
       try {
