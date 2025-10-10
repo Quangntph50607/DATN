@@ -145,19 +145,27 @@ export default function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps)
         )}
       >
         {/* Logo và tiêu đề - Cố định */}
-        <div className="flex items-center justify-between h-16 px-4 border-b border-gray-700 flex-shrink-0">
+        <div className={cn(
+          "flex items-center justify-between border-b border-gray-700 flex-shrink-0",
+          collapsed ? "h-16 px-2" : "h-16 px-4"
+        )}>
           <Image
-            src="/images/logoM.jpg"
+            src="/images/logo3.jpg"
             alt="Logo"
-            width={120}
-            height={32}
-            className="h-8 object-contain"
+            width={160}
+            height={40}
+            className={cn("object-contain", collapsed ? "h-10" : "h-14")}
           />
           {!collapsed && <h1 className="text-sm font-bold text-white">LEGO MYKINGDOM</h1>}
           <Button
             onClick={onToggle}
-            className="hidden md:block text-white hover:bg-gray-700"
+            className={cn(
+              "hidden md:flex items-center justify-center text-white hover:bg-gray-700",
+              collapsed ? "h-10 w-10" : "h-10 w-10"
+            )}
             variant="ghost"
+            size="icon"
+            aria-label="Toggle sidebar"
           >
             <Menu size={20} />
           </Button>

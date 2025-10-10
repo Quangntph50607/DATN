@@ -17,14 +17,6 @@ interface BannerSlide {
 
 const bannerSlides: BannerSlide[] = [
   {
-    id: 1,
-    image: "/images/banner1.jpg",
-    title: "Siêu khuyến mãi",
-    description: "Giảm giá lên đến 30% toàn bộ sản phẩm lego",
-    buttonText: "MUA NGAY",
-    buttonLink: "/product"
-  },
-  {
     id: 2,
     image: "/images/photo-1583804227715-93acfe95fb37.jpg",
     title: "Ưu đãi đặc biệt",
@@ -40,14 +32,6 @@ const bannerSlides: BannerSlide[] = [
     buttonText: "CHƠI NGAY",
     buttonLink: "/caro"
   },
-  {
-    id: 4,
-    image: "/images/banner2.jpg",
-    title: "",
-    description: "",
-    buttonText: "",
-    buttonLink: "/product"
-  }
 ];
 
 export default function BannerCarousel() {
