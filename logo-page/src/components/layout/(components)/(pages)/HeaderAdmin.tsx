@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { BellIcon, UserIcon } from "lucide-react";
+import { UserIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useUserStore } from "@/context/authStore.store";
 import { useRouter } from "next/navigation";
@@ -39,11 +39,6 @@ export default function HeaderAdmin() {
       </div>
 
       <div className="flex items-center space-x-4">
-        <Button className="relative p-2 text-gray-600  hover:text-gray-900  focus:outline-none">
-          <BellIcon size={20} />
-          <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-        </Button>
-
         <div className="relative " ref={menuRef}>
           <Button
             onClick={() => setMenuOpen(!menuOpen)}

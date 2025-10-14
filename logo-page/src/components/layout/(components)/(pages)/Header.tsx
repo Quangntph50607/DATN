@@ -50,16 +50,16 @@ export default function Header() {
       <div className=" container mx-auto flex h-24 items-center justify-between px-4">
         <div className="flex items-center gap-2 flex-wrap">
           <Link href="/" className="flex items-center  gap-2">
-            <div className="relative h-12 w-12">
+            <div className="relative h-30 w-30">
               <Image
-                src="/images/logoM.jpg"
+                src="/images/logo3.jpg"
                 alt="MyKingDom Logo"
                 fill
                 className="object-contain"
                 priority
               />
             </div>
-            <span className="text-xl font-bold text-black max-w-[150px]">
+            <span className="text-xl font-bold text-blue-950 max-w-[150px]">
               LEGO MYKINGDOM
             </span>
           </Link>
