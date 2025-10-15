@@ -2,11 +2,11 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Gift, RotateCcw, Star } from "lucide-react";
+import { Gift, Star } from "lucide-react";
 import { motion, useAnimation } from "framer-motion";
-import { useGetPhieuGiam, useGetPhieuGiamGiaNoiBat } from "@/hooks/usePhieuGiam";
+import { useGetPhieuGiamGiaVongQuay } from "@/hooks/usePhieuGiam";
 import { PhieuGiamGia } from "@/components/types/phieugiam.type";
 import { viPhieuGiamService } from "@/services/viPhieuGiamService";
 import { toast } from "sonner";
@@ -50,7 +50,7 @@ const getBgColorByIndex = (index: number): string => {
 };
 
 export default function LuckyWheel() {
-    const { data: phieuGiamList, isLoading } = useGetPhieuGiamGiaNoiBat();
+    const { data: phieuGiamList, isLoading } = useGetPhieuGiamGiaVongQuay();
     const [isSpinning, setIsSpinning] = useState(false);
     const [rotation, setRotation] = useState(0);
     const [selectedPrize, setSelectedPrize] = useState<VoucherPrize | null>(null);
@@ -65,44 +65,93 @@ export default function LuckyWheel() {
         setUserId(id);
     }, []);
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (phieuGiamList) {
-            console.log("Voucher API FE trạngThai:", phieuGiamList.map(v => v.trangThai));
+            console.log("🎯 PGG cho vòng quay:", phieuGiamList.length, "phiếu");
+            console.log("📋 Chi tiết PGG:", phieuGiamList.map(v => ({
+                id: v.id,
+                tenPhieu: v.tenPhieu,
+                noiBat: v.noiBat,
+                trangThai: v.trangThai
+            })));
         }
     }, [phieuGiamList]);
 
     const voucherPrizes: VoucherPrize[] = React.useMemo(() => {
-        const activeList = phieuGiamList?.filter(
-            (phieu: PhieuGiamGia) =>
-                phieu.trangThai && phieu.trangThai.trim().toLowerCase() === "active"
-        ) || [];
+        // phieuGiamList đã được lọc từ service (noiBat = 1 và active)
+        const activeList = phieuGiamList || [];
 
         const prizes: VoucherPrize[] = [];
 
         if (activeList.length > 0) {
-            activeList.forEach((phieu: PhieuGiamGia, index: number) => {
-                prizes.push({
-                    id: phieu.id,
-                    name: phieu.tenPhieu || `Voucher ${index + 1}`,
-                    discount: phieu.loaiPhieuGiam === "theo_phan_tram"
-                        ? `${phieu.giaTriGiam}% OFF`
-                        : `${phieu.giaTriGiam.toLocaleString()}₫ OFF`,
-                    probability: Math.max(5, 25 - index * 3),
-                    color: getColorByIndex(index),
-                    bgColor: getBgColorByIndex(index)
-                });
-            });
-
-            while (prizes.length < 6) {
-                prizes.push({
-                    id: -(prizes.length + 1),
-                    name: `May mắn lần sau`,
-                    discount: "Chúc bạn may mắn lần sau!",
-                    probability: 50,
-                    color: "text-gray-600",
-                    bgColor: "bg-gradient-to-r from-gray-200 to-gray-400"
-                });
+            // Tạo danh sách xen kẽ PGG và "May mắn lần sau"
+            const totalSlots = 6;
+            const pggCount = Math.min(activeList.length, 3); // Tối đa 3 PGG
+            
+            // Tạo mảng xen kẽ với pattern: PGG, Luck, PGG, Luck, PGG, Luck
+            const interleavedArray: (PhieuGiamGia | 'luck')[] = [];
+            
+            let pggIndex = 0;
+            
+            for (let i = 0; i < totalSlots; i++) {
+                if (i % 2 === 0 && pggIndex < pggCount) {
+                    // Vị trí chẵn: PGG
+                    interleavedArray.push(activeList[pggIndex]);
+                    pggIndex++;
+                } else {
+                    // Vị trí lẻ: Luck
+                    interleavedArray.push('luck');
+                }
             }
+            
+            // Debug: In ra mảng xen kẽ
+            console.log("🔄 Mảng xen kẽ:", interleavedArray.map((item) => 
+                item === 'luck' ? 'Luck' : (item as PhieuGiamGia).tenPhieu
+            ));
+            
+            // Chuyển đổi thành VoucherPrize với tỷ lệ: Luck 80%, PGG 20%
+            const totalSlotsCount = interleavedArray.length;
+            const luckSlots = interleavedArray.filter(item => item === 'luck').length;
+            const pggSlots = totalSlotsCount - luckSlots;
+            
+            // Tính probability cho từng loại
+            const luckProbability = luckSlots > 0 ? 80 / luckSlots : 0; // 80% chia đều cho các slot luck
+            const pggProbability = pggSlots > 0 ? 20 / pggSlots : 0; // 20% chia đều cho các slot PGG
+            
+            // Debug: In ra tỷ lệ probability
+            console.log("📊 Tỷ lệ:", {
+                luckSlots,
+                pggSlots,
+                luckProbability: luckProbability.toFixed(2) + "%",
+                pggProbability: pggProbability.toFixed(2) + "%",
+                totalLuck: (luckProbability * luckSlots).toFixed(2) + "%",
+                totalPgg: (pggProbability * pggSlots).toFixed(2) + "%"
+            });
+            
+            interleavedArray.forEach((item, index) => {
+                if (item === 'luck') {
+                    prizes.push({
+                        id: -(index + 1),
+                        name: `May mắn lần sau`,
+                        discount: "Chúc bạn may mắn lần sau!",
+                        probability: luckProbability,
+                        color: "text-gray-600",
+                        bgColor: "bg-gradient-to-r from-gray-200 to-gray-400"
+                    });
+                } else {
+                    const phieu = item as PhieuGiamGia;
+                    prizes.push({
+                        id: phieu.id,
+                        name: phieu.tenPhieu || `Voucher ${index + 1}`,
+                        discount: phieu.loaiPhieuGiam === "theo_phan_tram"
+                            ? `${phieu.giaTriGiam}% OFF`
+                            : `${phieu.giaTriGiam.toLocaleString()}₫ OFF`,
+                        probability: pggProbability,
+                        color: getColorByIndex(index),
+                        bgColor: getBgColorByIndex(index)
+                    });
+                }
+            });
         } else {
             for (let i = 0; i < 6; i++) {
                 prizes.push({
@@ -246,13 +295,13 @@ export default function LuckyWheel() {
                     });
                     toast.success(`🎉 Chúc mừng! Bạn đã nhận được ${prize.name}: ${prize.discount}!`);
                 } catch (error) {
-                    const err = error as any;
+                    const err = error as Error;
                     let message = "Lỗi không xác định khi thêm phiếu giảm giá.";
                     try {
                         const parsed = JSON.parse(err.message);
                         message = parsed.message;
                     } catch {
-                        message = err?.response?.data?.message || err.message || "Lỗi kết nối mạng.";
+                        message = err.message || "Lỗi kết nối mạng.";
                     }
 
                     if (message.includes("đã nhận")) {
@@ -270,15 +319,6 @@ export default function LuckyWheel() {
 
     };
 
-    const resetWheel = () => {
-        if (isSpinning) return; // Prevent reset during spin
-        setSpinsLeft(1);
-        setSelectedPrize(null);
-        setShowResult(false);
-        setRotation(0);
-        setTimeLeft(0);
-        controls.start({ rotate: 0 });
-    };
 
     if (isLoading) {
         return (
@@ -446,13 +486,6 @@ export default function LuckyWheel() {
                         whileTap={{ scale: 0.95 }}
                         className="mt-4"
                     >
-                        {/* <Button
-                            className="w-full bg-gray-800 text-white hover:bg-gray-900 text-sm py-4 rounded-xl shadow"
-                            onClick={resetWheel}
-                            disabled={isSpinning}
-                        >
-                            <RotateCcw className="w-5 h-5 mr-2" /> Đặt Lại Vòng Quay
-                        </Button> */}
                     </motion.div>
                 </div>
 

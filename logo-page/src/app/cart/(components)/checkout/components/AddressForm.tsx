@@ -400,7 +400,7 @@ export default function AddressForm({
                       <SelectTrigger className="bg-white border-gray-300 text-gray-900 h-10 w-full pl-9 focus:border-orange-500 focus:ring-orange-500">
                         <SelectValue placeholder="Chọn tỉnh/thành phố" />
                       </SelectTrigger>
-                      <SelectContent className="bg-white max-w-[400px]">
+                      <SelectContent position="popper" side="top" className="bg-white max-w-[400px] max-h-72 overflow-auto z-[2000]">
                         {provinces.map((province) => (
                           <SelectItem
                             key={province.code}
@@ -444,7 +444,7 @@ export default function AddressForm({
                       <SelectTrigger className="bg-white border-gray-300 text-gray-900 h-10 w-full pl-9 disabled:bg-gray-50 disabled:text-gray-400 focus:border-orange-500 focus:ring-orange-500">
                         <SelectValue placeholder="Chọn xã/phường" />
                       </SelectTrigger>
-                      <SelectContent className="bg-white max-w-[400px]">
+                      <SelectContent position="popper" side="top" className="bg-white max-w-[400px] max-h-72 overflow-auto z-[2000]">
                         {wards.map((ward) => (
                           <SelectItem
                             key={ward.code}

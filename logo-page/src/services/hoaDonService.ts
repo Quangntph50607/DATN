@@ -4,7 +4,7 @@ import {
   HoaDonChiTietDTO,
   TrangThaiHoaDon,
 } from "@/components/types/hoaDon-types";
-import { fetchWithAuth } from "./fetchWithAuth";
+// No auth needed for public order endpoints per BE config
 import {
   GuiHoaDonRequest,
   GuiHoaDonResponse,
@@ -43,7 +43,7 @@ export const HoaDonService = {
   async createHoaDon(orderData: CreateHoaDonDTO): Promise<HoaDonDTO> {
     try {
       console.log("Sending order data:", orderData);
-      const res = await fetchWithAuth(`${API_URL}/create`, {
+      const res = await fetch(`${API_URL}/create`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -76,7 +76,7 @@ export const HoaDonService = {
 
   async getAllHoaDons(): Promise<HoaDonDTO[]> {
     try {
-      const res = await fetchWithAuth(`${API_URL}/get-all-hoa-don`, {
+      const res = await fetch(`${API_URL}/get-all-hoa-don`, {
         cache: "no-store",
       });
 
@@ -102,7 +102,7 @@ export const HoaDonService = {
     number: number;
   }> {
     try {
-      const res = await fetchWithAuth(
+      const res = await fetch(
         `${API_URL}/paging?page=${page}&size=${size}`,
         {
           cache: "no-store",
@@ -122,7 +122,7 @@ export const HoaDonService = {
 
   // Lấy chi tiết hóa đơn theo ID
   async getHoaDonById(id: number) {
-    const res = await fetchWithAuth(`${API_URL}/${id}`);
+    const res = await fetch(`${API_URL}/${id}`, { cache: "no-store" });
     if (!res.ok) throw new Error("Không thể lấy chi tiết hóa đơn");
     return res.json();
   },
@@ -130,8 +130,8 @@ export const HoaDonService = {
 
   async updateTrangThai(
     ids: number | number[], // Cho phép truyền 1 ID hoặc nhiều ID
-    trangThai: keyof typeof TrangThaiHoaDon | string
-  ): Promise<any> {
+    trangThai: keyof typeof TrangThaiHoaDon | TrangThaiHoaDon
+  ): Promise<unknown> {
     try {
       const nvId = await getCurrentUserId();
       if (!nvId) {
@@ -141,7 +141,9 @@ export const HoaDonService = {
       }
 
       // Kiểm tra trạng thái hợp lệ
-      const validStatuses = Object.values(TrangThaiHoaDon);
+      const validStatuses = Object.values(TrangThaiHoaDon) as Array<
+        keyof typeof TrangThaiHoaDon | TrangThaiHoaDon
+      >;
       if (!validStatuses.includes(trangThai)) {
         throw new Error(
           `Trạng thái không hợp lệ: ${trangThai}. Các trạng thái hợp lệ: ${validStatuses.join(
@@ -159,7 +161,7 @@ export const HoaDonService = {
         idNV: nvId,
       };
 
-      const res = await fetchWithAuth(`${API_URL}/trang-thai`, {
+      const res = await fetch(`${API_URL}/trang-thai`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(requestBody),
@@ -186,16 +188,15 @@ export const HoaDonService = {
   },
 
   async getStatusCounts(): Promise<Record<string, number>> {
-    const res = await fetchWithAuth(`${API_URL}/status-count`, {
-      cache: "no-store",
-    });
+    const res = await fetch(`${API_URL}/status-count`, { cache: "no-store" });
     if (!res.ok) throw new Error("Không thể lấy thống kê trạng thái");
     return res.json();
   },
 
   async getChiTietSanPhamByHoaDonId(id: number): Promise<HoaDonChiTietDTO[]> {
-    const res = await fetchWithAuth(
-      `http://localhost:8080/api/lego-store/hoa-don-chi-tiet/hoaDon/${id}`
+    const res = await fetch(
+      `http://localhost:8080/api/lego-store/hoa-don-chi-tiet/hoaDon/${id}`,
+      { cache: "no-store" }
     );
     if (!res.ok) throw new Error("Không thể lấy chi tiết sản phẩm hóa đơn");
     return res.json();
@@ -204,9 +205,7 @@ export const HoaDonService = {
   // Lấy lịch sử mua hàng của user
   async getHoaDonByUserId(userId: number): Promise<HoaDonDTO[]> {
     try {
-      const res = await fetchWithAuth(`${API_URL}/user/${userId}`, {
-        cache: "no-store",
-      });
+      const res = await fetch(`${API_URL}/user/${userId}`, { cache: "no-store" });
 
       if (!res.ok) {
         throw new Error("Không thể tải lịch sử mua hàng");
@@ -229,10 +228,7 @@ export const HoaDonService = {
 
     const url = `${API_URL}/get-phi-ship?${params.toString()}`;
 
-    const res = await fetchWithAuth(url, {
-      method: "GET",
-      cache: "no-store",
-    });
+    const res = await fetch(url, { method: "GET", cache: "no-store" });
 
     if (!res.ok) {
       let errorMessage = "Không thể lấy phí ship";
@@ -252,7 +248,7 @@ export const HoaDonService = {
   // Gửi email
   async addEmail(data: GuiHoaDonRequest): Promise<GuiHoaDonResponse> {
     try {
-      const res = await fetchWithAuth(`${API_URL}/send-order-email`, {
+      const res = await fetch(`${API_URL}/send-order-email`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -91,7 +91,7 @@ export const khuyenMaiService = {
   // Get All List SanPham theo khuyến mãi
   async ListSanPhamTheoKhuyenMai(): Promise<KhuyenMaiTheoSanPham[]> {
     try {
-      const res = await fetchWithAuth(`${API_URL_SP_List}/ReadAllV2`);
+      const res = await fetch(`${API_URL_SP_List}/ReadAllV2`, { cache: "no-store" });
       if (!res.ok) {
         throw new Error("Không tìm thấy danh sách sản phẩm");
       }

@@ -29,7 +29,7 @@ async function handleErrorResponse(res: Response, defaultMessage: string): Promi
 export const anhSanPhamSevice = {
   async getAnhSanPham(): Promise<AnhSanPhamChiTiet[]> {
     try {
-      const res = await fetchWithAuth(`${API_URL}/ReadAll`);
+      const res = await fetch(`${API_URL}/ReadAll`, { cache: "no-store" });
       if (!res.ok) {
         throw new Error("Không tìm thấy danh sách ảnh sản phẩm");
       }
@@ -51,7 +51,7 @@ export const anhSanPhamSevice = {
   //  Ảnh chi tiết
   async getAnhSanPhamID(id: number): Promise<AnhSanPhamChiTiet> {
     try {
-      const res = await fetchWithAuth(`${API_URL}/Readone/${id}`);
+      const res = await fetch(`${API_URL}/Readone/${id}`, { cache: "no-store" });
       if (!res.ok) {
         throw new Error(`Không tìm thấy ảnh sản phẩm với ${id}`);
       }
@@ -182,7 +182,7 @@ export const anhSanPhamSevice = {
 
   // Lấy danh sách ảnh theo sản phẩm
   async getAnhSanPhamTheoSanPhamId(id: number): Promise<AnhSanPhamChiTiet[]> {
-    const res = await fetchWithAuth(`${API_URL}/sanpham/${id}`);
+    const res = await fetch(`${API_URL}/sanpham/${id}`, { cache: "no-store" });
 
     if (!res.ok) {
       await handleErrorResponse(res, "Không thể tải ảnh theo sản phẩm");

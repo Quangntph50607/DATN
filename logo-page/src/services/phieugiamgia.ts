@@ -9,9 +9,7 @@ const API_URL = "http://localhost:8080/api/phieugiamgia";
 
 export const phieuGiamGiaService = {
   async getPhieuGiamGia(): Promise<PhieuGiamGia[]> {
-    const res = await fetchWithAuth(`${API_URL}/ReadAll`, {
-      cache: "no-store",
-    });
+    const res = await fetch(`${API_URL}/ReadAll`, { cache: "no-store" });
     if (!res.ok) throw new Error("Không tìm thấy phiếu giảm giá");
     return res.json();
   },
@@ -49,9 +47,7 @@ export const phieuGiamGiaService = {
   },
 
   async getChitietPhieuGiamGia(id: number): Promise<ChitietPhieuGiamGia> {
-    const res = await fetchWithAuth(`${API_URL}/getDetail/${id}`, {
-      cache: "no-store",
-    });
+    const res = await fetch(`${API_URL}/getDetail/${id}`, { cache: "no-store" });
     if (!res.ok) {
       const errorText = await res.text();
       console.error(
@@ -66,9 +62,7 @@ export const phieuGiamGiaService = {
   },
 
   async getPhieuGiamGiaNoiBat(): Promise<PhieuGiamGia[]> {
-    const res = await fetchWithAuth(`${API_URL}/ReadAll`, {
-      cache: "no-store",
-    });
+    const res = await fetch(`${API_URL}/ReadAll`, { cache: "no-store" });
     if (!res.ok) {
       const errorText = await res.text();
       console.error("❌ Lỗi khi lấy phiếu giảm giá:", errorText);
@@ -76,11 +70,29 @@ export const phieuGiamGiaService = {
     }
     const allVouchers = await res.json();
     
-    // Lọc phiếu giảm giá có noiBat = 2 (dành cho đổi điểm)
     const exchangeVouchers = allVouchers.filter((voucher: PhieuGiamGia) => {
       return voucher.noiBat === 2;
     });
     
     return exchangeVouchers;
+  },
+
+  async getPhieuGiamGiaVongQuay(): Promise<PhieuGiamGia[]> {
+    const res = await fetch(`${API_URL}/ReadAll`, { cache: "no-store" });
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("❌ Lỗi khi lấy phiếu giảm giá vòng quay:", errorText);
+      throw new Error("Không thể lấy phiếu giảm giá vòng quay");
+    }
+    const allVouchers = await res.json();
+    
+    // Lọc phiếu giảm giá có noiBat = 1 (dành cho vòng quay) và trạng thái active
+    const wheelVouchers = allVouchers.filter((voucher: PhieuGiamGia) => {
+      return voucher.noiBat === 1 && 
+             voucher.trangThai && 
+             voucher.trangThai.trim().toLowerCase() === "active";
+    });
+    
+    return wheelVouchers;
   },
 };

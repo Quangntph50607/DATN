@@ -9,7 +9,7 @@ const API_URL = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"}/a
 export const danhGiaService = {
   async getBySanPham(spId: number): Promise<DanhGiaResponse[]> {
     try {
-      const res = await fetchWithAuth(`${API_URL}/${spId}`);
+      const res = await fetch(`${API_URL}/${spId}`, { cache: "no-store" });
 
       if (!res.ok) {
         throw new Error(`Failed to fetch reviews: ${res.status}`);
@@ -25,7 +25,7 @@ export const danhGiaService = {
 
   async getAllReviews(): Promise<DanhGiaResponse[]> {
     try {
-      const res = await fetchWithAuth(`${API_URL}/getAll`);
+      const res = await fetch(`${API_URL}/getAll`, { cache: "no-store" });
 
       if (!res.ok) {
         throw new Error(`Failed to fetch all reviews: ${res.status}`);

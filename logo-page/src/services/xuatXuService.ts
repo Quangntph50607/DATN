@@ -5,7 +5,7 @@ const API_URL = "http://localhost:8080/api/lego-store/xuatXu";
 
 export const xuatXuService = {
     async getAll(): Promise<XuatXu[]> {
-        const res = await fetchWithAuth(`${API_URL}/getAll`);
+        const res = await fetch(`${API_URL}/getAll`, { cache: "no-store" });
         if (!res.ok) throw new Error("Không thể lấy danh sách xuất xứ");
         return await res.json();
     },

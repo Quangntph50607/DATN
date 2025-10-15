@@ -6,7 +6,7 @@ const API_URL = "http://localhost:8080/api/bosuutap";
 export const boSuuTapService = {
   async getBoSutap(): Promise<BoSuuTap[]> {
     try {
-      const res = await fetchWithAuth(`${API_URL}/ReadAll`);
+      const res = await fetch(`${API_URL}/ReadAll`, { cache: "no-store" });
       if (!res.ok) {
         throw new Error("Khong tìm thấy bộ sưu tập ");
       }
@@ -20,7 +20,7 @@ export const boSuuTapService = {
   //Ct
   async getBoSuuTapID(id: number): Promise<BoSuuTap> {
     try {
-      const res = await fetchWithAuth(`${API_URL}/ReadOne/${id}`);
+      const res = await fetch(`${API_URL}/ReadOne/${id}`, { cache: "no-store" });
       if (!res.ok) {
         throw new Error(`Không tìm thấy bộ sưu tập với ID ${id}`);
       }

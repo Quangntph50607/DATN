@@ -5,7 +5,7 @@ const API_URL = "http://localhost:8080/api/lego-store/thuong-hieu";
 
 export const thuongHieuService = {
     async getAll(): Promise<ThuongHieu[]> {
-        const res = await fetchWithAuth(`${API_URL}/getAll`);
+        const res = await fetch(`${API_URL}/getAll`, { cache: "no-store" });
         if (!res.ok) throw new Error("Không thể lấy danh sách thương hiệu");
         return await res.json();
     },

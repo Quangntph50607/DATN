@@ -61,12 +61,23 @@ export function useHistoryPhieuGiamGia(id: number) {
     enabled: !!id,
   });
 }
-// LAY PHIEU GIAM NOI BAT
+// LAY PHIEU GIAM NOI BAT (Đổi điểm - noiBat = 2)
 export function useGetPhieuGiamGiaNoiBat() {
   return useQuery<PhieuGiamGia[]>({
     queryKey: ["phieuGiamGiaNoiBat"],
     queryFn: async () => {
       const res = await phieuGiamGiaService.getPhieuGiamGiaNoiBat();
+      return res;
+    },
+  });
+}
+
+// LAY PHIEU GIAM VONG QUAY (Vòng quay - noiBat = 1)
+export function useGetPhieuGiamGiaVongQuay() {
+  return useQuery<PhieuGiamGia[]>({
+    queryKey: ["phieuGiamGiaVongQuay"],
+    queryFn: async () => {
+      const res = await phieuGiamGiaService.getPhieuGiamGiaVongQuay();
       return res;
     },
   });

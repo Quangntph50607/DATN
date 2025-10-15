@@ -14,7 +14,7 @@ const API_URL = "http://localhost:8080/api";
 export const sanPhamService = {
   async getSanPhams(): Promise<SanPham[]> {
     try {
-      const res = await fetchWithAuth(`${API_URL}/sanpham/ReadAll`);
+      const res = await fetch(`${API_URL}/sanpham/ReadAll`, { cache: "no-store" });
       if (!res.ok) {
         throw new Error("Không tìm thấy danh sách sản phẩm");
       }
@@ -28,7 +28,7 @@ export const sanPhamService = {
   //SPCT
   async getSanPhamID(id: number): Promise<SanPham> {
     try {
-      const res = await fetchWithAuth(`${API_URL}/sanpham/ReadOne/${id}`);
+      const res = await fetch(`${API_URL}/sanpham/ReadOne/${id}`, { cache: "no-store" });
       if (!res.ok) {
         throw new Error(`Không tìm thấy sản phẩm với ID ${id}`);
       }

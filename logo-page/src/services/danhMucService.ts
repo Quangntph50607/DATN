@@ -5,7 +5,7 @@ const API_URL = "http://localhost:8080/api/danhmuc";
 export const danhMucService = {
   async getDanhMuc(): Promise<DanhMuc[]> {
     try {
-      const res = await fetchWithAuth(`${API_URL}/ReadAll`);
+      const res = await fetch(`${API_URL}/ReadAll`, { cache: "no-store" });
       if (!res.ok) {
         throw new Error("Không tìm thấy danh mục");
       }
@@ -18,7 +18,7 @@ export const danhMucService = {
   //Danh mục chi tiết
   async getDanhMucId(id: number): Promise<DanhMuc> {
     try {
-      const res = await fetchWithAuth(`${API_URL}/ReadOne/${id}`);
+      const res = await fetch(`${API_URL}/ReadOne/${id}`, { cache: "no-store" });
       if (!res.ok) {
         throw new Error("Không tìm thấy danh mục");
       }
